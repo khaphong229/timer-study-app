@@ -1,5 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Material Design 3 Color Scheme - Primary -->
+    <color name="md_theme_primary">#6750A4</color>
+    <color name="md_theme_onPrimary">#FFFFFF</color>
+    <color name="md_theme_primaryContainer">#EADDFF</color>
+    <color name="md_theme_onPrimaryContainer">#21005D</color>
+
+    <!-- Secondary -->
+    <color name="md_theme_secondary">#625B71</color>
+    <color name="md_theme_onSecondary">#FFFFFF</color>
+    <color name="md_theme_secondaryContainer">#E8DEF8</color>
+    <color name="md_theme_onSecondaryContainer">#1D192B</color>
+
+    <!-- Surface -->
+    <color name="md_theme_surface">#FFFBFE</color>
+    <color name="md_theme_onSurface">#1C1B1F</color>
+    <color name="md_theme_surfaceVariant">#E7E0EC</color>
+    <color name="md_theme_onSurfaceVariant">#49454F</color>
+
+    <!-- Background -->
+    <color name="md_theme_background">#FFFBFE</color>
+    <color name="md_theme_onBackground">#1C1B1F</color>
+
+    <!-- Error -->
+    <color name="md_theme_error">#B3261E</color>
+    <color name="md_theme_onError">#FFFFFF</color>
+    <color name="md_theme_errorContainer">#F9DEDC</color>
+    <color name="md_theme_onErrorContainer">#410E0B</color>
+
+    <!-- Outline -->
+    <color name="md_theme_outline">#79747E</color>
+
+    <!-- Legacy colors (giữ lại nếu có) -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Dark theme colors (optional - cho night mode) -->
+    <color name="md_theme_primary_dark">#D0BCFF</color>
+    <color name="md_theme_onPrimary_dark">#381E72</color>
+    <color name="md_theme_surface_dark">#1C1B1F</color>
+    <color name="md_theme_onSurface_dark">#E6E1E5</color>
 </resources>

@@ -14,3 +14,6 @@
 .cxx
 local.properties
 tree.txt
+.vscode/
+crash_log.txt
+.idea/

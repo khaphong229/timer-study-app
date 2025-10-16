@@ -3,26 +3,30 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/FirstFragment">
+    app:startDestination="@id/homeFragment">
 
+    <!-- Home Fragment - Màn hình chính hiển thị thông tin user -->
     <fragment
-        android:id="@+id/FirstFragment"
-        android:name="com.example.timerstudy.FirstFragment"
-        android:label="@string/first_fragment_label"
-        tools:layout="@layout/fragment_first">
+        android:id="@+id/homeFragment"
+        android:name="com.example.timerstudy.view.fragments.HomeFragment"
+        android:label="Trang Chủ"
+        tools:layout="@layout/fragment_home">
 
+        <!-- Action để navigate đến ProfileFragment -->
         <action
-            android:id="@+id/action_FirstFragment_to_SecondFragment"
-            app:destination="@id/SecondFragment" />
+            android:id="@+id/action_homeFragment_to_profileFragment"
+            app:destination="@id/profileFragment"
+            app:enterAnim="@android:anim/slide_in_left"
+            app:exitAnim="@android:anim/slide_out_right"
+            app:popEnterAnim="@android:anim/slide_in_left"
+            app:popExitAnim="@android:anim/slide_out_right" />
     </fragment>
+
+    <!-- Profile Fragment - Màn hình hiển thị thông tin chi tiết -->
     <fragment
-        android:id="@+id/SecondFragment"
-        android:name="com.example.timerstudy.SecondFragment"
-        android:label="@string/second_fragment_label"
-        tools:layout="@layout/fragment_second">
+        android:id="@+id/profileFragment"
+        android:name="com.example.timerstudy.view.fragments.ProfileFragment"
+        android:label="Hồ Sơ"
+        tools:layout="@layout/fragment_profile" />
 
-        <action
-            android:id="@+id/action_SecondFragment_to_FirstFragment"
-            app:destination="@id/FirstFragment" />
-    </fragment>
 </navigation>

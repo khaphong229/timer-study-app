@@ -1,7 +1,42 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+    <!-- Dark theme for night mode -->
     <style name="Base.Theme.TimerStudy" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        <!-- Primary brand color (dark) -->
+        <item name="colorPrimary">@color/md_theme_primary_dark</item>
+        <item name="colorOnPrimary">@color/md_theme_onPrimary_dark</item>
+        <item name="colorPrimaryContainer">#4F378B</item>
+        <item name="colorOnPrimaryContainer">#EADDFF</item>
+
+        <!-- Secondary brand color (dark) -->
+        <item name="colorSecondary">#CCC2DC</item>
+        <item name="colorOnSecondary">#332D41</item>
+        <item name="colorSecondaryContainer">#4A4458</item>
+        <item name="colorOnSecondaryContainer">#E8DEF8</item>
+
+        <!-- Surface (dark) -->
+        <item name="colorSurface">@color/md_theme_surface_dark</item>
+        <item name="colorOnSurface">@color/md_theme_onSurface_dark</item>
+        <item name="colorSurfaceVariant">#49454F</item>
+        <item name="colorOnSurfaceVariant">#CAC4D0</item>
+
+        <!-- Background (dark) -->
+        <item name="android:colorBackground">#1C1B1F</item>
+        <item name="colorOnBackground">#E6E1E5</item>
+
+        <!-- Error (dark) -->
+        <item name="colorError">#F2B8B5</item>
+        <item name="colorOnError">#601410</item>
+        <item name="colorErrorContainer">#8C1D18</item>
+        <item name="colorOnErrorContainer">#F9DEDC</item>
+
+        <!-- Status bar (dark) -->
+        <item name="android:statusBarColor">@color/md_theme_surface_dark</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+
+        <!-- Navigation bar (dark) -->
+        <item name="android:navigationBarColor">@color/md_theme_surface_dark</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
     </style>
+
+    <style name="Theme.TimerStudy" parent="Base.Theme.TimerStudy" />
 </resources>
