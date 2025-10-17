@@ -57,12 +57,12 @@ public class MainActivity extends AppCompatActivity {
                     appBarConfiguration
             );
 
-            // Kết nối BottomNavigationView với NavController
-            // Tự động điều hướng khi click vào các item
-            NavigationUI.setupWithNavController(
-                    binding.bottomNavigation,
-                    navController
-            );
+        // Kết nối NavigationRailView (right-side) với NavController
+        // Tự động điều hướng khi click vào các item
+        NavigationUI.setupWithNavController(
+            binding.navigationRail,
+            navController
+        );
 
             // Optional: Listener để xử lý navigation events
             setupNavigationListener();
