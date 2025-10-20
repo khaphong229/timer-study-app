@@ -8,6 +8,7 @@ Base Android project frontend hoàn chỉnh sử dụng:
 - **Navigation**: Navigation Component với BottomNavigationView
 - **UI**: Material Design 3
 - **Binding**: ViewBinding (type-safe, hiệu năng cao)
+- **Database**: Room Database với Entity classes và Type Converters
 - **Ngôn ngữ**: Java
 
 ---
@@ -83,10 +84,17 @@ TimerStudy/
 │   │   │   │   │       │   ├── AppDatabase.java   # Room database
 │   │   │   │   │       │   ├── dao/
 │   │   │   │   │       │   │   ├── UserDao.java   # User data access
-│   │   │   │   │       │   │   └── TimerDao.java  # Timer data access
-│   │   │   │   │       │   └── entities/
-│   │   │   │   │       │       ├── UserEntity.java
-│   │   │   │   │       │       └── TimerEntity.java
+│   │   │   │   │       │   │   ├── SessionDao.java # Session data access
+│   │   │   │   │       │   │   ├── TaskDao.java   # Task data access
+│   │   │   │   │       │   │   └── GoalDao.java   # Goal data access
+│   │   │   │   │       │   ├── entities/
+│   │   │   │   │       │   │   ├── UserEntity.java
+│   │   │   │   │       │   │   ├── SessionEntity.java
+│   │   │   │   │       │   │   ├── TaskEntity.java
+│   │   │   │   │       │   │   ├── GoalEntity.java
+│   │   │   │   │       │   │   └── ... (10 entities total)
+│   │   │   │   │       │   └── converters/
+│   │   │   │   │       │       └── DateConverter.java # Date type converter
 │   │   │   │   │       └── preferences/
 │   │   │   │   │           └── AppPreferences.java # Shared preferences
 │   │   │   │   │
@@ -553,9 +561,39 @@ Created as a base template for Android MVVM projects.
 
 ---
 
+## 🗄️ Database Schema
+
+Project đã được tích hợp Room Database với 10 Entity classes:
+
+### 📊 **Entity Classes**
+- **UserEntity** - Quản lý thông tin người dùng
+- **SessionEntity** - Theo dõi các phiên học tập/focus
+- **SessionPauseEntity** - Ghi lại các lần tạm dừng trong session
+- **TaskEntity** - Quản lý danh sách công việc
+- **TaskSessionEntity** - Liên kết giữa task và session
+- **GoalEntity** - Mục tiêu hàng ngày
+- **UserSettingEntity** - Cài đặt cá nhân của user
+- **DefaultSettingEntity** - Cài đặt mặc định của app
+- **StatisticsCacheEntity** - Cache thống kê để tối ưu hiệu năng
+- **StreakRecordEntity** - Theo dõi chuỗi ngày học tập
+
+### 🔧 **Type Converters**
+- **DateConverter** - Chuyển đổi Date ↔ Long timestamp
+
+### 📋 **Database Features**
+- ✅ Foreign key relationships với CASCADE delete
+- ✅ Comprehensive indexing cho performance
+- ✅ Type converters cho Date objects
+- ✅ Default values và constraints
+- ✅ Constants cho status và type values
+
+Chi tiết đầy đủ xem file: [DATABASE_DOCS.md](DATABASE_DOCS.md)
+
+---
+
 ## 🎯 Next Steps
 
-- [ ] Thêm Room Database
+- [x] ✅ Thêm Room Database
 - [ ] Tích hợp Retrofit cho API calls
 - [ ] Implement Paging 3 cho lists
 - [ ] Thêm Unit Tests
