@@ -1,0 +1,461 @@
+package com.example.timerstudy.data.repository;
+
+import android.content.Context;
+import android.util.Log;
+
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+
+import com.example.timerstudy.data.local.database.AppDatabase;
+import com.example.timerstudy.data.local.database.dao.UserDao;
+import com.example.timerstudy.data.local.database.entities.UserEntity;
+
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+/**
+ * Repository for User data operations
+ * 
+ * This repository handles all user-related database operations and provides
+ * a clean interface for the ViewModel layer. It manages background threads
+ * and error handling for database operations.
+ */
+public class UserRepository {
+    
+    private static final String TAG = "UserRepository";
+    
+    // Database and DAO
+    private final AppDatabase database;
+    private final UserDao userDao;
+    
+    // Thread executor for background operations
+    private final ExecutorService executorService;
+    
+    // LiveData for reactive updates
+    private final MutableLiveData<List<UserEntity>> allUsersLiveData;
+    private final MutableLiveData<UserEntity> currentUserLiveData;
+    private final MutableLiveData<Boolean> isLoadingLiveData;
+    private final MutableLiveData<String> errorLiveData;
+    
+    // Singleton instance
+    private static volatile UserRepository INSTANCE;
+    
+    /**
+     * Private constructor for Singleton pattern
+     * 
+     * @param context Application context
+     */
+    private UserRepository(Context context) {
+        database = AppDatabase.getDatabase(context);
+        userDao = database.userDao();
+        executorService = Executors.newFixedThreadPool(4);
+        
+        // Initialize LiveData
+        allUsersLiveData = new MutableLiveData<>();
+        currentUserLiveData = new MutableLiveData<>();
+        isLoadingLiveData = new MutableLiveData<>();
+        errorLiveData = new MutableLiveData<>();
+        
+        // Load initial data
+        loadAllUsers();
+    }
+    
+    /**
+     * Get singleton instance
+     * 
+     * @param context Application context
+     * @return UserRepository instance
+     */
+    public static UserRepository getInstance(Context context) {
+        if (INSTANCE == null) {
+            synchronized (UserRepository.class) {
+                if (INSTANCE == null) {
+                    INSTANCE = new UserRepository(context.getApplicationContext());
+                }
+            }
+        }
+        return INSTANCE;
+    }
+    
+    // ==================== LIVE DATA GETTERS ====================
+    
+    /**
+     * Get all users LiveData
+     * 
+     * @return LiveData containing list of all users
+     */
+    public LiveData<List<UserEntity>> getAllUsersLiveData() {
+        return allUsersLiveData;
+    }
+    
+    /**
+     * Get current user LiveData
+     * 
+     * @return LiveData containing current user
+     */
+    public LiveData<UserEntity> getCurrentUserLiveData() {
+        return currentUserLiveData;
+    }
+    
+    /**
+     * Get loading state LiveData
+     * 
+     * @return LiveData containing loading state
+     */
+    public LiveData<Boolean> getIsLoadingLiveData() {
+        return isLoadingLiveData;
+    }
+    
+    /**
+     * Get error LiveData
+     * 
+     * @return LiveData containing error messages
+     */
+    public LiveData<String> getErrorLiveData() {
+        return errorLiveData;
+    }
+    
+    // ==================== USER OPERATIONS ====================
+    
+    /**
+     * Load all users from database
+     */
+    public void loadAllUsers() {
+        executorService.execute(() -> {
+            try {
+                isLoadingLiveData.postValue(true);
+                List<UserEntity> users = userDao.getAllUsers();
+                allUsersLiveData.postValue(users);
+                errorLiveData.postValue(null);
+            } catch (Exception e) {
+                Log.e(TAG, "Error loading all users", e);
+                errorLiveData.postValue("Failed to load users: " + e.getMessage());
+            } finally {
+                isLoadingLiveData.postValue(false);
+            }
+        });
+    }
+    
+    /**
+     * Get user by ID
+     * 
+     * @param userId User ID to search for
+     * @return UserEntity or null if not found
+     */
+    public void getUserById(int userId) {
+        executorService.execute(() -> {
+            try {
+                isLoadingLiveData.postValue(true);
+                UserEntity user = userDao.getUserById(userId);
+                currentUserLiveData.postValue(user);
+                errorLiveData.postValue(null);
+            } catch (Exception e) {
+                Log.e(TAG, "Error getting user by ID: " + userId, e);
+                errorLiveData.postValue("Failed to get user: " + e.getMessage());
+            } finally {
+                isLoadingLiveData.postValue(false);
+            }
+        });
+    }
+    
+    /**
+     * Get user by email
+     * 
+     * @param email Email to search for
+     * @return UserEntity or null if not found
+     */
+    public void getUserByEmail(String email) {
+        executorService.execute(() -> {
+            try {
+                isLoadingLiveData.postValue(true);
+                UserEntity user = userDao.getUserByEmail(email);
+                currentUserLiveData.postValue(user);
+                errorLiveData.postValue(null);
+            } catch (Exception e) {
+                Log.e(TAG, "Error getting user by email: " + email, e);
+                errorLiveData.postValue("Failed to get user: " + e.getMessage());
+            } finally {
+                isLoadingLiveData.postValue(false);
+            }
+        });
+    }
+    
+    /**
+     * Create a new user
+     * 
+     * @param user UserEntity to create
+     * @return User ID of created user
+     */
+    public void createUser(UserEntity user) {
+        executorService.execute(() -> {
+            try {
+                isLoadingLiveData.postValue(true);
+                long userId = userDao.insertUser(user);
+                user.setUserId((int) userId);
+                currentUserLiveData.postValue(user);
+                loadAllUsers(); // Refresh the list
+                errorLiveData.postValue(null);
+            } catch (Exception e) {
+                Log.e(TAG, "Error creating user", e);
+                errorLiveData.postValue("Failed to create user: " + e.getMessage());
+            } finally {
+                isLoadingLiveData.postValue(false);
+            }
+        });
+    }
+    
+    /**
+     * Create a new anonymous user
+     * 
+     * @return UserEntity of created anonymous user
+     */
+    public void createAnonymousUser() {
+        executorService.execute(() -> {
+            try {
+                isLoadingLiveData.postValue(true);
+                UserEntity user = new UserEntity();
+                user.setAnonymous(true);
+                long userId = userDao.insertUser(user);
+                user.setUserId((int) userId);
+                currentUserLiveData.postValue(user);
+                loadAllUsers(); // Refresh the list
+                errorLiveData.postValue(null);
+            } catch (Exception e) {
+                Log.e(TAG, "Error creating anonymous user", e);
+                errorLiveData.postValue("Failed to create anonymous user: " + e.getMessage());
+            } finally {
+                isLoadingLiveData.postValue(false);
+            }
+        });
+    }
+    
+    /**
+     * Update user information
+     * 
+     * @param user UserEntity with updated information
+     */
+    public void updateUser(UserEntity user) {
+        executorService.execute(() -> {
+            try {
+                isLoadingLiveData.postValue(true);
+                userDao.updateUser(user);
+                currentUserLiveData.postValue(user);
+                loadAllUsers(); // Refresh the list
+                errorLiveData.postValue(null);
+            } catch (Exception e) {
+                Log.e(TAG, "Error updating user", e);
+                errorLiveData.postValue("Failed to update user: " + e.getMessage());
+            } finally {
+                isLoadingLiveData.postValue(false);
+            }
+        });
+    }
+    
+    /**
+     * Update user's last login time
+     * 
+     * @param userId User ID to update
+     */
+    public void updateLastLogin(int userId) {
+        executorService.execute(() -> {
+            try {
+                long currentTime = System.currentTimeMillis();
+                userDao.updateLastLogin(userId, currentTime);
+                // Refresh current user if it's the same user
+                UserEntity currentUser = currentUserLiveData.getValue();
+                if (currentUser != null && currentUser.getUserId() == userId) {
+                    currentUser.setLastLogin(new java.util.Date(currentTime));
+                    currentUserLiveData.postValue(currentUser);
+                }
+                errorLiveData.postValue(null);
+            } catch (Exception e) {
+                Log.e(TAG, "Error updating last login for user: " + userId, e);
+                errorLiveData.postValue("Failed to update last login: " + e.getMessage());
+            }
+        });
+    }
+    
+    /**
+     * Update user's display name
+     * 
+     * @param userId User ID to update
+     * @param displayName New display name
+     */
+    public void updateDisplayName(int userId, String displayName) {
+        executorService.execute(() -> {
+            try {
+                userDao.updateDisplayName(userId, displayName);
+                // Refresh current user if it's the same user
+                UserEntity currentUser = currentUserLiveData.getValue();
+                if (currentUser != null && currentUser.getUserId() == userId) {
+                    currentUser.setDisplayName(displayName);
+                    currentUserLiveData.postValue(currentUser);
+                }
+                loadAllUsers(); // Refresh the list
+                errorLiveData.postValue(null);
+            } catch (Exception e) {
+                Log.e(TAG, "Error updating display name for user: " + userId, e);
+                errorLiveData.postValue("Failed to update display name: " + e.getMessage());
+            }
+        });
+    }
+    
+    /**
+     * Update user's profile picture URL
+     * 
+     * @param userId User ID to update
+     * @param profilePictureUrl New profile picture URL
+     */
+    public void updateProfilePicture(int userId, String profilePictureUrl) {
+        executorService.execute(() -> {
+            try {
+                userDao.updateProfilePicture(userId, profilePictureUrl);
+                // Refresh current user if it's the same user
+                UserEntity currentUser = currentUserLiveData.getValue();
+                if (currentUser != null && currentUser.getUserId() == userId) {
+                    currentUser.setProfilePictureUrl(profilePictureUrl);
+                    currentUserLiveData.postValue(currentUser);
+                }
+                loadAllUsers(); // Refresh the list
+                errorLiveData.postValue(null);
+            } catch (Exception e) {
+                Log.e(TAG, "Error updating profile picture for user: " + userId, e);
+                errorLiveData.postValue("Failed to update profile picture: " + e.getMessage());
+            }
+        });
+    }
+    
+    /**
+     * Convert anonymous user to registered user
+     * 
+     * @param userId User ID to convert
+     * @param email User's email
+     * @param displayName User's display name
+     */
+    public void convertToRegisteredUser(int userId, String email, String displayName) {
+        executorService.execute(() -> {
+            try {
+                isLoadingLiveData.postValue(true);
+                userDao.convertToRegisteredUser(userId, email, displayName);
+                // Refresh current user if it's the same user
+                UserEntity currentUser = currentUserLiveData.getValue();
+                if (currentUser != null && currentUser.getUserId() == userId) {
+                    currentUser.setAnonymous(false);
+                    currentUser.setEmail(email);
+                    currentUser.setDisplayName(displayName);
+                    currentUserLiveData.postValue(currentUser);
+                }
+                loadAllUsers(); // Refresh the list
+                errorLiveData.postValue(null);
+            } catch (Exception e) {
+                Log.e(TAG, "Error converting user to registered: " + userId, e);
+                errorLiveData.postValue("Failed to convert user: " + e.getMessage());
+            } finally {
+                isLoadingLiveData.postValue(false);
+            }
+        });
+    }
+    
+    /**
+     * Delete user by ID
+     * 
+     * @param userId User ID to delete
+     */
+    public void deleteUser(int userId) {
+        executorService.execute(() -> {
+            try {
+                isLoadingLiveData.postValue(true);
+                userDao.deleteUserById(userId);
+                // Clear current user if it's the same user
+                UserEntity currentUser = currentUserLiveData.getValue();
+                if (currentUser != null && currentUser.getUserId() == userId) {
+                    currentUserLiveData.postValue(null);
+                }
+                loadAllUsers(); // Refresh the list
+                errorLiveData.postValue(null);
+            } catch (Exception e) {
+                Log.e(TAG, "Error deleting user: " + userId, e);
+                errorLiveData.postValue("Failed to delete user: " + e.getMessage());
+            } finally {
+                isLoadingLiveData.postValue(false);
+            }
+        });
+    }
+    
+    /**
+     * Check if email exists
+     * 
+     * @param email Email to check
+     * @return True if email exists, false otherwise
+     */
+    public void checkEmailExists(String email) {
+        executorService.execute(() -> {
+            try {
+                boolean exists = userDao.isEmailExists(email);
+                // You can post this result to a LiveData if needed
+                Log.d(TAG, "Email exists: " + exists);
+            } catch (Exception e) {
+                Log.e(TAG, "Error checking email existence: " + email, e);
+                errorLiveData.postValue("Failed to check email: " + e.getMessage());
+            }
+        });
+    }
+    
+    /**
+     * Get user count
+     * 
+     * @return Total number of users
+     */
+    public void getUserCount() {
+        executorService.execute(() -> {
+            try {
+                int count = userDao.getUserCount();
+                Log.d(TAG, "Total users: " + count);
+            } catch (Exception e) {
+                Log.e(TAG, "Error getting user count", e);
+                errorLiveData.postValue("Failed to get user count: " + e.getMessage());
+            }
+        });
+    }
+    
+    // ==================== UTILITY METHODS ====================
+    
+    /**
+     * Clear all data
+     */
+    public void clearAllData() {
+        executorService.execute(() -> {
+            try {
+                isLoadingLiveData.postValue(true);
+                userDao.deleteAllUsers();
+                allUsersLiveData.postValue(null);
+                currentUserLiveData.postValue(null);
+                errorLiveData.postValue(null);
+            } catch (Exception e) {
+                Log.e(TAG, "Error clearing all data", e);
+                errorLiveData.postValue("Failed to clear data: " + e.getMessage());
+            } finally {
+                isLoadingLiveData.postValue(false);
+            }
+        });
+    }
+    
+    /**
+     * Close repository and cleanup resources
+     */
+    public void close() {
+        if (executorService != null && !executorService.isShutdown()) {
+            executorService.shutdown();
+        }
+    }
+    
+    /**
+     * Check if repository is closed
+     * 
+     * @return True if closed, false otherwise
+     */
+    public boolean isClosed() {
+        return executorService == null || executorService.isShutdown();
+    }
+}
