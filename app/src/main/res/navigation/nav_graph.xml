@@ -10,17 +10,14 @@
         android:id="@+id/homeFragment"
         android:name="com.example.timerstudy.view.fragments.HomeFragment"
         android:label="Trang Chủ"
-        tools:layout="@layout/fragment_home">
+        tools:layout="@layout/fragment_home" />
 
-        <!-- Action để navigate đến ProfileFragment -->
-        <action
-            android:id="@+id/action_homeFragment_to_profileFragment"
-            app:destination="@id/profileFragment"
-            app:enterAnim="@android:anim/slide_in_left"
-            app:exitAnim="@android:anim/slide_out_right"
-            app:popEnterAnim="@android:anim/slide_in_left"
-            app:popExitAnim="@android:anim/slide_out_right" />
-    </fragment>
+    <!-- Timer Fragment - Màn hình hiển thị bộ đếm thời gian -->
+    <fragment
+        android:id="@+id/timerFragment"
+        android:name="com.example.timerstudy.view.fragments.TimerFragment"
+        android:label="Timer"
+        tools:layout="@layout/fragment_timer" />
 
     <!-- Profile Fragment - Màn hình hiển thị thông tin chi tiết -->
     <fragment
