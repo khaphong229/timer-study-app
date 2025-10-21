@@ -47,4 +47,11 @@ dependencies {
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
+    
+    // Room components
+    implementation "androidx.room:room-runtime:2.5.0"
+    annotationProcessor "androidx.room:room-compiler:2.5.0"
+    
+    // Room with LiveData
+    implementation "androidx.room:room-ktx:2.5.0"
 }
