@@ -1,10 +1,10 @@
-# 🚀 My Base App - Android MVVM Project
+# 🚀 My Base App - Android MVP Project
 
 ## 📖 Giới Thiệu
 
 Base Android project frontend hoàn chỉnh sử dụng:
 
-- **Kiến trúc**: MVVM (Model-View-ViewModel)
+- **Kiến trúc**: MVP (Model-View-Presenter)
 - **Navigation**: Navigation Component với BottomNavigationView
 - **UI**: Material Design 3
 - **Binding**: ViewBinding (type-safe, hiệu năng cao)
@@ -13,7 +13,7 @@ Base Android project frontend hoàn chỉnh sử dụng:
 
 ---
 
-## 🏗️ Kiến Trúc MVVM
+## 🏗️ Kiến Trúc MVP
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -21,37 +21,40 @@ Base Android project frontend hoàn chỉnh sử dụng:
 │  (Activity, Fragments, XML Layouts)         │
 │  - Hiển thị UI                              │
 │  - Nhận user input                          │
-│  - Observe LiveData                         │
+│  - Implement View interface                 │
+│  - Passive, không chứa business logic       │
 └──────────────────┬──────────────────────────┘
-                   │ observes
-                   │ LiveData
+                   │ implements
+                   │ contract interface
                    ▼
 ┌─────────────────────────────────────────────┐
-│              VIEWMODEL LAYER                │
-│  (MainViewModel)                            │
-│  - Quản lý UI state                         │
+│              PRESENTER LAYER                │
+│  (HomePresenter, TimerPresenter, etc.)      │
 │  - Business logic                           │
-│  - Expose LiveData                          │
-│  - Survive config changes                   │
+│  - Điều phối giữa View và Model             │
+│  - Không biết về Android framework          │
+│  - Testable                                 │
 └──────────────────┬──────────────────────────┘
                    │ calls
                    │ methods
                    ▼
 ┌─────────────────────────────────────────────┐
 │             REPOSITORY LAYER                │
-│  (UserRepository)                           │
+│  (UserRepository, TimerRepository, etc.)    │
 │  - Single source of truth                   │
 │  - Data operations                          │
 │  - API calls / Database                     │
+│  - Return data via callbacks                │
 └──────────────────┬──────────────────────────┘
                    │ returns
                    │ data
                    ▼
 ┌─────────────────────────────────────────────┐
 │               MODEL LAYER                   │
-│  (User)                                     │
+│  (User, Timer, StudySession)                │
 │  - Data classes                             │
 │  - Plain Java objects                       │
+│  - Business entities                        │
 └─────────────────────────────────────────────┘
 ```
 
@@ -106,19 +109,23 @@ TimerStudy/
 │   │   │   │   │   ├── fragments/
 │   │   │   │   │   │   ├── home/
 │   │   │   │   │   │   │   ├── HomeFragment.java   # Timer dashboard
-│   │   │   │   │   │   │   └── HomeViewModel.java  # Home viewmodel
+│   │   │   │   │   │   │   ├── HomePresenter.java  # Home presenter
+│   │   │   │   │   │   │   └── HomeContract.java   # View-Presenter contract
 │   │   │   │   │   │   │
 │   │   │   │   │   │   ├── timer/
 │   │   │   │   │   │   │   ├── TimerFragment.java  # Timer functionality
-│   │   │   │   │   │   │   └── TimerViewModel.java # Timer viewmodel
+│   │   │   │   │   │   │   ├── TimerPresenter.java # Timer presenter
+│   │   │   │   │   │   │   └── TimerContract.java  # View-Presenter contract
 │   │   │   │   │   │   │
 │   │   │   │   │   │   ├── statistics/
 │   │   │   │   │   │   │   ├── StatisticsFragment.java # Study stats
-│   │   │   │   │   │   │   └── StatisticsViewModel.java
+│   │   │   │   │   │   │   ├── StatisticsPresenter.java
+│   │   │   │   │   │   │   └── StatisticsContract.java
 │   │   │   │   │   │   │
 │   │   │   │   │   │   └── settings/
 │   │   │   │   │   │       ├── SettingsFragment.java # App settings
-│   │   │   │   │   │       └── SettingsViewModel.java
+│   │   │   │   │   │       ├── SettingsPresenter.java
+│   │   │   │   │   │       └── SettingsContract.java
 │   │   │   │   │   │
 │   │   │   │   │   ├── adapters/
 │   │   │   │   │   │   ├── StudySessionAdapter.java # RecyclerView adapter
@@ -126,7 +133,8 @@ TimerStudy/
 │   │   │   │   │   │
 │   │   │   │   │   └── base/
 │   │   │   │   │       ├── BaseFragment.java       # Base fragment class
-│   │   │   │   │       └── BaseViewModel.java      # Base viewmodel class
+│   │   │   │   │       ├── BasePresenter.java      # Base presenter class
+│   │   │   │   │       └── BaseContract.java       # Base contract interface
 │   │   │   │   │
 │   │   │   │   ├── utils/
 │   │   │   │   │   ├── Constants.java              # App constants
@@ -198,16 +206,13 @@ TimerStudy/
 │   │   │   └── java/com/example/timerstudy/        # Unit tests
 │   │   │       ├── repository/
 │   │   │       │   └── UserRepositoryTest.java
-│   │   │       └── viewmodel/
-│   │   │           └── HomeViewModelTest.java
+│   │   │       └── presenter/
+│   │   │           └── HomePresenterTest.java
 │   │   │
 │   │   └── androidTest/
 │   │       └── java/com/example/timerstudy/        # Instrumented tests
 │   │           └── ExampleInstrumentedTest.java
 │   │
-│   ├── build.gradle                                 # App-level build config
-│   └── proguard-rules.pro                          # ProGuard rules
-│
 ├── gradle/
 │   └── wrapper/
 │       ├── gradle-wrapper.jar                       # Gradle wrapper
@@ -222,51 +227,70 @@ TimerStudy/
 
 ---
 
-## 🔄 Data Flow - MVVM Pattern
+## 🔄 Data Flow - MVP Pattern
 
 ### 1️⃣ User Interaction → View
 
 ```java
 // User clicks button in Fragment
 binding.btnRefresh.setOnClickListener(v -> {
-    viewModel.refreshUserData(); // Call ViewModel
+    presenter.onRefreshClicked(); // Call Presenter
 });
 ```
 
-### 2️⃣ View → ViewModel
+### 2️⃣ View → Presenter
 
 ```java
-// ViewModel xử lý logic
-public void refreshUserData() {
-    loadingLiveData.postValue(true);
-    executorService.execute(() -> {
-        User user = repository.getCurrentUser();
-        userLiveData.postValue(user); // Update LiveData
+// Presenter xử lý logic
+public void onRefreshClicked() {
+    view.showLoading(true);
+    repository.getCurrentUser(new DataCallback<User>() {
+        @Override
+        public void onSuccess(User user) {
+            view.showLoading(false);
+            view.displayUser(user); // Update View
+        }
+
+        @Override
+        public void onError(String error) {
+            view.showLoading(false);
+            view.showError(error);
+        }
     });
 }
 ```
 
-### 3️⃣ ViewModel → Repository
+### 3️⃣ Presenter → Repository
 
 ```java
-// Repository lấy data (mock hoặc từ API)
-public User getCurrentUser() {
-    // Simulate API call
-    Thread.sleep(500);
-    return currentUser;
+// Repository lấy data với callback
+public void getCurrentUser(DataCallback<User> callback) {
+    executorService.execute(() -> {
+        try {
+            // Simulate API call
+            Thread.sleep(500);
+            callback.onSuccess(currentUser);
+        } catch (Exception e) {
+            callback.onError(e.getMessage());
+        }
+    });
 }
 ```
 
-### 4️⃣ Repository → ViewModel → View
+### 4️⃣ Repository → Presenter → View
 
 ```java
-// Fragment observe LiveData và update UI
-viewModel.getUserLiveData().observe(getViewLifecycleOwner(), user -> {
-    if (user != null) {
-        binding.tvUserName.setText(user.getName());
-        binding.tvUserAge.setText("Tuổi: " + user.getAge());
-    }
-});
+// Fragment implement View interface và update UI
+@Override
+public void displayUser(User user) {
+    binding.tvUserName.setText(user.getName());
+    binding.tvUserAge.setText("Tuổi: " + user.getAge());
+}
+
+@Override
+public void showLoading(boolean isLoading) {
+    binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+}
 ```
 
 ---
@@ -280,13 +304,21 @@ MainActivity (NavHost)
     │       │
     │       ├─> HomeFragment (Start Destination)
     │       │       │
+    │       │       ├─> HomePresenter
+    │       │       │       │
+    │       │       │       └─> UserRepository
+    │       │       │
     │       │       └─> Hiển thị thông tin user
-    │       │           Observe LiveData từ ViewModel
+    │       │           Via contract interface calls
     │       │
-    │       └─> ProfileFragment
+    │       └─> TimerFragment
     │               │
-    │               └─> Form chỉnh sửa user
-    │                   Update qua ViewModel
+    │               ├─> TimerPresenter
+    │               │       │
+    │               │       └─> TimerRepository
+    │               │
+    │               └─> Timer functionality
+    │                   Via contract interface
     │
     └─> BottomNavigationView
             │
@@ -321,26 +353,25 @@ MainActivity (NavHost)
 
 ## 🎯 Tính Năng Hiện Tại
 
-### ✅ HomeFragment
+### ✅ HomeFragment (MVP)
 
-- Hiển thị thông tin user trong Material Card
-- Avatar circle với ShapeableImageView
-- Bio section với CardView
-- Button refresh với loading state
-- Progress indicator khi loading
+- Implement HomeContract.View interface
+- Khởi tạo HomePresenter trong onViewCreated()
+- Gọi presenter methods cho user actions
+- Hiển thị data qua contract methods
+- Clean up presenter trong onDestroyView()
 
-### ✅ ProfileFragment
+### ✅ TimerFragment (MVP)
 
-- Form chỉnh sửa với Material TextInputLayout
-- Validation real-time
-- Character counter cho Bio (max 200)
-- Hiển thị thông tin hiện tại
-- Update qua ViewModel
+- Implement TimerContract.View interface
+- Presenter quản lý timer logic và state
+- Repository handle timer data persistence
+- Clean separation of concerns
 
 ### ✅ MainActivity
 
 - Toolbar với Material Design 3
-- BottomNavigationView với 2 tabs
+- BottomNavigationView với tabs
 - NavController quản lý navigation
 - Auto back-stack handling
 
@@ -348,154 +379,137 @@ MainActivity (NavHost)
 
 ## 🔧 Mở Rộng Project
 
-### 📌 Thêm Fragment Mới
+### 📌 Thêm MVP Screen Mới
 
-#### Bước 1: Tạo Fragment Class
+#### Bước 1: Tạo Contract Interface
 
 ```java
-package com.example.mybaseapp.view.fragments;
+package com.example.timerstudy.ui.fragments.newscreen;
 
-public class SettingsFragment extends Fragment {
-    private FragmentSettingsBinding binding;
-    private MainViewModel viewModel;
+public interface NewScreenContract {
 
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
-        binding = FragmentSettingsBinding.inflate(inflater, container, false);
-        viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
-        return binding.getRoot();
+    interface View {
+        void showLoading(boolean isLoading);
+        void showError(String message);
+        void displayData(List<DataModel> data);
+        void showSuccess(String message);
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
+    interface Presenter {
+        void attachView(View view);
+        void detachView();
+        void loadData();
+        void onItemClicked(DataModel item);
+        void onRefreshRequested();
     }
 }
 ```
 
-#### Bước 2: Tạo Layout XML
-
-```xml
-<!-- res/layout/fragment_settings.xml -->
-<androidx.constraintlayout.widget.ConstraintLayout>
-    <!-- Your UI here -->
-</androidx.constraintlayout.widget.ConstraintLayout>
-```
-
-#### Bước 3: Thêm vào Navigation Graph
-
-```xml
-<!-- res/navigation/nav_graph.xml -->
-<fragment
-    android:id="@+id/settingsFragment"
-    android:name="com.example.mybaseapp.view.fragments.SettingsFragment"
-    android:label="Cài Đặt"
-    tools:layout="@layout/fragment_settings" />
-```
-
-#### Bước 4: Thêm vào Bottom Navigation
-
-```xml
-<!-- res/menu/bottom_nav_menu.xml -->
-<item
-    android:id="@+id/settingsFragment"
-    android:icon="@android:drawable/ic_menu_preferences"
-    android:title="Cài Đặt" />
-```
-
-### 📌 Thêm RecyclerView Adapter
+#### Bước 2: Implement Presenter
 
 ```java
-package com.example.mybaseapp.view.adapters;
+public class NewScreenPresenter implements NewScreenContract.Presenter {
+    private NewScreenContract.View view;
+    private DataRepository repository;
 
-public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
-    private List<User> users;
-    private OnUserClickListener listener;
-
-    public interface OnUserClickListener {
-        void onUserClick(User user);
+    public NewScreenPresenter(DataRepository repository) {
+        this.repository = repository;
     }
 
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        // Inflate item layout
+    public void attachView(NewScreenContract.View view) {
+        this.view = view;
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
-        User user = users.get(position);
-        holder.bind(user);
+    public void detachView() {
+        this.view = null;
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
-        void bind(User user) {
-            // Bind data to views
+    @Override
+    public void loadData() {
+        if (view != null) {
+            view.showLoading(true);
         }
-    }
-}
-```
 
-### 📌 Thêm API Call (Retrofit)
-
-#### 1. Thêm dependencies
-
-```gradle
-implementation 'com.squareup.retrofit2:retrofit:2.9.0'
-implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
-```
-
-#### 2. Tạo API Interface
-
-```java
-public interface ApiService {
-    @GET("users/{id}")
-    Call<User> getUser(@Path("id") int userId);
-}
-```
-
-#### 3. Update Repository
-
-```java
-public class UserRepository {
-    private ApiService apiService;
-
-    public void fetchUserFromApi(int userId, Callback callback) {
-        apiService.getUser(userId).enqueue(new Callback<User>() {
+        repository.getData(new DataCallback<List<DataModel>>() {
             @Override
-            public void onResponse(Call<User> call, Response<User> response) {
-                callback.onSuccess(response.body());
+            public void onSuccess(List<DataModel> data) {
+                if (view != null) {
+                    view.showLoading(false);
+                    view.displayData(data);
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                if (view != null) {
+                    view.showLoading(false);
+                    view.showError(error);
+                }
             }
         });
     }
 }
 ```
 
----
+#### Bước 3: Implement Fragment
 
-## 🎨 Customization
+```java
+public class NewScreenFragment extends Fragment implements NewScreenContract.View {
+    private FragmentNewScreenBinding binding;
+    private NewScreenContract.Presenter presenter;
 
-### Thay Đổi Theme Color
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        binding = FragmentNewScreenBinding.inflate(inflater, container, false);
+        return binding.getRoot();
+    }
 
-```xml
-<!-- res/values/colors.xml -->
-<color name="md_theme_primary">#YOUR_COLOR</color>
-```
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
-### Thay Đổi Font
+        // Initialize presenter
+        DataRepository repository = new DataRepository();
+        presenter = new NewScreenPresenter(repository);
+        presenter.attachView(this);
 
-```xml
-<!-- res/values/themes.xml -->
-<item name="fontFamily">@font/your_custom_font</item>
-```
+        // Setup UI
+        setupUI();
 
-### Dark Mode
+        // Load initial data
+        presenter.loadData();
+    }
 
-Material3 tự động hỗ trợ dark mode. Tạo file:
+    private void setupUI() {
+        binding.btnRefresh.setOnClickListener(v -> presenter.onRefreshRequested());
+    }
 
-```
-res/values-night/colors.xml
+    @Override
+    public void showLoading(boolean isLoading) {
+        binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+    }
+
+    @Override
+    public void displayData(List<DataModel> data) {
+        // Update RecyclerView or UI components
+    }
+
+    @Override
+    public void showError(String message) {
+        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (presenter != null) {
+            presenter.detachView();
+        }
+        binding = null;
+    }
+}
 ```
 
 ---
@@ -503,59 +517,72 @@ res/values-night/colors.xml
 ## 📚 Best Practices Đã Áp Dụng
 
 ✅ **ViewBinding** - Type-safe view access  
-✅ **LiveData** - Lifecycle-aware data observation  
-✅ **ViewModel** - Survive configuration changes  
+✅ **Contract Interfaces** - Clear separation between View and Presenter  
 ✅ **Repository Pattern** - Single source of truth  
-✅ **Separation of Concerns** - Clear layer separation  
+✅ **Callback Pattern** - Async data handling  
+✅ **Separation of Concerns** - View chỉ handle UI, Presenter handle logic  
 ✅ **Material Design 3** - Modern UI components  
 ✅ **Navigation Component** - Type-safe navigation  
-✅ **Resource Management** - Proper cleanup in onDestroyView  
-✅ **Error Handling** - Try-catch và error LiveData  
-✅ **Input Validation** - Form validation với error display
+✅ **Resource Management** - Proper cleanup (presenter.detachView())  
+✅ **Error Handling** - Centralized error handling trong Presenter  
+✅ **Testability** - Presenter không depend vào Android framework
+
+---
+
+## 🔄 MVP vs MVVM Comparison
+
+| Aspect                    | MVVM (Trước)             | MVP (Hiện tại)             |
+| ------------------------- | ------------------------ | -------------------------- |
+| **Complexity**            | Cao (LiveData, Observer) | Thấp (Interface, Callback) |
+| **Learning Curve**        | Steep                    | Gentle                     |
+| **Testability**           | Good                     | Excellent                  |
+| **Memory Leaks**          | Có thể (Observer)        | Ít (Manual detach)         |
+| **Configuration Changes** | Auto handle              | Manual handle              |
+| **Data Binding**          | Two-way                  | One-way                    |
+| **Code Amount**           | Nhiều hơn                | Ít hơn                     |
 
 ---
 
 ## 🐛 Troubleshooting
 
-### Issue: ViewBinding not generated
+### Issue: Presenter không được detach
 
 **Solution**:
 
-1. Clean Project (Build → Clean Project)
-2. Rebuild Project (Build → Rebuild Project)
-3. Invalidate Caches (File → Invalidate Caches)
+- Luôn gọi `presenter.detachView()` trong `onDestroyView()`
+- Check null trước khi call view methods trong presenter
 
-### Issue: Navigation error
-
-**Solution**:
-
-- Kiểm tra tên fragment trong nav_graph.xml khớp với class name
-- Đảm bảo fragment IDs trong menu khớp với nav_graph
-
-### Issue: ViewModel not retaining data
+### Issue: Memory leak
 
 **Solution**:
 
-- Sử dụng `ViewModelProvider(requireActivity())` để share ViewModel
-- Không khởi tạo ViewModel bằng `new MainViewModel()`
+- Implement WeakReference trong Presenter nếu cần
+- Đảm bảo detach view properly
+
+### Issue: Callback hell
+
+**Solution**:
+
+- Sử dụng RxJava hoặc Coroutines cho complex async operations
+- Chain callbacks properly
 
 ---
 
 ## 📖 Tài Liệu Tham Khảo
 
-- [Android MVVM Guide](https://developer.android.com/topic/architecture)
+- [Android MVP Guide](https://github.com/googlesamples/android-architecture)
+- [MVP vs MVVM](https://medium.com/@ankit.sinhal/mvp-vs-mvvm-android-architecture-patterns-dfb0b6c3f9e2)
 - [Navigation Component](https://developer.android.com/guide/navigation)
 - [Material Design 3](https://m3.material.io/)
 - [ViewBinding](https://developer.android.com/topic/libraries/view-binding)
-- [LiveData](https://developer.android.com/topic/libraries/architecture/livedata)
 
 ---
 
 ## 👨‍💻 Author
 
-Created as a base template for Android MVVM projects.
+Created as a base template for Android MVP projects.
 
-**Version**: 1.0  
+**Version**: 2.0 (Migrated from MVVM to MVP)  
 **Last Updated**: 2025  
 **License**: MIT
 
@@ -566,6 +593,7 @@ Created as a base template for Android MVVM projects.
 Project đã được tích hợp Room Database với 10 Entity classes:
 
 ### 📊 **Entity Classes**
+
 - **UserEntity** - Quản lý thông tin người dùng
 - **SessionEntity** - Theo dõi các phiên học tập/focus
 - **SessionPauseEntity** - Ghi lại các lần tạm dừng trong session
@@ -578,9 +606,11 @@ Project đã được tích hợp Room Database với 10 Entity classes:
 - **StreakRecordEntity** - Theo dõi chuỗi ngày học tập
 
 ### 🔧 **Type Converters**
+
 - **DateConverter** - Chuyển đổi Date ↔ Long timestamp
 
 ### 📋 **Database Features**
+
 - ✅ Foreign key relationships với CASCADE delete
 - ✅ Comprehensive indexing cho performance
 - ✅ Type converters cho Date objects
@@ -593,10 +623,11 @@ Chi tiết đầy đủ xem file: [DATABASE_DOCS.md](DATABASE_DOCS.md)
 
 ## 🎯 Next Steps
 
+- [x] ✅ Migrate từ MVVM sang MVP
 - [x] ✅ Thêm Room Database
-- [ ] Tích hợp Retrofit cho API calls
-- [ ] Implement Paging 3 cho lists
-- [ ] Thêm Unit Tests
-- [ ] Thêm Dependency Injection (Hilt/Dagger)
-- [ ] Implement DataStore cho preferences
+- [ ] Tích hợp Retrofit cho API calls với MVP pattern
+- [ ] Implement Paging với MVP
+- [ ] Thêm Unit Tests cho Presenters
+- [ ] Thêm Dependency Injection (Dagger2)
+- [ ] Implement SharedPreferences replacement
 - [ ] Thêm WorkManager cho background tasks
