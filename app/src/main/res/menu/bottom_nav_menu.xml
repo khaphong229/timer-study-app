@@ -6,6 +6,11 @@
         android:title="Trang Chủ" />
 
     <item
+        android:id="@+id/timerFragment"
+        android:icon="@android:drawable/ic_menu_recent_history"
+        android:title="Timer" />
+
+    <item
         android:id="@+id/profileFragment"
         android:icon="@android:drawable/ic_menu_myplaces"
         android:title="Hồ Sơ" />
