@@ -1,90 +1,110 @@
 package com.example.timerstudy.model;
 
-import android.content.Context;
-import com.example.timerstudy.database.TimerDatabase;
-import com.example.timerstudy.database.TimerDao;
-import com.example.timerstudy.database.TimerEntity;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import android.os.CountDownTimer;
 
 public class TimerModel {
-    private TimerDao timerDao;
-    private ExecutorService executor;
     
-    public TimerModel(Context context) {
-        TimerDatabase database = TimerDatabase.getInstance(context);
-        this.timerDao = database.timerDao();
-        this.executor = Executors.newSingleThreadExecutor();
+    public interface TimerListener {
+        void onTimeUpdate(long timeRemaining);
+        void onSessionComplete();
+        void onSessionTypeChange(boolean isStudySession);
     }
+
+    private static final long DEFAULT_STUDY_DURATION = 25 * 60 * 1000; // 25 minutes
+    private static final long DEFAULT_BREAK_DURATION = 5 * 60 * 1000;  // 5 minutes
+
+    private long studyDuration = DEFAULT_STUDY_DURATION;
+    private long breakDuration = DEFAULT_BREAK_DURATION;
+    private long currentTimeRemaining;
+    private boolean isRunning = false;
+    private boolean isStudySession = true;
+    private int completedSessions = 0;
     
-    public List<TimerItem> getAllTimers() {
-        try {
-            List<TimerEntity> entities = timerDao.getAllTimersSync();
-            List<TimerItem> timers = new ArrayList<>();
-            for (TimerEntity entity : entities) {
-                timers.add(convertToTimerItem(entity));
+    private CountDownTimer countDownTimer;
+    private TimerListener listener;
+
+    public TimerModel() {
+        currentTimeRemaining = studyDuration;
+    }
+
+    public void setTimerListener(TimerListener listener) {
+        this.listener = listener;
+    }
+
+    public void startTimer() {
+        if (isRunning) return;
+        
+        isRunning = true;
+        countDownTimer = new CountDownTimer(currentTimeRemaining, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                currentTimeRemaining = millisUntilFinished;
+                if (listener != null) {
+                    listener.onTimeUpdate(currentTimeRemaining);
+                }
             }
-            return timers;
-        } catch (Exception e) {
-            return new ArrayList<>();
+
+            @Override
+            public void onFinish() {
+                completeSession();
+            }
+        };
+        countDownTimer.start();
+    }
+
+    public void pauseTimer() {
+        if (!isRunning) return;
+        
+        isRunning = false;
+        if (countDownTimer != null) {
+            countDownTimer.cancel();
         }
     }
-    
-    public void addTimer(TimerItem timer) {
-        executor.execute(() -> {
-            try {
-                TimerEntity entity = convertToTimerEntity(timer);
-                timerDao.insert(entity);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-    }
-    
-    public void updateTimer(TimerItem timer) {
-        executor.execute(() -> {
-            try {
-                TimerEntity entity = convertToTimerEntity(timer);
-                timerDao.update(entity);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-    }
-    
-    public void deleteTimer(int id) {
-        executor.execute(() -> {
-            try {
-                timerDao.deleteById(id);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-    }
-    
-    private TimerItem convertToTimerItem(TimerEntity entity) {
-        return new TimerItem(
-            entity.getId(),
-            entity.getName(),
-            entity.getDuration(),
-            entity.getRemainingTime(),
-            entity.isActive()
-        );
-    }
-    
-    private TimerEntity convertToTimerEntity(TimerItem item) {
-        TimerEntity entity = new TimerEntity(item.getName(), item.getTotalTime());
-        entity.setId(item.getId());
-        entity.setRemainingTime(item.getCurrentTime());
-        entity.setActive(item.isRunning());
-        return entity;
-    }
-    
-    public void cleanup() {
-        if (executor != null && !executor.isShutdown()) {
-            executor.shutdown();
+
+    public void resetTimer() {
+        pauseTimer();
+        currentTimeRemaining = isStudySession ? studyDuration : breakDuration;
+        if (listener != null) {
+            listener.onTimeUpdate(currentTimeRemaining);
         }
     }
+
+    private void completeSession() {
+        isRunning = false;
+        
+        if (isStudySession) {
+            completedSessions++;
+        }
+        
+        isStudySession = !isStudySession;
+        currentTimeRemaining = isStudySession ? studyDuration : breakDuration;
+        
+        if (listener != null) {
+            listener.onSessionComplete();
+            listener.onSessionTypeChange(isStudySession);
+            listener.onTimeUpdate(currentTimeRemaining);
+        }
+    }
+
+    // Getters and Setters
+    public long getStudyDuration() { return studyDuration; }
+    public void setStudyDuration(long studyDuration) {
+        this.studyDuration = studyDuration;
+        if (isStudySession && !isRunning) {
+            resetTimer();
+        }
+    }
+
+    public long getBreakDuration() { return breakDuration; }
+    public void setBreakDuration(long breakDuration) {
+        this.breakDuration = breakDuration;
+        if (!isStudySession && !isRunning) {
+            resetTimer();
+        }
+    }
+
+    public long getCurrentTimeRemaining() { return currentTimeRemaining; }
+    public boolean isRunning() { return isRunning; }
+    public boolean isStudySession() { return isStudySession; }
+    public int getCompletedSessions() { return completedSessions; }
 }
