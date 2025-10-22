@@ -1,4 +1,4 @@
-package com.example.timerstudy.database;
+package com.example.timerstudy.data.local.database.entities;
 
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
