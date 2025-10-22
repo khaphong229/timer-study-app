@@ -26,4 +26,10 @@
         android:label="Hồ Sơ"
         tools:layout="@layout/fragment_profile" />
 
+    <fragment
+        android:id="@+id/taskFragment"
+        android:name="com.example.timerstudy.view.fragments.TaskFragment"
+        android:label="To do"
+        tools:layout="@layout/fragment_task" />
+
 </navigation>

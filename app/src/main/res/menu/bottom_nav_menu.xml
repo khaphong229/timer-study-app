@@ -14,4 +14,8 @@
         android:id="@+id/profileFragment"
         android:icon="@android:drawable/ic_menu_myplaces"
         android:title="Hồ Sơ" />
+    <item
+        android:id="@+id/taskFragment"
+        android:icon="@android:drawable/ic_menu_myplaces"
+        android:title="Tasks" />
 </menu>
