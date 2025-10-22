@@ -72,90 +72,62 @@ TimerStudy/
 │   │   ├── main/
 │   │   │   ├── java/com/example/timerstudy/
 │   │   │   │   ├── data/
-│   │   │   │   │   ├── model/
-│   │   │   │   │   │   ├── User.java              # Data models
-│   │   │   │   │   │   ├── Timer.java             # Timer model
-│   │   │   │   │   │   └── StudySession.java      # Study session model
+│   │   │   │   │   ├── callback/
+│   │   │   │   │   │   └── DataCallback.java         # Generic callback interface
 │   │   │   │   │   │
 │   │   │   │   │   ├── repository/
-│   │   │   │   │   │   ├── UserRepository.java    # User data management
-│   │   │   │   │   │   ├── TimerRepository.java   # Timer data management
-│   │   │   │   │   │   └── StudyRepository.java   # Study session management
+│   │   │   │   │   │   ├── UserRepository.java       # User data management (Room)
+│   │   │   │   │   │   └── SessionRepository.java    # Session data management (Room)
 │   │   │   │   │   │
 │   │   │   │   │   └── local/
-│   │   │   │   │       ├── database/
-│   │   │   │   │       │   ├── AppDatabase.java   # Room database
-│   │   │   │   │       │   ├── dao/
-│   │   │   │   │       │   │   ├── UserDao.java   # User data access
-│   │   │   │   │       │   │   ├── SessionDao.java # Session data access
-│   │   │   │   │       │   │   ├── TaskDao.java   # Task data access
-│   │   │   │   │       │   │   └── GoalDao.java   # Goal data access
-│   │   │   │   │       │   ├── entities/
-│   │   │   │   │       │   │   ├── UserEntity.java
-│   │   │   │   │       │   │   ├── SessionEntity.java
-│   │   │   │   │       │   │   ├── TaskEntity.java
-│   │   │   │   │       │   │   ├── GoalEntity.java
-│   │   │   │   │       │   │   └── ... (10 entities total)
-│   │   │   │   │       │   └── converters/
-│   │   │   │   │       │       └── DateConverter.java # Date type converter
-│   │   │   │   │       └── preferences/
-│   │   │   │   │           └── AppPreferences.java # Shared preferences
+│   │   │   │   │       └── database/
+│   │   │   │   │           ├── AppDatabase.java      # Room database singleton
+│   │   │   │   │           ├── converters/
+│   │   │   │   │           │   └── DateConverter.java # Date type converter
+│   │   │   │   │           ├── dao/
+│   │   │   │   │           │   ├── UserDao.java      # User data access
+│   │   │   │   │           │   ├── SessionDao.java   # Session data access
+│   │   │   │   │           │   ├── TaskDao.java      # Task data access
+│   │   │   │   │           │   ├── GoalDao.java       # Goal data access
+│   │   │   │   │           │   ├── SettingDao.java   # Settings data access
+│   │   │   │   │           │   ├── StatisticsDao.java # Statistics data access
+│   │   │   │   │           │   └── TimerDao.java      # Timer data access
+│   │   │   │   │           └── entities/
+│   │   │   │   │               ├── UserEntity.java
+│   │   │   │   │               ├── SessionEntity.java
+│   │   │   │   │               ├── SessionPauseEntity.java
+│   │   │   │   │               ├── TaskEntity.java
+│   │   │   │   │               ├── TaskSessionEntity.java
+│   │   │   │   │               ├── GoalEntity.java
+│   │   │   │   │               ├── UserSettingEntity.java
+│   │   │   │   │               ├── DefaultSettingEntity.java
+│   │   │   │   │               ├── StatisticsCacheEntity.java
+│   │   │   │   │               ├── StreakRecordEntity.java
+│   │   │   │   │               └── TimerEntity.java
 │   │   │   │   │
-│   │   │   │   ├── ui/
-│   │   │   │   │   ├── activities/
-│   │   │   │   │   │   ├── MainActivity.java       # Main NavHost container
-│   │   │   │   │   │   └── SplashActivity.java     # Splash screen
-│   │   │   │   │   │
-│   │   │   │   │   ├── fragments/
-│   │   │   │   │   │   ├── home/
-│   │   │   │   │   │   │   ├── HomeFragment.java   # Timer dashboard
-│   │   │   │   │   │   │   ├── HomePresenter.java  # Home presenter
-│   │   │   │   │   │   │   └── HomeContract.java   # View-Presenter contract
-│   │   │   │   │   │   │
-│   │   │   │   │   │   ├── timer/
-│   │   │   │   │   │   │   ├── TimerFragment.java  # Timer functionality
-│   │   │   │   │   │   │   ├── TimerPresenter.java # Timer presenter
-│   │   │   │   │   │   │   └── TimerContract.java  # View-Presenter contract
-│   │   │   │   │   │   │
-│   │   │   │   │   │   ├── statistics/
-│   │   │   │   │   │   │   ├── StatisticsFragment.java # Study stats
-│   │   │   │   │   │   │   ├── StatisticsPresenter.java
-│   │   │   │   │   │   │   └── StatisticsContract.java
-│   │   │   │   │   │   │
-│   │   │   │   │   │   └── settings/
-│   │   │   │   │   │       ├── SettingsFragment.java # App settings
-│   │   │   │   │   │       ├── SettingsPresenter.java
-│   │   │   │   │   │       └── SettingsContract.java
-│   │   │   │   │   │
-│   │   │   │   │   ├── adapters/
-│   │   │   │   │   │   ├── StudySessionAdapter.java # RecyclerView adapter
-│   │   │   │   │   │   └── TimerHistoryAdapter.java # History adapter
-│   │   │   │   │   │
-│   │   │   │   │   └── base/
-│   │   │   │   │       ├── BaseFragment.java       # Base fragment class
-│   │   │   │   │       ├── BasePresenter.java      # Base presenter class
-│   │   │   │   │       └── BaseContract.java       # Base contract interface
+│   │   │   │   ├── model/
+│   │   │   │   │   ├── User.java                      # User model (legacy)
+│   │   │   │   │   ├── TimerModel.java               # Timer model
+│   │   │   │   │   └── TimerItem.java                # Timer item model
 │   │   │   │   │
-│   │   │   │   ├── utils/
-│   │   │   │   │   ├── Constants.java              # App constants
-│   │   │   │   │   ├── TimeUtils.java              # Time formatting utils
-│   │   │   │   │   ├── NotificationUtils.java      # Notification helper
-│   │   │   │   │   └── PermissionUtils.java        # Permission helper
+│   │   │   │   ├── presenter/
+│   │   │   │   │   ├── TimerContract.java           # Timer MVP contract
+│   │   │   │   │   └── TimerPresenter.java          # Timer presenter
 │   │   │   │   │
-│   │   │   │   └── services/
-│   │   │   │       ├── TimerService.java           # Background timer service
-│   │   │   │       └── NotificationService.java    # Push notifications
+│   │   │   │   └── view/
+│   │   │   │       ├── activities/
+│   │   │   │       │   └── MainActivity.java         # Main NavHost container
+│   │   │   │       └── fragments/
+│   │   │   │           ├── HomeFragment.java         # Home fragment
+│   │   │   │           ├── ProfileFragment.java     # Profile fragment
+│   │   │   │           └── TimerFragment.java        # Timer fragment
 │   │   │   │
 │   │   │   ├── res/
 │   │   │   │   ├── layout/
-│   │   │   │   │   ├── activity_main.xml           # Main activity layout
-│   │   │   │   │   ├── activity_splash.xml         # Splash screen layout
-│   │   │   │   │   ├── fragment_home.xml           # Home fragment layout
-│   │   │   │   │   ├── fragment_timer.xml          # Timer fragment layout
-│   │   │   │   │   ├── fragment_statistics.xml     # Statistics layout
-│   │   │   │   │   ├── fragment_settings.xml       # Settings layout
-│   │   │   │   │   ├── item_study_session.xml      # RecyclerView item
-│   │   │   │   │   └── item_timer_history.xml      # History item layout
+│   │   │   │   │   ├── activity_main.xml             # Main activity layout
+│   │   │   │   │   ├── fragment_home.xml            # Home fragment layout
+│   │   │   │   │   ├── fragment_profile.xml         # Profile fragment layout
+│   │   │   │   │   └── fragment_timer.xml           # Timer fragment layout
 │   │   │   │   │
 │   │   │   │   ├── navigation/
 │   │   │   │   │   └── nav_graph.xml               # Navigation graph
@@ -176,12 +148,10 @@ TimerStudy/
 │   │   │   │   │   └── colors.xml                  # Dark mode colors
 │   │   │   │   │
 │   │   │   │   ├── drawable/
-│   │   │   │   │   ├── ic_timer.xml                # Timer icon
-│   │   │   │   │   ├── ic_home.xml                 # Home icon
-│   │   │   │   │   ├── ic_statistics.xml           # Stats icon
-│   │   │   │   │   ├── ic_settings.xml             # Settings icon
-│   │   │   │   │   ├── bg_circle.xml               # Circular background
-│   │   │   │   │   └── bg_timer_progress.xml       # Timer progress bg
+│   │   │   │   │   ├── ic_timer.xml                 # Timer icon
+│   │   │   │   │   ├── ic_home.xml                  # Home icon
+│   │   │   │   │   ├── ic_profile.xml               # Profile icon
+│   │   │   │   │   └── bg_circle.xml                # Circular background
 │   │   │   │   │
 │   │   │   │   ├── color/
 │   │   │   │   │   ├── bottom_nav_color.xml        # Bottom nav states
@@ -203,14 +173,11 @@ TimerStudy/
 │   │   │   └── AndroidManifest.xml                 # App manifest
 │   │   │
 │   │   ├── test/
-│   │   │   └── java/com/example/timerstudy/        # Unit tests
-│   │   │       ├── repository/
-│   │   │       │   └── UserRepositoryTest.java
-│   │   │       └── presenter/
-│   │   │           └── HomePresenterTest.java
+│   │   │   └── java/com/example/timerstudy/         # Unit tests
+│   │   │       └── ExampleUnitTest.java
 │   │   │
 │   │   └── androidTest/
-│   │       └── java/com/example/timerstudy/        # Instrumented tests
+│   │       └── java/com/example/timerstudy/         # Instrumented tests
 │   │           └── ExampleInstrumentedTest.java
 │   │
 ├── gradle/
@@ -218,11 +185,12 @@ TimerStudy/
 │       ├── gradle-wrapper.jar                       # Gradle wrapper
 │       └── gradle-wrapper.properties               # Gradle properties
 │
-├── build.gradle                                     # Project-level build
-├── gradle.properties                               # Global gradle properties
-├── settings.gradle                                 # Project settings
-├── local.properties                                # SDK location (gitignored)
-└── README.md                                       # This documentation
+├── build.gradle                                      # Project-level build
+├── gradle.properties                                # Global gradle properties
+├── settings.gradle                                  # Project settings
+├── local.properties                                 # SDK location (gitignored)
+├── DATABASE_DOCS.md                                 # Database documentation
+└── README.md                                        # This documentation
 ```
 
 ---
