@@ -9,15 +9,20 @@ import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import com.google.android.material.card.MaterialCardView;
+import pl.droidsonroids.gif.GifImageView;
 
 import com.example.timerstudy.R;
 import com.example.timerstudy.presenter.TimerContract;
 import com.example.timerstudy.presenter.TimerPresenter;
+import com.example.timerstudy.view.activities.MainActivity;
 
 public class TimerFragment extends Fragment implements TimerContract.View {
     
@@ -27,13 +32,17 @@ public class TimerFragment extends Fragment implements TimerContract.View {
     private ImageButton btnPlayPause;
     private ImageButton btnPause;
     private ImageButton btnReset;
+    private ImageButton btnTimerSettings;
     private SeekBar seekBarStudy;
     private SeekBar seekBarBreak;
     private TextView tvStudyDuration;
     private TextView tvBreakDuration;
+    private MaterialCardView cardSeekbarPanel;
+    private GifImageView gifImageView;
     
     private TimerPresenter presenter;
-     private boolean isRunning = false;
+    private boolean isRunning = false;
+    private boolean isSeekbarVisible = false;
     
     @Nullable
     @Override
@@ -56,10 +65,13 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         tvCompletedSessions = view.findViewById(R.id.tv_completed_sessions);
         btnPlayPause = view.findViewById(R.id.btn_play_pause);
         btnReset = view.findViewById(R.id.btn_reset);
+        btnTimerSettings = view.findViewById(R.id.btn_timer_settings);
+        cardSeekbarPanel = view.findViewById(R.id.card_seekbar_panel);
         seekBarStudy = view.findViewById(R.id.seekbar_study);
         seekBarBreak = view.findViewById(R.id.seekbar_break);
         tvStudyDuration = view.findViewById(R.id.tv_study_duration);
         tvBreakDuration = view.findViewById(R.id.tv_break_duration);
+        gifImageView = view.findViewById(R.id.gifImageView);
         
         // Set default values
         seekBarStudy.setMax(60);
@@ -76,16 +88,25 @@ public class TimerFragment extends Fragment implements TimerContract.View {
     }
     
     private void setupListeners() {
+        // Play/Pause button - Ẩn navbar khi bắt đầu timer
         btnPlayPause.setOnClickListener(v -> {
          if (presenter == null) return;
             if (isRunning) {
                 presenter.onPauseClicked();
             } else {
                 presenter.onStartClicked();
+                // Ẩn Navigation Rail khi nhấn Play
+                hideNavigationRail();
             }
         });
 
         btnReset.setOnClickListener(v -> presenter.onResetClicked());
+        
+        // Toggle seekbar panel when clicking timer settings
+        btnTimerSettings.setOnClickListener(v -> toggleSeekbarPanel());
+        
+        // Click vào GIF background để toggle Navigation Rail
+        gifImageView.setOnClickListener(v -> toggleNavigationRail());
         
         seekBarStudy.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -123,6 +144,58 @@ public class TimerFragment extends Fragment implements TimerContract.View {
     private void updateDurationLabels() {
         tvStudyDuration.setText("Study: " + seekBarStudy.getProgress() + " min");
         tvBreakDuration.setText("Break: " + seekBarBreak.getProgress() + " min");
+    }
+    
+    private void toggleSeekbarPanel() {
+        isSeekbarVisible = !isSeekbarVisible;
+        
+        if (isSeekbarVisible) {
+            // Hiện panel với animation
+            cardSeekbarPanel.setVisibility(View.VISIBLE);
+            cardSeekbarPanel.setAlpha(0f);
+            cardSeekbarPanel.animate()
+                .alpha(1f)
+                .setDuration(300)
+                .setListener(null);
+        } else {
+            // Ẩn panel với animation
+            cardSeekbarPanel.animate()
+                .alpha(0f)
+                .setDuration(300)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        cardSeekbarPanel.setVisibility(View.GONE);
+                    }
+                });
+        }
+    }
+    
+    /**
+     * Toggle Navigation Rail visibility
+     */
+    private void toggleNavigationRail() {
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).toggleNavigationRail();
+        }
+    }
+    
+    /**
+     * Ẩn Navigation Rail
+     */
+    private void hideNavigationRail() {
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).hideNavigationRail();
+        }
+    }
+    
+    /**
+     * Hiện Navigation Rail
+     */
+    private void showNavigationRail() {
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).showNavigationRail();
+        }
     }
     
     // TimerContract.View implementation
