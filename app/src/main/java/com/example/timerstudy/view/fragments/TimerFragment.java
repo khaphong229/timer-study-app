@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,15 +24,16 @@ public class TimerFragment extends Fragment implements TimerContract.View {
     private TextView tvTime;
     private TextView tvSessionType;
     private TextView tvCompletedSessions;
-    private Button btnStart;
-    private Button btnPause;
-    private Button btnReset;
+    private ImageButton btnPlayPause;
+    private ImageButton btnPause;
+    private ImageButton btnReset;
     private SeekBar seekBarStudy;
     private SeekBar seekBarBreak;
     private TextView tvStudyDuration;
     private TextView tvBreakDuration;
     
     private TimerPresenter presenter;
+     private boolean isRunning = false;
     
     @Nullable
     @Override
@@ -52,8 +54,7 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         tvTime = view.findViewById(R.id.tv_time);
         tvSessionType = view.findViewById(R.id.tv_session_type);
         tvCompletedSessions = view.findViewById(R.id.tv_completed_sessions);
-        btnStart = view.findViewById(R.id.btn_start);
-        btnPause = view.findViewById(R.id.btn_pause);
+        btnPlayPause = view.findViewById(R.id.btn_play_pause);
         btnReset = view.findViewById(R.id.btn_reset);
         seekBarStudy = view.findViewById(R.id.seekbar_study);
         seekBarBreak = view.findViewById(R.id.seekbar_break);
@@ -75,8 +76,15 @@ public class TimerFragment extends Fragment implements TimerContract.View {
     }
     
     private void setupListeners() {
-        btnStart.setOnClickListener(v -> presenter.onStartClicked());
-        btnPause.setOnClickListener(v -> presenter.onPauseClicked());
+        btnPlayPause.setOnClickListener(v -> {
+         if (presenter == null) return;
+            if (isRunning) {
+                presenter.onPauseClicked();
+            } else {
+                presenter.onStartClicked();
+            }
+        });
+
         btnReset.setOnClickListener(v -> presenter.onResetClicked());
         
         seekBarStudy.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -161,11 +169,14 @@ public class TimerFragment extends Fragment implements TimerContract.View {
     }
     
     @Override
-    public void updateControlButtons(boolean isRunning) {
+    public void updateControlButtons(boolean running) {
         if (getActivity() != null) {
             getActivity().runOnUiThread(() -> {
-                btnStart.setEnabled(!isRunning);
-                btnPause.setEnabled(isRunning);
+                isRunning = running;
+          
+                btnPlayPause.setImageResource(isRunning ? R.drawable.ic_pause_48 : R.drawable.ic_play_48);
+                // btn vẫn luôn clickable; nếu cần disable khi không hợp lệ, xử lý thêm ở đây
+                btnPlayPause.setEnabled(true);
             });
         }
     }
