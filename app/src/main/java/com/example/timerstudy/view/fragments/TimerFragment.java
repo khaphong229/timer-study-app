@@ -1,5 +1,9 @@
 package com.example.timerstudy.view.fragments;
 
+import android.graphics.Color;
+import android.graphics.RenderEffect;
+import android.graphics.Shader;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,6 +42,9 @@ public class TimerFragment extends Fragment implements TimerContract.View {
     private TextView tvStudyDuration;
     private TextView tvBreakDuration;
     private MaterialCardView cardSeekbarPanel;
+    private MaterialCardView cardTime;
+    private View timerBlurBackground;
+    private View sessionIndicator;
     private GifImageView gifImageView;
     
     private TimerPresenter presenter;
@@ -67,6 +74,9 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         btnReset = view.findViewById(R.id.btn_reset);
         btnTimerSettings = view.findViewById(R.id.btn_timer_settings);
         cardSeekbarPanel = view.findViewById(R.id.card_seekbar_panel);
+        cardTime = view.findViewById(R.id.card_time);
+        timerBlurBackground = view.findViewById(R.id.timer_blur_background);
+        sessionIndicator = view.findViewById(R.id.session_indicator);
         seekBarStudy = view.findViewById(R.id.seekbar_study);
         seekBarBreak = view.findViewById(R.id.seekbar_break);
         tvStudyDuration = view.findViewById(R.id.tv_study_duration);
@@ -80,6 +90,21 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         seekBarBreak.setProgress(5);
         
         updateDurationLabels();
+        
+        // Apply blur effect
+        applyBlurEffect();
+    }
+    
+    private void applyBlurEffect() {
+        if (cardTime != null) {
+            cardTime.setCardBackgroundColor(Color.TRANSPARENT);
+        }
+        
+        if (timerBlurBackground != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            timerBlurBackground.setRenderEffect(
+                RenderEffect.createBlurEffect(30f, 30f, Shader.TileMode.CLAMP)
+            );
+        }
     }
     
     private void setupPresenter() {
