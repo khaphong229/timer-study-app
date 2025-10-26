@@ -20,6 +20,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+
+import com.example.timerstudy.utils.ViewAnimator;
 import com.google.android.material.card.MaterialCardView;
 import pl.droidsonroids.gif.GifImageView;
 
@@ -116,6 +118,7 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         // Play/Pause button - Ẩn navbar khi bắt đầu timer
         btnPlayPause.setOnClickListener(v -> {
          if (presenter == null) return;
+            ViewAnimator.animateButtonClick(btnPlayPause);   
             if (isRunning) {
                 presenter.onPauseClicked();
             } else {
@@ -125,10 +128,16 @@ public class TimerFragment extends Fragment implements TimerContract.View {
             }
         });
 
-        btnReset.setOnClickListener(v -> presenter.onResetClicked());
+        btnReset.setOnClickListener(v -> {
+            ViewAnimator.animateButtonClick(btnReset);
+            presenter.onResetClicked();
+        });
         
         // Toggle seekbar panel when clicking timer settings
-        btnTimerSettings.setOnClickListener(v -> toggleSeekbarPanel());
+        btnTimerSettings.setOnClickListener(v -> {
+            ViewAnimator.animateButtonClick(btnTimerSettings);
+            toggleSeekbarPanel();
+        });
         
         // Click vào GIF background để toggle Navigation Rail
         gifImageView.setOnClickListener(v -> toggleNavigationRail());
@@ -237,10 +246,8 @@ public class TimerFragment extends Fragment implements TimerContract.View {
             getActivity().runOnUiThread(() -> {
                 if (isStudySession) {
                     tvSessionType.setText("Study Session");
-                    tvSessionType.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.holo_blue_dark));
                 } else {
                     tvSessionType.setText("Break Time");
-                    tvSessionType.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.holo_green_dark));
                 }
             });
         }
