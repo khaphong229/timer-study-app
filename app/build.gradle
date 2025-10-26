@@ -54,4 +54,7 @@ dependencies {
     
     // Room with LiveData
     implementation "androidx.room:room-ktx:2.5.0"
+    
+    // Glide for loading GIF images
+ implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.25'
 }

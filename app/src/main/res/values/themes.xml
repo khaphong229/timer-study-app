@@ -29,13 +29,9 @@
         <item name="colorErrorContainer">@color/md_theme_errorContainer</item>
         <item name="colorOnErrorContainer">@color/md_theme_onErrorContainer</item>
 
-        <!-- Status bar color -->
-        <item name="android:statusBarColor">@color/md_theme_primary</item>
-        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
-
-        <!-- Navigation bar color -->
-        <item name="android:navigationBarColor">@color/md_theme_surface</item>
-        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
+        <!-- Fullscreen mode - Ẩn status bar và navigation bar -->
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="p">shortEdges</item>
     </style>
 
     <style name="Theme.TimerStudy" parent="Base.Theme.TimerStudy" />
