@@ -1,5 +1,9 @@
 package com.example.timerstudy.view.fragments;
 
+import android.Manifest;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,6 +12,8 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -30,6 +36,8 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
     private SoundAdapter musicAdapter;
     private SoundAdapter whiteNoiseAdapter;
     private String currentPlayingSoundName = null;
+    private static final int REQUEST_MODIFY_AUDIO_SETTINGS = 1001;
+    private AudioManager audioManager;
 
     @Nullable
     @Override
@@ -48,6 +56,7 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         
         // Fix: Truyền cả SoundView (this) và Context (getContext())
         presenter = new SoundPresenter(this, getContext());
+        audioManager = (AudioManager) requireContext().getSystemService(Context.AUDIO_SERVICE);
     }
 
     private void initViews(View view) {
@@ -93,6 +102,14 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
                 if (fromUser && currentPlayingSoundName != null) {
                     float volume = progress / 100.0f;
                     presenter.onVolumeChanged(currentPlayingSoundName, volume);
+
+                    // Check permission before adjusting device volume
+                    if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.MODIFY_AUDIO_SETTINGS)
+                            == PackageManager.PERMISSION_GRANTED) {
+                        setDeviceVolume(progress);
+                    } else {
+                        requestAudioPermission();
+                    }
                 }
             }
             
@@ -104,6 +121,34 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         });
         
         volumeContainer.setVisibility(View.GONE);
+    }
+
+    private void setDeviceVolume(int progress) {
+        if (audioManager != null) {
+            int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+            int newVolume = (int) (progress / 100.0f * maxVolume);
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, 0);
+        }
+    }
+
+    private void requestAudioPermission() {
+        ActivityCompat.requestPermissions(requireActivity(),
+                new String[]{Manifest.permission.MODIFY_AUDIO_SETTINGS},
+                REQUEST_MODIFY_AUDIO_SETTINGS);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                          @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_MODIFY_AUDIO_SETTINGS) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, you may want to re-apply the last volume change
+                if (volumeSeekBar != null) {
+                    setDeviceVolume(volumeSeekBar.getProgress());
+                }
+            }
+        }
     }
 
     private void showMusicView() {
