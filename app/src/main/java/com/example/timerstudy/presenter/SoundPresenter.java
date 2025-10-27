@@ -34,7 +34,6 @@ public class SoundPresenter {
     }
 
     private void initializeSounds() {
-        // Sử dụng file test.mp3 từ thư mục res/raw/
         soundItems.add(new SoundItem("City streets", R.raw.test, false, 0.5f));
         soundItems.add(new SoundItem("A Jazz Piano", R.raw.test, false, 0.5f));
         soundItems.add(new SoundItem("Holiday", R.raw.test, false, 0.5f));
@@ -42,7 +41,6 @@ public class SoundPresenter {
         soundItems.add(new SoundItem("Peaceful horizons", R.raw.test, false, 0.5f));
         soundItems.add(new SoundItem("Miss you", R.raw.test, false, 0.5f));
         
-        // White noise sounds - sử dụng cùng file test.mp3
         soundItems.add(new SoundItem("Library", R.raw.test, false, 0.5f));
         soundItems.add(new SoundItem("Night", R.raw.test, false, 0.5f));
         soundItems.add(new SoundItem("Rain", R.raw.test, false, 0.5f));
@@ -58,7 +56,6 @@ public class SoundPresenter {
             if (item.isPlaying()) {
                 stopSound(soundName);
             } else {
-                // Stop all currently playing sounds before playing new one
                 stopAllSounds();
                 playSound(soundName, item);
             }
@@ -67,7 +64,6 @@ public class SoundPresenter {
 
     private void playSound(String soundName, SoundItem item) {
         try {
-            // Sử dụng file test.mp3 từ resources
             MediaPlayer player = MediaPlayer.create(context, item.getResourceId());
             
             if (player != null) {
@@ -104,7 +100,6 @@ public class SoundPresenter {
         for (String name : new ArrayList<>(mediaPlayers.keySet())) {
             stopSound(name);
         }
-        // Update playing state for all items
         for (SoundItem item : soundItems) {
             if (item.isPlaying()) {
                 item.setPlaying(false);
