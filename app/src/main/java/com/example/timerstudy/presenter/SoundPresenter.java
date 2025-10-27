@@ -58,6 +58,8 @@ public class SoundPresenter {
             if (item.isPlaying()) {
                 stopSound(soundName);
             } else {
+                // Stop all currently playing sounds before playing new one
+                stopAllSounds();
                 playSound(soundName, item);
             }
         }
@@ -95,6 +97,19 @@ public class SoundPresenter {
         if (item != null) {
             item.setPlaying(false);
             view.updatePlayingState(soundName, false);
+        }
+    }
+
+    private void stopAllSounds() {
+        for (String name : new ArrayList<>(mediaPlayers.keySet())) {
+            stopSound(name);
+        }
+        // Update playing state for all items
+        for (SoundItem item : soundItems) {
+            if (item.isPlaying()) {
+                item.setPlaying(false);
+                view.updatePlayingState(item.getName(), false);
+            }
         }
     }
 
