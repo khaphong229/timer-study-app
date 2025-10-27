@@ -40,4 +40,8 @@
     <color name="md_theme_onPrimary_dark">#381E72</color>
     <color name="md_theme_surface_dark">#1C1B1F</color>
     <color name="md_theme_onSurface_dark">#E6E1E5</color>
+
+    <color name="gray_text">#808080</color>
+    <color name="blue_accent">#4285F4</color>
+    <color name="light_blue_bg">#1A4285F4</color>
 </resources>

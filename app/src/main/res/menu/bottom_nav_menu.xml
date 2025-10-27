@@ -11,6 +11,11 @@
         android:title="Timer" />
 
     <item
+        android:id="@+id/soundFragment"
+        android:icon="@android:drawable/ic_media_play"
+        android:title="Âm Thanh" />
+
+    <item
         android:id="@+id/profileFragment"
         android:icon="@android:drawable/ic_menu_myplaces"
         android:title="Hồ Sơ" />

@@ -1,0 +1,350 @@
+package com.example.timerstudy.view.fragments;
+
+import android.Manifest;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.media.AudioManager;
+import android.net.Uri;
+import android.os.Bundle;
+import android.provider.OpenableColumns;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.SeekBar;
+import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.timerstudy.R;
+import com.example.timerstudy.model.SoundItem;
+import com.example.timerstudy.presenter.SoundPresenter;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class SoundFragment extends Fragment implements SoundPresenter.SoundView {
+    private RecyclerView musicRecyclerView;
+    private RecyclerView whiteNoiseRecyclerView;
+    private TextView asmrTab, musicTab;
+    private SeekBar volumeSeekBar;
+    private TextView volumeLabel;
+    private View volumeContainer;
+    private View uploadContainer;
+    private Button uploadButton;
+    private RecyclerView uploadedAudioRecyclerView;
+    private SoundAdapter uploadedAudioAdapter;
+    private ArrayList<SoundItem> uploadedAudioList = new ArrayList<>();
+    private static final int REQUEST_CODE_PICK_AUDIO = 2001;
+    
+    private SoundPresenter presenter;
+    private SoundAdapter musicAdapter;
+    private SoundAdapter whiteNoiseAdapter;
+    private String currentPlayingSoundName = null;
+    private static final int REQUEST_MODIFY_AUDIO_SETTINGS = 1001;
+    private AudioManager audioManager;
+    private android.media.MediaPlayer uploadedPlayer;
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_sound, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        
+        initViews(view);
+        setupRecyclerViews();
+        setupTabs();
+        setupVolumeControl();
+        
+        presenter = new SoundPresenter(this, getContext());
+        audioManager = (AudioManager) requireContext().getSystemService(Context.AUDIO_SERVICE);
+    }
+
+    private void initViews(View view) {
+        musicRecyclerView = view.findViewById(R.id.musicRecyclerView);
+        whiteNoiseRecyclerView = view.findViewById(R.id.whiteNoiseRecyclerView);
+        asmrTab = view.findViewById(R.id.asmrTab);
+        musicTab = view.findViewById(R.id.musicTab);
+        volumeSeekBar = view.findViewById(R.id.volumeSeekBar);
+        volumeLabel = view.findViewById(R.id.volumeLabel);
+        volumeContainer = view.findViewById(R.id.volumeContainer);
+        uploadContainer = view.findViewById(R.id.uploadContainer);
+        uploadButton = view.findViewById(R.id.uploadButton);
+        uploadedAudioRecyclerView = view.findViewById(R.id.uploadedAudioRecyclerView);
+    }
+
+    private void setupRecyclerViews() {
+        musicAdapter = new SoundAdapter(this::onSoundItemClick);
+        musicRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        musicRecyclerView.setAdapter(musicAdapter);
+        
+        whiteNoiseAdapter = new SoundAdapter(this::onSoundItemClick);
+        whiteNoiseRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        whiteNoiseRecyclerView.setAdapter(whiteNoiseAdapter);
+
+        uploadedAudioAdapter = new SoundAdapter(this::onUploadedAudioClick);
+        uploadedAudioRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        uploadedAudioRecyclerView.setAdapter(uploadedAudioAdapter);
+    }
+
+    private void setupTabs() {
+        asmrTab.setOnClickListener(v -> {
+            showWhiteNoiseView();
+            updateTabSelection(true);
+        });
+        
+        musicTab.setOnClickListener(v -> {
+            showMusicView();
+            updateTabSelection(false);
+        });
+        
+        TextView uploadTab = requireView().findViewById(R.id.uploadTab);
+        uploadTab.setOnClickListener(v -> {
+            showUploadView();
+            updateTabSelectionUpload();
+        });
+        
+        showMusicView();
+        updateTabSelection(false);
+    }
+
+    private void setupVolumeControl() {
+        volumeSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser && currentPlayingSoundName != null) {
+                    float volume = progress / 100.0f;
+                    presenter.onVolumeChanged(currentPlayingSoundName, volume);
+
+                    if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.MODIFY_AUDIO_SETTINGS)
+                            == PackageManager.PERMISSION_GRANTED) {
+                        setDeviceVolume(progress);
+                    } else {
+                        requestAudioPermission();
+                    }
+                }
+            }
+            
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+        
+        volumeContainer.setVisibility(View.GONE);
+
+        if (uploadButton != null) {
+            uploadButton.setOnClickListener(v -> {
+                pickAudioFile();
+            });
+        }
+    }
+
+    private void setDeviceVolume(int progress) {
+        if (audioManager != null) {
+            int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+            int newVolume = (int) (progress / 100.0f * maxVolume);
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, 0);
+        }
+    }
+
+    private void requestAudioPermission() {
+        ActivityCompat.requestPermissions(requireActivity(),
+                new String[]{Manifest.permission.MODIFY_AUDIO_SETTINGS},
+                REQUEST_MODIFY_AUDIO_SETTINGS);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                          @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_MODIFY_AUDIO_SETTINGS) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (volumeSeekBar != null) {
+                    setDeviceVolume(volumeSeekBar.getProgress());
+                }
+            }
+        }
+    }
+
+    private void showMusicView() {
+        musicRecyclerView.setVisibility(View.VISIBLE);
+        whiteNoiseRecyclerView.setVisibility(View.GONE);
+        uploadContainer.setVisibility(View.GONE);
+    }
+
+    private void showWhiteNoiseView() {
+        musicRecyclerView.setVisibility(View.GONE);
+        whiteNoiseRecyclerView.setVisibility(View.VISIBLE);
+        uploadContainer.setVisibility(View.GONE);
+    }
+
+    private void showUploadView() {
+        musicRecyclerView.setVisibility(View.GONE);
+        whiteNoiseRecyclerView.setVisibility(View.GONE);
+        uploadContainer.setVisibility(View.VISIBLE);
+    }
+
+    private void updateTabSelection(boolean isAsmrSelected) {
+        TextView uploadTab = requireView().findViewById(R.id.uploadTab);
+        if (isAsmrSelected) {
+            asmrTab.setTextColor(getResources().getColor(R.color.blue_accent, null));
+            musicTab.setTextColor(getResources().getColor(R.color.gray_text, null));
+            uploadTab.setTextColor(getResources().getColor(R.color.gray_text, null));
+        } else {
+            asmrTab.setTextColor(getResources().getColor(R.color.gray_text, null));
+            musicTab.setTextColor(getResources().getColor(R.color.blue_accent, null));
+            uploadTab.setTextColor(getResources().getColor(R.color.gray_text, null));
+        }
+    }
+
+    private void updateTabSelectionUpload() {
+        asmrTab.setTextColor(getResources().getColor(R.color.gray_text, null));
+        musicTab.setTextColor(getResources().getColor(R.color.gray_text, null));
+        TextView uploadTab = requireView().findViewById(R.id.uploadTab);
+        uploadTab.setTextColor(getResources().getColor(R.color.blue_accent, null));
+    }
+
+    private void onSoundItemClick(String soundName) {
+        presenter.onSoundItemClicked(soundName);
+    }
+
+    private void onUploadedAudioClick(String soundName) {
+        for (SoundItem item : uploadedAudioList) {
+            if (item.getName().equals(soundName)) {
+                playUploadedAudio(item);
+                break;
+            }
+        }
+    }
+
+    private void playUploadedAudio(SoundItem item) {
+        stopUploadedAudio();
+        if (item.getUri() != null) {
+            uploadedPlayer = android.media.MediaPlayer.create(getContext(), item.getUri());
+            if (uploadedPlayer != null) {
+                uploadedPlayer.setLooping(true);
+                uploadedPlayer.setVolume(item.getVolume(), item.getVolume());
+                uploadedPlayer.start();
+                item.setPlaying(true);
+                uploadedAudioAdapter.updatePlayingState(item.getName(), true);
+                showVolumeSlider(item.getName(), item.getVolume());
+            }
+        }
+    }
+
+    private void stopUploadedAudio() {
+        if (uploadedPlayer != null) {
+            uploadedPlayer.stop();
+            uploadedPlayer.release();
+            uploadedPlayer = null;
+            for (SoundItem item : uploadedAudioList) {
+                if (item.isPlaying()) {
+                    item.setPlaying(false);
+                    uploadedAudioAdapter.updatePlayingState(item.getName(), false);
+                }
+            }
+            hideVolumeSlider();
+        }
+    }
+
+    private void pickAudioFile() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.setType("audio/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        startActivityForResult(intent, REQUEST_CODE_PICK_AUDIO);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_PICK_AUDIO && resultCode == android.app.Activity.RESULT_OK) {
+            if (data != null && data.getData() != null) {
+                Uri audioUri = data.getData();
+                String audioName = getFileName(audioUri);
+                SoundItem item = new SoundItem(audioName, 0, false, 0.5f);
+                item.setUri(audioUri);
+                uploadedAudioList.add(item);
+                uploadedAudioAdapter.updateSounds(uploadedAudioList);
+            }
+        }
+    }
+
+    private String getFileName(Uri uri) {
+        String result = "Unknown";
+        if (uri.getScheme().equals("content")) {
+            try (Cursor cursor = requireContext().getContentResolver().query(uri, null, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    if (idx >= 0) result = cursor.getString(idx);
+                }
+            }
+        } else {
+            String path = uri.getPath();
+            int cut = path.lastIndexOf('/');
+            if (cut != -1) result = path.substring(cut + 1);
+        }
+        return result;
+    }
+
+    @Override
+    public void updateSoundList(List<SoundItem> sounds) {
+        List<SoundItem> musicSounds = sounds.subList(0, Math.min(6, sounds.size())); 
+        List<SoundItem> whiteNoiseSounds = sounds.size() > 6 ? 
+            sounds.subList(6, sounds.size()) : 
+            sounds.subList(0, 0);
+        
+        musicAdapter.updateSounds(musicSounds);
+        whiteNoiseAdapter.updateSounds(whiteNoiseSounds);
+    }
+
+    @Override
+    public void showVolumeSlider(String soundName, float volume) {
+        currentPlayingSoundName = soundName;
+        volumeLabel.setText("Volume");
+        volumeSeekBar.setProgress((int)(volume * 100));
+        volumeContainer.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void hideVolumeSlider() {
+        currentPlayingSoundName = null;
+        volumeContainer.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void updatePlayingState(String soundName, boolean isPlaying) {
+        musicAdapter.updatePlayingState(soundName, isPlaying);
+        whiteNoiseAdapter.updatePlayingState(soundName, isPlaying);
+        
+        if (isPlaying) {
+            SoundItem item = presenter.findSoundByName(soundName);
+            if (item != null) {
+                showVolumeSlider(soundName, item.getVolume());
+            }
+        } else {
+            hideVolumeSlider();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        stopUploadedAudio();
+        if (presenter != null) {
+            presenter.onDestroy();
+        }
+    }
+}
