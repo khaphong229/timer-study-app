@@ -17,15 +17,27 @@ import java.util.List;
 
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
     private List<TaskEntity> tasks;
-    private final  OnTaskCheckedListener listener;
+    private final OnTaskCheckedListener listener;
+    private final OnTaskDeleteListener deleteListener;
+    private final OnTaskEditListener editListener;
 
-    public interface  OnTaskCheckedListener {
+    public interface OnTaskCheckedListener {
         void onCheckedChange(TaskEntity task, boolean isChecked);
     }
 
-    public TaskAdapter(List<TaskEntity> tasks, OnTaskCheckedListener listener) {
+    public interface OnTaskDeleteListener {
+        void onDeleteTask(TaskEntity task);
+    }
+
+    public interface OnTaskEditListener {
+        void onEditTask(TaskEntity task);
+    }
+
+    public TaskAdapter(List<TaskEntity> tasks, OnTaskCheckedListener listener, OnTaskDeleteListener deleteListener, OnTaskEditListener editListener) {
         this.tasks = tasks;
         this.listener = listener;
+        this.deleteListener = deleteListener;
+        this.editListener = editListener;
     }
 
     public void setTasks(List<TaskEntity> newTasks){
@@ -76,6 +88,20 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         }
 
         holder.cbCompleted.setOnCheckedChangeListener((buttonView, isChecked) -> listener.onCheckedChange(task, isChecked));
+        
+        // Handle edit button click
+        holder.ivEdit.setOnClickListener(v -> {
+            if (editListener != null) {
+                editListener.onEditTask(task);
+            }
+        });
+        
+        // Handle delete button click
+        holder.ivDelete.setOnClickListener(v -> {
+            if (deleteListener != null) {
+                deleteListener.onDeleteTask(task);
+            }
+        });
     }
 
 
@@ -84,19 +110,21 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         return tasks == null ? 0 : tasks.size();
     }
 
-    static class TaskViewHolder extends  RecyclerView.ViewHolder{
+    static class TaskViewHolder extends RecyclerView.ViewHolder {
         CheckBox cbCompleted;
         TextView tvTitle, tvDescription;
         View priorityIndicator;
+        android.widget.ImageView ivEdit, ivDelete;
 
-        TaskViewHolder(View itemView){
+        TaskViewHolder(View itemView) {
             super(itemView);
             cbCompleted = itemView.findViewById(R.id.cbCompleted);
             tvTitle = itemView.findViewById(R.id.tvTitle);
             tvDescription = itemView.findViewById(R.id.tvDescription);
             priorityIndicator = itemView.findViewById(R.id.viewPriority);
+            ivEdit = itemView.findViewById(R.id.ivEdit);
+            ivDelete = itemView.findViewById(R.id.ivDelete);
         }
-        
     }
 
 }

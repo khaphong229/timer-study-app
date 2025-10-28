@@ -16,9 +16,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.timerstudy.R;
+import com.example.timerstudy.view.contracts.TaskContract;
 import com.example.timerstudy.data.local.database.entities.TaskEntity;
-import com.example.timerstudy.data.repository.TaskRepository;
-import com.example.timerstudy.data.repository.UserRepository;
+import com.example.timerstudy.presenter.TaskPresenter;
 import com.example.timerstudy.view.adapters.TaskAdapter;
 import com.example.timerstudy.view.adapters.WeekAdapter;
 import com.example.timerstudy.view.adapters.PriorityAdapter;
@@ -27,12 +27,11 @@ import android.widget.ImageButton;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TaskFragment extends Fragment {
+public class TaskFragment extends Fragment implements TaskContract.View {
 
 	private RecyclerView rvTasks;
 	private TaskAdapter adapter;
-	private TaskRepository repository;
-	private UserRepository userRepository;
+	private TaskPresenter presenter;
 	private TextView tvEmptyState;
 	// week header views
 	private RecyclerView rvWeek;
@@ -40,7 +39,6 @@ public class TaskFragment extends Fragment {
 	private ImageButton btnPrevWeek, btnNextWeek;
 	private WeekAdapter weekAdapter;
 	private java.util.Calendar weekBase;
-	
 	// Add task views
 	private EditText etNewTask;
 	private ImageButton btnAddTask;
@@ -57,6 +55,8 @@ public class TaskFragment extends Fragment {
 	public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
 
+		presenter = new TaskPresenter(this, requireContext());
+
 		// Initialize views
 		rvTasks = view.findViewById(R.id.rvTasks);
 		tvEmptyState = view.findViewById(R.id.tvEmptyState);
@@ -66,14 +66,19 @@ public class TaskFragment extends Fragment {
 
 		// Setup RecyclerView
 		rvTasks.setLayoutManager(new LinearLayoutManager(requireContext()));
-		adapter = new TaskAdapter(new ArrayList<>(), (task, isChecked) -> {
-			// toggle completed and update repository
-			task.setCompleted(isChecked);
-			if (isChecked) task.setCompletedAt(new java.util.Date());
-			else task.setCompletedAt(null);
-			repository.updateTask(task);
-			// no UI changes here because adapter will reflect the same object state
-		});
+		adapter = new TaskAdapter(new ArrayList<>(), 
+			(task, isChecked) -> {
+				// Use presenter to handle task completion
+				presenter.toggleTaskCompletion(task, isChecked);
+			},
+			(task) -> {
+				// Use presenter to handle task deletion with confirmation
+				showDeleteConfirmation(task);
+			},
+			(task) -> {
+				// Handle task editing
+				showEditTaskDialog(task);
+			});
 
 		rvTasks.setAdapter(adapter);
 		
@@ -103,31 +108,13 @@ public class TaskFragment extends Fragment {
 			updateWeekHeader();
 		});
 
-		repository = new TaskRepository(requireContext());
-		userRepository = new UserRepository(requireContext());
-
-		// Đảm bảo user được khởi tạo trước khi thêm task
-		initializeUserIfNeeded();
-
 		// Setup add task button listener
 		btnAddTask.setOnClickListener(v -> addNewTask());
 
-		loadTasks();
+		presenter.loadTasks();
 	}
 
-	private void loadTasks(){
-		// Load on background thread then post to UI
-		new Thread(() -> {
-			int currentUserId = userRepository.getCurrentUserId();
-			List<TaskEntity> tasks = repository.getTasksByUserId(currentUserId);
-			if (tasks == null) tasks = new ArrayList<>();
-			List<TaskEntity> finalTasks = tasks;
-			requireActivity().runOnUiThread(() -> {
-				adapter.setTasks(finalTasks);
-				toggleEmptyState(finalTasks.isEmpty());
-			});
-		}).start();
-	}
+
 
 	private void toggleEmptyState(boolean isEmpty){
 		tvEmptyState.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
@@ -172,11 +159,7 @@ public class TaskFragment extends Fragment {
 		});
 	}
 
-	private void initializeUserIfNeeded() {
-		new Thread(() -> {
-			userRepository.initializeUser();
-		}).start();
-	}
+
 
 	private void setupPrioritySpinner() {
 		// Lấy danh sách priority từ resources
@@ -186,7 +169,6 @@ public class TaskFragment extends Fragment {
 			R.color.priority_low,
 			R.color.priority_medium,
 			R.color.priority_high,
-			R.color.priority_urgent
 		};
 
 		// Tạo adapter cho spinner
@@ -200,46 +182,135 @@ public class TaskFragment extends Fragment {
 	}
 
 	private void addNewTask() {
+		// Just collect UI data and pass to presenter - NO VALIDATION in View
 		String taskTitle = etNewTask.getText().toString().trim();
-		
-		if (taskTitle.isEmpty()) {
-			etNewTask.setError("Vui lòng nhập nội dung task");
-			return;
-		}
-
-		// Lấy priority được chọn
 		int selectedPosition = spinnerPriority.getSelectedItemPosition();
 		String[] priorityValues = getResources().getStringArray(R.array.priority_values);
 		String selectedPriority = priorityValues[selectedPosition];
 
-		// Tạo task mới
-		TaskEntity newTask = new TaskEntity();
-		newTask.setTitle(taskTitle);
-		newTask.setPriority(selectedPriority);
-		newTask.setTaskDate(new java.util.Date());
-		newTask.setCreatedAt(new java.util.Date());
-		newTask.setUpdatedAt(new java.util.Date());
-		newTask.setCompleted(false);
-		newTask.setTotalTimeSpent(0);
-		newTask.setEstimatedSessions(1);
-		newTask.setActualSessions(0);
-		newTask.setOrderIndex(0);
-		
-		// Set userId từ UserRepository
-		int currentUserId = userRepository.getCurrentUserId();
-		newTask.setUserId(currentUserId);
-
-		// Thêm vào database trong background thread
-		new Thread(() -> {
-			repository.insertTask(newTask);
-			
-			// Refresh danh sách tasks
-			requireActivity().runOnUiThread(() -> {
-				etNewTask.setText("");
-				spinnerPriority.setSelection(1); // Reset về "Trung bình"
-				loadTasks();
-			});
-		}).start();
+		// Let presenter handle validation and business logic
+		presenter.addTask(taskTitle, selectedPriority);
 	}
 
+	// TaskContract.View implementation
+	@Override
+	public void showTasks(List<TaskEntity> tasks) {
+		adapter.setTasks(tasks);
+		toggleEmptyState(tasks.isEmpty());
+	}
+
+	@Override
+	public void showEmptyState() {
+		tvEmptyState.setVisibility(View.VISIBLE);
+		rvTasks.setVisibility(View.GONE);
+	}
+
+	@Override
+	public void hideEmptyState() {
+		tvEmptyState.setVisibility(View.GONE);
+		rvTasks.setVisibility(View.VISIBLE);
+	}
+
+	@Override
+	public void showLoading() {
+		// You can implement loading indicator here if needed
+	}
+
+	@Override
+	public void hideLoading() {
+		// You can implement loading indicator here if needed
+	}
+
+	@Override
+	public void showError(String message) {
+		android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show();
+	}
+
+	@Override
+	public void clearTaskInput() {
+		etNewTask.setText("");
+	}
+
+	@Override
+	public void resetPrioritySelection() {
+		spinnerPriority.setSelection(1); // Reset về "Trung bình"
+	}
+
+	@Override
+	public void showTaskAddedSuccess() {
+		android.widget.Toast.makeText(requireContext(), "Đã thêm task thành công", android.widget.Toast.LENGTH_SHORT).show();
+	}
+
+	private void showEditTaskDialog(TaskEntity task) {
+		// Tạo layout cho dialog edit
+		View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_edit_task, null);
+		
+		EditText etEditTitle = dialogView.findViewById(R.id.etEditTitle);
+		Spinner spinnerEditPriority = dialogView.findViewById(R.id.spinnerEditPriority);
+		
+		// Thiết lập giá trị hiện tại
+		etEditTitle.setText(task.getTitle());
+		
+		// Setup priority spinner cho dialog
+		String[] priorityNames = getResources().getStringArray(R.array.priority_levels);
+		PriorityAdapter editPriorityAdapter = new PriorityAdapter(requireContext(), 
+			java.util.Arrays.asList(priorityNames), new int[]{
+				R.color.priority_low,
+				R.color.priority_medium, 
+				R.color.priority_high
+			});
+		spinnerEditPriority.setAdapter(editPriorityAdapter);
+		
+		// Đặt priority hiện tại
+		String[] priorityValues = getResources().getStringArray(R.array.priority_values);
+		for (int i = 0; i < priorityValues.length; i++) {
+			if (priorityValues[i].equals(task.getPriority())) {
+				spinnerEditPriority.setSelection(i);
+				break;
+			}
+		}
+		
+		new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+			.setTitle("Sửa Task")
+			.setView(dialogView)
+			.setPositiveButton("Lưu", (dialog, which) -> {
+				String newTitle = etEditTitle.getText().toString().trim();
+				if (!newTitle.isEmpty()) {
+					String newPriority = priorityValues[spinnerEditPriority.getSelectedItemPosition()];
+					
+					// Cập nhật task
+					task.setTitle(newTitle);
+					task.setPriority(newPriority);
+					
+					// Sử dụng presenter để cập nhật
+					presenter.updateTask(task);
+					
+					android.widget.Toast.makeText(requireContext(), "Đã cập nhật task", android.widget.Toast.LENGTH_SHORT).show();
+				} else {
+					android.widget.Toast.makeText(requireContext(), "Tiêu đề không được để trống", android.widget.Toast.LENGTH_SHORT).show();
+				}
+			})
+			.setNegativeButton("Hủy", null)
+			.show();
+	}
+
+	private void showDeleteConfirmation(TaskEntity task) {
+		new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+			.setTitle("Xác nhận xóa")
+			.setMessage("Bạn có chắc chắn muốn xóa task \"" + task.getTitle() + "\"?")
+			.setPositiveButton("Xóa", (dialog, which) -> {
+				presenter.deleteTask(task);
+				android.widget.Toast.makeText(requireContext(), "Đã xóa task", android.widget.Toast.LENGTH_SHORT).show();
+			})
+			.setNegativeButton("Hủy", null)
+			.show();
+	}
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		if (presenter != null) {
+			presenter.onDestroy();
+		}
+	}
 }
