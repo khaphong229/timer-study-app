@@ -69,6 +69,9 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         
         presenter = new SoundPresenter(this, getContext());
         audioManager = (AudioManager) requireContext().getSystemService(Context.AUDIO_SERVICE);
+
+        // Gọi restorePlayingState sau khi presenter đã được khởi tạo và view đã sẵn sàng
+        presenter.restorePlayingState();
     }
 
     private void initViews(View view) {
@@ -183,18 +186,24 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         musicRecyclerView.setVisibility(View.VISIBLE);
         whiteNoiseRecyclerView.setVisibility(View.GONE);
         uploadContainer.setVisibility(View.GONE);
+        // Chỉ ẩn volume slider, không dừng âm thanh
+        hideVolumeSlider();
     }
 
     private void showWhiteNoiseView() {
         musicRecyclerView.setVisibility(View.GONE);
         whiteNoiseRecyclerView.setVisibility(View.VISIBLE);
         uploadContainer.setVisibility(View.GONE);
+        // Chỉ ẩn volume slider, không dừng âm thanh
+        hideVolumeSlider();
     }
 
     private void showUploadView() {
         musicRecyclerView.setVisibility(View.GONE);
         whiteNoiseRecyclerView.setVisibility(View.GONE);
         uploadContainer.setVisibility(View.VISIBLE);
+        // Chỉ ẩn volume slider, không dừng âm thanh
+        hideVolumeSlider();
     }
 
     private void updateTabSelection(boolean isAsmrSelected) {
@@ -343,8 +352,5 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
     public void onDestroy() {
         super.onDestroy();
         stopUploadedAudio();
-        if (presenter != null) {
-            presenter.onDestroy();
-        }
     }
 }
