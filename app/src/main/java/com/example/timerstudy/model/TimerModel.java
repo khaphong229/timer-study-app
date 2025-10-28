@@ -10,8 +10,8 @@ public class TimerModel {
         void onSessionTypeChange(boolean isStudySession);
     }
 
-    private static final long DEFAULT_STUDY_DURATION = 25 * 60 * 1000; // 25 minutes
-    private static final long DEFAULT_BREAK_DURATION = 5 * 60 * 1000;  // 5 minutes
+    private static final long DEFAULT_STUDY_DURATION = 25 * 60 * 1000;
+    private static final long DEFAULT_BREAK_DURATION = 5 * 60 * 1000;
 
     private long studyDuration = DEFAULT_STUDY_DURATION;
     private long breakDuration = DEFAULT_BREAK_DURATION;
