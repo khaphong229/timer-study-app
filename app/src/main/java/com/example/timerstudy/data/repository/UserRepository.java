@@ -42,11 +42,11 @@ public class UserRepository {
     private static volatile UserRepository INSTANCE;
     
     /**
-     * Private constructor for Singleton pattern
+     * Constructor
      * 
      * @param context Application context
      */
-    private UserRepository(Context context) {
+    public UserRepository(Context context) {
         database = AppDatabase.getDatabase(context);
         userDao = database.userDao();
         executorService = Executors.newFixedThreadPool(4);
@@ -457,5 +457,41 @@ public class UserRepository {
      */
     public boolean isClosed() {
         return executorService == null || executorService.isShutdown();
+    }
+
+    /**
+     * Initialize user for the device
+     * Creates a default user if none exists
+     */
+    public void initializeUser() {
+        executorService.execute(() -> {
+            try {
+                // Sử dụng user ID cố định
+                int userId = 1;
+                
+                // Kiểm tra user đã tồn tại chưa
+                UserEntity existingUser = userDao.getUserById(userId);
+                if (existingUser == null) {
+                    // Tạo user mới
+                    UserEntity newUser = new UserEntity();
+                    newUser.setUserId(userId);
+                    newUser.setDisplayName("User");
+                    newUser.setAnonymous(true);
+                    userDao.insertUser(newUser);
+                    Log.d(TAG, "Created new user with ID: " + userId);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error initializing user", e);
+            }
+        });
+    }
+
+    /**
+     * Get current user ID
+     * 
+     * @return int user ID
+     */
+    public int getCurrentUserId() {
+        return 1;
     }
 }

@@ -5,6 +5,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.ArrayAdapter;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,8 +18,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.timerstudy.R;
 import com.example.timerstudy.data.local.database.entities.TaskEntity;
 import com.example.timerstudy.data.repository.TaskRepository;
+import com.example.timerstudy.data.repository.UserRepository;
 import com.example.timerstudy.view.adapters.TaskAdapter;
 import com.example.timerstudy.view.adapters.WeekAdapter;
+import com.example.timerstudy.view.adapters.PriorityAdapter;
 import android.widget.ImageButton;
 
 import java.util.ArrayList;
@@ -27,6 +32,7 @@ public class TaskFragment extends Fragment {
 	private RecyclerView rvTasks;
 	private TaskAdapter adapter;
 	private TaskRepository repository;
+	private UserRepository userRepository;
 	private TextView tvEmptyState;
 	// week header views
 	private RecyclerView rvWeek;
@@ -34,6 +40,12 @@ public class TaskFragment extends Fragment {
 	private ImageButton btnPrevWeek, btnNextWeek;
 	private WeekAdapter weekAdapter;
 	private java.util.Calendar weekBase;
+	
+	// Add task views
+	private EditText etNewTask;
+	private ImageButton btnAddTask;
+	private Spinner spinnerPriority;
+	private PriorityAdapter priorityAdapter;
 
 	@Nullable
 	@Override
@@ -45,9 +57,14 @@ public class TaskFragment extends Fragment {
 	public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
 
+		// Initialize views
 		rvTasks = view.findViewById(R.id.rvTasks);
 		tvEmptyState = view.findViewById(R.id.tvEmptyState);
+		etNewTask = view.findViewById(R.id.etNewTask);
+		btnAddTask = view.findViewById(R.id.btnAddTask);
+		spinnerPriority = view.findViewById(R.id.spinnerPriority);
 
+		// Setup RecyclerView
 		rvTasks.setLayoutManager(new LinearLayoutManager(requireContext()));
 		adapter = new TaskAdapter(new ArrayList<>(), (task, isChecked) -> {
 			// toggle completed and update repository
@@ -59,6 +76,9 @@ public class TaskFragment extends Fragment {
 		});
 
 		rvTasks.setAdapter(adapter);
+		
+		// Setup Priority Spinner
+		setupPrioritySpinner();
 
 		// setup week header
 		rvWeek = view.findViewById(R.id.rvWeek);
@@ -84,6 +104,13 @@ public class TaskFragment extends Fragment {
 		});
 
 		repository = new TaskRepository(requireContext());
+		userRepository = new UserRepository(requireContext());
+
+		// Đảm bảo user được khởi tạo trước khi thêm task
+		initializeUserIfNeeded();
+
+		// Setup add task button listener
+		btnAddTask.setOnClickListener(v -> addNewTask());
 
 		loadTasks();
 	}
@@ -91,7 +118,8 @@ public class TaskFragment extends Fragment {
 	private void loadTasks(){
 		// Load on background thread then post to UI
 		new Thread(() -> {
-			List<TaskEntity> tasks = repository.getAllTasks();
+			int currentUserId = userRepository.getCurrentUserId();
+			List<TaskEntity> tasks = repository.getTasksByUserId(currentUserId);
 			if (tasks == null) tasks = new ArrayList<>();
 			List<TaskEntity> finalTasks = tasks;
 			requireActivity().runOnUiThread(() -> {
@@ -144,5 +172,74 @@ public class TaskFragment extends Fragment {
 		});
 	}
 
+	private void initializeUserIfNeeded() {
+		new Thread(() -> {
+			userRepository.initializeUser();
+		}).start();
+	}
+
+	private void setupPrioritySpinner() {
+		// Lấy danh sách priority từ resources
+		String[] priorityNames = getResources().getStringArray(R.array.priority_levels);
+		String[] priorityValues = getResources().getStringArray(R.array.priority_values);
+		int[] priorityColors = {
+			R.color.priority_low,
+			R.color.priority_medium,
+			R.color.priority_high,
+			R.color.priority_urgent
+		};
+
+		// Tạo adapter cho spinner
+		priorityAdapter = new PriorityAdapter(requireContext(), 
+			java.util.Arrays.asList(priorityNames), priorityColors);
+		
+		spinnerPriority.setAdapter(priorityAdapter);
+		
+		// Đặt mặc định là "Trung bình" (index 1)
+		spinnerPriority.setSelection(1);
+	}
+
+	private void addNewTask() {
+		String taskTitle = etNewTask.getText().toString().trim();
+		
+		if (taskTitle.isEmpty()) {
+			etNewTask.setError("Vui lòng nhập nội dung task");
+			return;
+		}
+
+		// Lấy priority được chọn
+		int selectedPosition = spinnerPriority.getSelectedItemPosition();
+		String[] priorityValues = getResources().getStringArray(R.array.priority_values);
+		String selectedPriority = priorityValues[selectedPosition];
+
+		// Tạo task mới
+		TaskEntity newTask = new TaskEntity();
+		newTask.setTitle(taskTitle);
+		newTask.setPriority(selectedPriority);
+		newTask.setTaskDate(new java.util.Date());
+		newTask.setCreatedAt(new java.util.Date());
+		newTask.setUpdatedAt(new java.util.Date());
+		newTask.setCompleted(false);
+		newTask.setTotalTimeSpent(0);
+		newTask.setEstimatedSessions(1);
+		newTask.setActualSessions(0);
+		newTask.setOrderIndex(0);
+		
+		// Set userId từ UserRepository
+		int currentUserId = userRepository.getCurrentUserId();
+		newTask.setUserId(currentUserId);
+
+		// Thêm vào database trong background thread
+		new Thread(() -> {
+			repository.insertTask(newTask);
+			
+			// Refresh danh sách tasks
+			requireActivity().runOnUiThread(() -> {
+				etNewTask.setText("");
+				spinnerPriority.setSelection(1); // Reset về "Trung bình"
+				loadTasks();
+			});
+		}).start();
+	}
 
 }

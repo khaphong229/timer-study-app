@@ -22,6 +22,10 @@ public class TaskRepository {
         return taskDao.getAllTasks();
     }
 
+    public List<TaskEntity> getTasksByUserId(int userId){
+        return taskDao.getTasksByUserId(userId);
+    }
+
     public void insertTask(TaskEntity task){
         Executors.newSingleThreadExecutor().execute(()->taskDao.insertTask(task));
     }

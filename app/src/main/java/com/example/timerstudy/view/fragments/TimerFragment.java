@@ -117,7 +117,9 @@ public class TimerFragment extends Fragment implements TimerContract.View {
     private void setupListeners() {
         // Play/Pause button - Ẩn navbar khi bắt đầu timer
         btnPlayPause.setOnClickListener(v -> {
-         if (presenter == null) return;
+         if (presenter == null) {
+                return;
+         };
             ViewAnimator.animateButtonClick(btnPlayPause);   
             if (isRunning) {
                 presenter.onPauseClicked();
