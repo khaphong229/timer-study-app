@@ -29,5 +29,5 @@
         android:name="defaultOrientation"
         android:value="landscape" />
     </application>
-
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
 </manifest>

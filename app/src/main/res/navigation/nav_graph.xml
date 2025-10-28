@@ -19,6 +19,13 @@
         android:label="Timer"
         tools:layout="@layout/fragment_timer" />
 
+    <!-- Sound Fragment - Màn hình hiển thị âm thanh white noise -->
+    <fragment
+        android:id="@+id/soundFragment"
+        android:name="com.example.timerstudy.view.fragments.SoundFragment"
+        android:label="Âm Thanh"
+        tools:layout="@layout/fragment_sound" />
+
     <!-- Profile Fragment - Màn hình hiển thị thông tin chi tiết -->
     <fragment
         android:id="@+id/profileFragment"

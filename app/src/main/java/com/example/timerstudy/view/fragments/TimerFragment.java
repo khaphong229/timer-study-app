@@ -1,37 +1,57 @@
 package com.example.timerstudy.view.fragments;
 
+import android.graphics.Color;
+import android.graphics.RenderEffect;
+import android.graphics.Shader;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.example.timerstudy.utils.ViewAnimator;
+import com.google.android.material.card.MaterialCardView;
+import pl.droidsonroids.gif.GifImageView;
+
 import com.example.timerstudy.R;
 import com.example.timerstudy.presenter.TimerContract;
 import com.example.timerstudy.presenter.TimerPresenter;
+import com.example.timerstudy.view.activities.MainActivity;
 
 public class TimerFragment extends Fragment implements TimerContract.View {
     
     private TextView tvTime;
     private TextView tvSessionType;
     private TextView tvCompletedSessions;
-    private Button btnStart;
-    private Button btnPause;
-    private Button btnReset;
+    private ImageButton btnPlayPause;
+    private ImageButton btnPause;
+    private ImageButton btnReset;
+    private ImageButton btnTimerSettings;
     private SeekBar seekBarStudy;
     private SeekBar seekBarBreak;
     private TextView tvStudyDuration;
     private TextView tvBreakDuration;
+    private MaterialCardView cardSeekbarPanel;
+    private MaterialCardView cardTime;
+    private View timerBlurBackground;
+    private View sessionIndicator;
+    private GifImageView gifImageView;
     
     private TimerPresenter presenter;
+    private boolean isRunning = false;
+    private boolean isSeekbarVisible = false;
     
     @Nullable
     @Override
@@ -52,13 +72,18 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         tvTime = view.findViewById(R.id.tv_time);
         tvSessionType = view.findViewById(R.id.tv_session_type);
         tvCompletedSessions = view.findViewById(R.id.tv_completed_sessions);
-        btnStart = view.findViewById(R.id.btn_start);
-        btnPause = view.findViewById(R.id.btn_pause);
+        btnPlayPause = view.findViewById(R.id.btn_play_pause);
         btnReset = view.findViewById(R.id.btn_reset);
+        btnTimerSettings = view.findViewById(R.id.btn_timer_settings);
+        cardSeekbarPanel = view.findViewById(R.id.card_seekbar_panel);
+        cardTime = view.findViewById(R.id.card_time);
+        timerBlurBackground = view.findViewById(R.id.timer_blur_background);
+        sessionIndicator = view.findViewById(R.id.session_indicator);
         seekBarStudy = view.findViewById(R.id.seekbar_study);
         seekBarBreak = view.findViewById(R.id.seekbar_break);
         tvStudyDuration = view.findViewById(R.id.tv_study_duration);
         tvBreakDuration = view.findViewById(R.id.tv_break_duration);
+        gifImageView = view.findViewById(R.id.gifImageView);
         
         // Set default values
         seekBarStudy.setMax(60);
@@ -67,6 +92,21 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         seekBarBreak.setProgress(5);
         
         updateDurationLabels();
+        
+        // Apply blur effect
+        applyBlurEffect();
+    }
+    
+    private void applyBlurEffect() {
+        if (cardTime != null) {
+            cardTime.setCardBackgroundColor(Color.TRANSPARENT);
+        }
+        
+        if (timerBlurBackground != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            timerBlurBackground.setRenderEffect(
+                RenderEffect.createBlurEffect(30f, 30f, Shader.TileMode.CLAMP)
+            );
+        }
     }
     
     private void setupPresenter() {
@@ -75,9 +115,32 @@ public class TimerFragment extends Fragment implements TimerContract.View {
     }
     
     private void setupListeners() {
-        btnStart.setOnClickListener(v -> presenter.onStartClicked());
-        btnPause.setOnClickListener(v -> presenter.onPauseClicked());
-        btnReset.setOnClickListener(v -> presenter.onResetClicked());
+        // Play/Pause button - Ẩn navbar khi bắt đầu timer
+        btnPlayPause.setOnClickListener(v -> {
+         if (presenter == null) return;
+            ViewAnimator.animateButtonClick(btnPlayPause);   
+            if (isRunning) {
+                presenter.onPauseClicked();
+            } else {
+                presenter.onStartClicked();
+                // Ẩn Navigation Rail khi nhấn Play
+                hideNavigationRail();
+            }
+        });
+
+        btnReset.setOnClickListener(v -> {
+            ViewAnimator.animateButtonClick(btnReset);
+            presenter.onResetClicked();
+        });
+        
+        // Toggle seekbar panel when clicking timer settings
+        btnTimerSettings.setOnClickListener(v -> {
+            ViewAnimator.animateButtonClick(btnTimerSettings);
+            toggleSeekbarPanel();
+        });
+        
+        // Click vào GIF background để toggle Navigation Rail
+        gifImageView.setOnClickListener(v -> toggleNavigationRail());
         
         seekBarStudy.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -117,6 +180,58 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         tvBreakDuration.setText("Break: " + seekBarBreak.getProgress() + " min");
     }
     
+    private void toggleSeekbarPanel() {
+        isSeekbarVisible = !isSeekbarVisible;
+        
+        if (isSeekbarVisible) {
+            // Hiện panel với animation
+            cardSeekbarPanel.setVisibility(View.VISIBLE);
+            cardSeekbarPanel.setAlpha(0f);
+            cardSeekbarPanel.animate()
+                .alpha(1f)
+                .setDuration(300)
+                .setListener(null);
+        } else {
+            // Ẩn panel với animation
+            cardSeekbarPanel.animate()
+                .alpha(0f)
+                .setDuration(300)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        cardSeekbarPanel.setVisibility(View.GONE);
+                    }
+                });
+        }
+    }
+    
+    /**
+     * Toggle Navigation Rail visibility
+     */
+    private void toggleNavigationRail() {
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).toggleNavigationRail();
+        }
+    }
+    
+    /**
+     * Ẩn Navigation Rail
+     */
+    private void hideNavigationRail() {
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).hideNavigationRail();
+        }
+    }
+    
+    /**
+     * Hiện Navigation Rail
+     */
+    private void showNavigationRail() {
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).showNavigationRail();
+        }
+    }
+    
     // TimerContract.View implementation
     @Override
     public void updateTimeDisplay(String timeText) {
@@ -131,10 +246,8 @@ public class TimerFragment extends Fragment implements TimerContract.View {
             getActivity().runOnUiThread(() -> {
                 if (isStudySession) {
                     tvSessionType.setText("Study Session");
-                    tvSessionType.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.holo_blue_dark));
                 } else {
                     tvSessionType.setText("Break Time");
-                    tvSessionType.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.holo_green_dark));
                 }
             });
         }
@@ -161,11 +274,14 @@ public class TimerFragment extends Fragment implements TimerContract.View {
     }
     
     @Override
-    public void updateControlButtons(boolean isRunning) {
+    public void updateControlButtons(boolean running) {
         if (getActivity() != null) {
             getActivity().runOnUiThread(() -> {
-                btnStart.setEnabled(!isRunning);
-                btnPause.setEnabled(isRunning);
+                isRunning = running;
+          
+                btnPlayPause.setImageResource(isRunning ? R.drawable.ic_pause_48 : R.drawable.ic_play_48);
+                // btn vẫn luôn clickable; nếu cần disable khi không hợp lệ, xử lý thêm ở đây
+                btnPlayPause.setEnabled(true);
             });
         }
     }
