@@ -84,20 +84,20 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <!-- Stats Cards -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
+                    android:weightSum="2"
                     android:baselineAligned="false">
 
-                    <!-- Total Time Card -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardTotalTime"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginEnd="8dp"
+                        android:minHeight="200dp"
                         app:cardElevation="2dp"
                         app:cardCornerRadius="16dp"
                         app:strokeWidth="0dp">
@@ -128,13 +128,13 @@
                                 android:textAppearance="?attr/textAppearanceHeadlineMedium"
                                 android:textStyle="bold"
                                 android:layout_marginTop="12dp"
-                                tools:text="4h 30m" />
+                                tools:text="40h 30m" />
 
                             <com.google.android.material.textview.MaterialTextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:gravity="center"
-                                android:text="Tổng thời gian"
+                                android:text="Tổng thời gian trong ngày"
                                 android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:layout_marginTop="4dp" />
@@ -150,6 +150,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="8dp"
+                        android:minHeight="200dp"
                         app:cardElevation="2dp"
                         app:cardCornerRadius="16dp"
                         app:strokeWidth="0dp">
@@ -231,7 +232,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:nestedScrollingEnabled="false"
-                    tools:listitem="@layout/item_timeline"
+                    tools:listitem="@layout/item_timeline_session"
                     tools:itemCount="5" />
 
                 <!-- Empty State -->
