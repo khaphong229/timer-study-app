@@ -57,4 +57,9 @@ dependencies {
     
     // Glide for loading GIF images
  implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.25'
+
+    // Charts
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01"
+
 }

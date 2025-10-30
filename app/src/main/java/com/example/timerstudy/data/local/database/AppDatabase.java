@@ -44,7 +44,7 @@ import com.example.timerstudy.data.local.database.entities.UserSettingEntity;
                 StreakRecordEntity.class,
                 TimerEntity.class
         },
-        version = 1,
+        version = 2,
         exportSchema = false
 )
 @TypeConverters({DateConverter.class})
@@ -80,6 +80,7 @@ public abstract class AppDatabase extends RoomDatabase {
                                     AppDatabase.class,
                                     DATABASE_NAME
                             )
+                            .fallbackToDestructiveMigration()
                             .addCallback(roomDatabaseCallback)
                             .build();
                 }
@@ -110,6 +111,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     }
 
                     INSTANCE = builder
+                            .fallbackToDestructiveMigration()
                             .addCallback(roomDatabaseCallback)
                             .build();
                 }
