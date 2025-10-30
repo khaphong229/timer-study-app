@@ -154,8 +154,13 @@ public class TimerFragment extends Fragment implements TimerContract.View {
             toggleSeekbarPanel();
         });
 
-        // Click vào GIF background để toggle Navigation Rail
-        gifImageView.setOnClickListener(v -> toggleNavigationRail());
+
+        gifImageView.setOnClickListener(v -> {
+            toggleNavigationRail();
+            hideSeekbarPanel();
+            
+        });
+
 
         seekBarStudy.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -203,25 +208,33 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         isSeekbarVisible = !isSeekbarVisible;
 
         if (isSeekbarVisible) {
-            // Hiện panel với animation
-            cardSeekbarPanel.setVisibility(View.VISIBLE);
+            showSeekbarPanel();
+        } else {
+            hideSeekbarPanel();
+        }
+    }
+
+    private void hideSeekbarPanel() {
+        isSeekbarVisible = false;
+        cardSeekbarPanel.animate()
+                .alpha(0f)
+                .setDuration(300)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        cardSeekbarPanel.setVisibility(View.GONE);
+                    }
+                });
+    }
+
+    private void showSeekbarPanel() {
+        isSeekbarVisible = true;
+        cardSeekbarPanel.setVisibility(View.VISIBLE);
             cardSeekbarPanel.setAlpha(0f);
             cardSeekbarPanel.animate()
                     .alpha(1f)
                     .setDuration(300)
                     .setListener(null);
-        } else {
-            // Ẩn panel với animation
-            cardSeekbarPanel.animate()
-                    .alpha(0f)
-                    .setDuration(300)
-                    .setListener(new AnimatorListenerAdapter() {
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            cardSeekbarPanel.setVisibility(View.GONE);
-                        }
-                    });
-        }
     }
 
     /**
@@ -381,7 +394,7 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         if (getActivity() != null) {
             getActivity().runOnUiThread(() -> {
                 if (vibrator != null && vibrator.hasVibrator()) {
-                    long[] pattern = {0, 500, 200, 500, 200, 500};
+                    long[] pattern = { 0, 500, 200, 500, 200, 500 };
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         vibrator.vibrate(VibrationEffect.createWaveform(pattern, -1));
                     } else {
