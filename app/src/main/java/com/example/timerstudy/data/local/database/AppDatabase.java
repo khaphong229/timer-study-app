@@ -1,5 +1,6 @@
 package com.example.timerstudy.data.local.database;
 
+import androidx.annotation.NonNull;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
@@ -172,9 +173,73 @@ public abstract class AppDatabase extends RoomDatabase {
 
     static final Migration MIGRATION_1_2 = new Migration(1, 2) {
         @Override
-        public void migrate(SupportSQLiteDatabase database) {
-            // Example: Add new column to users table
-            // database.execSQL("ALTER TABLE users ADD COLUMN last_activity INTEGER");
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            // Create temporary table with new schema for users
+            database.execSQL(
+                "CREATE TABLE IF NOT EXISTS users_temp (" +
+                "user_id TEXT NOT NULL PRIMARY KEY, " +
+                "email TEXT, " +
+                "display_name TEXT, " +
+                "profile_picture_url TEXT, " +
+                "created_at INTEGER, " +
+                "last_login INTEGER, " +
+                "is_anonymous INTEGER NOT NULL DEFAULT 1)"
+            );
+
+            // Create temporary tasks table with new schema
+            database.execSQL(
+                "CREATE TABLE IF NOT EXISTS tasks_temp (" +
+                "task_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "user_id TEXT, " +  // Changed from INTEGER to TEXT
+                "title TEXT, " +
+                "description TEXT, " +
+                "priority TEXT DEFAULT 'MEDIUM', " +
+                "task_date INTEGER, " +
+                "is_completed INTEGER NOT NULL DEFAULT 0, " +
+                "completed_at INTEGER, " +
+                "total_time_spent INTEGER NOT NULL DEFAULT 0, " +
+                "estimated_sessions INTEGER NOT NULL DEFAULT 1, " +
+                "actual_sessions INTEGER NOT NULL DEFAULT 0, " +
+                "order_index INTEGER NOT NULL DEFAULT 0, " +
+                "created_at INTEGER, " +
+                "updated_at INTEGER, " +
+                "FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE)"
+            );
+
+            // Copy data from old users table to new users table, converting user_id to TEXT
+            database.execSQL(
+                "INSERT INTO users_temp (user_id, email, display_name, profile_picture_url, " +
+                "created_at, last_login, is_anonymous) " +
+                "SELECT CAST(user_id AS TEXT), email, display_name, profile_picture_url, " +
+                "created_at, last_login, is_anonymous FROM users"
+            );
+
+            // Copy data from old tasks table to new tasks table, converting user_id to TEXT
+            database.execSQL(
+                "INSERT INTO tasks_temp (task_id, user_id, title, description, priority, " +
+                "task_date, is_completed, completed_at, total_time_spent, estimated_sessions, " +
+                "actual_sessions, order_index, created_at, updated_at) " +
+                "SELECT task_id, CAST(user_id AS TEXT), title, description, priority, " +
+                "task_date, is_completed, completed_at, total_time_spent, estimated_sessions, " +
+                "actual_sessions, order_index, created_at, updated_at FROM tasks"
+            );
+
+            // Drop old tables
+            database.execSQL("DROP TABLE users");
+            database.execSQL("DROP TABLE tasks");
+
+            // Rename temporary tables
+            database.execSQL("ALTER TABLE users_temp RENAME TO users");
+            database.execSQL("ALTER TABLE tasks_temp RENAME TO tasks");
+
+            // Recreate indices for both tables
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_users_email ON users (email)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_users_created_at ON users (created_at)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_tasks_user_id ON tasks (user_id)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_tasks_task_date ON tasks (task_date)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_tasks_priority ON tasks (priority)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_tasks_is_completed ON tasks (is_completed)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS idx_user_task_date ON tasks (user_id, task_date)");
         }
     };
 

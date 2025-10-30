@@ -39,5 +39,10 @@
         android:name="com.example.timerstudy.view.fragments.StatisticsFragment"
         android:label="Thống kê"
         tools:layout="@layout/fragment_statistics" />
+    <fragment
+        android:id="@+id/taskFragment"
+        android:name="com.example.timerstudy.view.fragments.TaskFragment"
+        android:label="To do"
+        tools:layout="@layout/fragment_task" />
 
 </navigation>
