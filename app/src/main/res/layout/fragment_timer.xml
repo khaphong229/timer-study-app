@@ -221,7 +221,7 @@
                             android:padding="16dp"
                             android:scaleType="centerInside"
                             android:src="@drawable/ic_play_48"
-                            android:tint="#FFFFFF" />
+                            app:tint="#FFFFFF" />
 
                         <ImageButton
                             android:id="@+id/btn_reset"
@@ -232,7 +232,7 @@
                             android:padding="16dp"
                             android:scaleType="centerInside"
                             android:src="@drawable/ic_reset_48"
-                            android:tint="#666666" />
+                            app:tint="#666666" />
 
                     </LinearLayout>
 

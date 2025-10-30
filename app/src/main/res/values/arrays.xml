@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Mức độ ưu tiên cho tasks -->
+    <string-array name="priority_levels">
+        <item>Thấp</item>
+        <item>Trung bình</item>
+        <item>Cao</item>
+    </string-array>
+
+    <!-- Giá trị tương ứng với priority levels -->
+    <string-array name="priority_values">
+        <item>LOW</item>
+        <item>MEDIUM</item>
+        <item>HIGH</item>
+    </string-array>
+
+    <!-- Màu sắc cho các mức độ ưu tiên -->
+    <integer-array name="priority_colors">
+        <item>@color/priority_low</item>
+        <item>@color/priority_medium</item>
+        <item>@color/priority_high</item>
+    </integer-array>
+</resources>

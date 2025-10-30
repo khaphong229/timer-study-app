@@ -2,8 +2,9 @@
     <!-- Dark theme for night mode -->
     <style name="Base.Theme.TimerStudy" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary brand color (dark) -->
-        <item name="colorPrimary">@color/md_theme_primary_dark</item>
-        <item name="colorOnPrimary">@color/md_theme_onPrimary_dark</item>
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">#4F378B</item>
         <item name="colorOnPrimaryContainer">#EADDFF</item>
 
@@ -38,5 +39,7 @@
         <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
     </style>
 
-    <style name="Theme.TimerStudy" parent="Base.Theme.TimerStudy" />
+    <style name="Theme.TimerStudy" parent="Base.Theme.TimerStudy">
+        <item name="colorAccent">@color/blue_accent</item>
+    </style>
 </resources>

@@ -33,6 +33,13 @@
          <meta-data
         android:name="defaultOrientation"
         android:value="landscape" />
+
+        <service
+            android:name=".service.AudioPlayerService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback"/>
     </application>
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
 </manifest>

@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -51,6 +52,9 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
     private static final int REQUEST_MODIFY_AUDIO_SETTINGS = 1001;
     private AudioManager audioManager;
     private android.media.MediaPlayer uploadedPlayer;
+    private ImageButton btnRandomAudio;
+    private ImageButton btnRepeatAudio;
+    private boolean isRepeatMode = false; // false: autoplay, true: repeat
 
     @Nullable
     @Override
@@ -69,6 +73,9 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         
         presenter = new SoundPresenter(this, getContext());
         audioManager = (AudioManager) requireContext().getSystemService(Context.AUDIO_SERVICE);
+
+        // Gọi restorePlayingState sau khi presenter đã được khởi tạo và view đã sẵn sàng
+        presenter.restorePlayingState();
     }
 
     private void initViews(View view) {
@@ -82,6 +89,8 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         uploadContainer = view.findViewById(R.id.uploadContainer);
         uploadButton = view.findViewById(R.id.uploadButton);
         uploadedAudioRecyclerView = view.findViewById(R.id.uploadedAudioRecyclerView);
+        btnRandomAudio = view.findViewById(R.id.btnRandomAudio);
+        btnRepeatAudio = view.findViewById(R.id.btnRepeatAudio);
     }
 
     private void setupRecyclerViews() {
@@ -150,6 +159,19 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
                 pickAudioFile();
             });
         }
+
+        if (btnRandomAudio != null) {
+            btnRandomAudio.setOnClickListener(v -> {
+                playRandomAudio();
+            });
+        }
+
+        if (btnRepeatAudio != null) {
+            btnRepeatAudio.setOnClickListener(v -> {
+                toggleRepeatMode();
+            });
+            updateRepeatButtonUI();
+        }
     }
 
     private void setDeviceVolume(int progress) {
@@ -183,18 +205,24 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         musicRecyclerView.setVisibility(View.VISIBLE);
         whiteNoiseRecyclerView.setVisibility(View.GONE);
         uploadContainer.setVisibility(View.GONE);
+        // Chỉ ẩn volume slider, không dừng âm thanh
+        hideVolumeSlider();
     }
 
     private void showWhiteNoiseView() {
         musicRecyclerView.setVisibility(View.GONE);
         whiteNoiseRecyclerView.setVisibility(View.VISIBLE);
         uploadContainer.setVisibility(View.GONE);
+        // Chỉ ẩn volume slider, không dừng âm thanh
+        hideVolumeSlider();
     }
 
     private void showUploadView() {
         musicRecyclerView.setVisibility(View.GONE);
         whiteNoiseRecyclerView.setVisibility(View.GONE);
         uploadContainer.setVisibility(View.VISIBLE);
+        // Chỉ ẩn volume slider, không dừng âm thanh
+        hideVolumeSlider();
     }
 
     private void updateTabSelection(boolean isAsmrSelected) {
@@ -301,9 +329,9 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
 
     @Override
     public void updateSoundList(List<SoundItem> sounds) {
-        List<SoundItem> musicSounds = sounds.subList(0, Math.min(6, sounds.size())); 
-        List<SoundItem> whiteNoiseSounds = sounds.size() > 6 ? 
-            sounds.subList(6, sounds.size()) : 
+        List<SoundItem> musicSounds = sounds.subList(0, Math.min(10, sounds.size()));
+        List<SoundItem> whiteNoiseSounds = sounds.size() > 10 ?
+            sounds.subList(10, sounds.size()) :
             sounds.subList(0, 0);
         
         musicAdapter.updateSounds(musicSounds);
@@ -316,6 +344,7 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         volumeLabel.setText("Volume");
         volumeSeekBar.setProgress((int)(volume * 100));
         volumeContainer.setVisibility(View.VISIBLE);
+        updateRepeatButtonUI();
     }
 
     @Override
@@ -343,8 +372,35 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
     public void onDestroy() {
         super.onDestroy();
         stopUploadedAudio();
-        if (presenter != null) {
-            presenter.onDestroy();
+    }
+
+    private void playRandomAudio() {
+        List<SoundItem> allSounds = new ArrayList<>();
+        allSounds.addAll(musicAdapter.getSoundItems());
+        allSounds.addAll(whiteNoiseAdapter.getSoundItems());
+        if (allSounds.isEmpty()) return;
+        int idx = (int) (Math.random() * allSounds.size());
+        SoundItem item = allSounds.get(idx);
+        presenter.onSoundItemClicked(item.getName());
+    }
+
+    private void toggleRepeatMode() {
+        isRepeatMode = !isRepeatMode;
+        updateRepeatButtonUI();
+    }
+
+    private void updateRepeatButtonUI() {
+        if (btnRepeatAudio != null) {
+            if (isRepeatMode) {
+                // Sửa lại icon repeat cho Android chuẩn
+                // btnRepeatAudio.setImageResource(android.R.drawable.ic_menu_revert);
+                btnRepeatAudio.setImageResource(R.drawable.repeat_24);
+                btnRepeatAudio.setContentDescription("Repeat");
+            } else {
+                // btnRepeatAudio.setImageResource(android.R.drawable.ic_media_next);
+                btnRepeatAudio.setImageResource(R.drawable.autoplay_24);
+                btnRepeatAudio.setContentDescription("Autoplay");
+            }
         }
     }
 }
