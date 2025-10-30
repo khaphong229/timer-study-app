@@ -87,6 +87,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
+                    android:weightSum="2"
                     android:baselineAligned="false">
 
                     <com.google.android.material.card.MaterialCardView
@@ -95,6 +96,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginEnd="8dp"
+                        android:minHeight="200dp"
                         app:cardElevation="2dp"
                         app:cardCornerRadius="16dp"
                         app:strokeWidth="0dp">
@@ -146,6 +148,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="8dp"
+                        android:minHeight="200dp"
                         app:cardElevation="2dp"
                         app:cardCornerRadius="16dp"
                         app:strokeWidth="0dp">
