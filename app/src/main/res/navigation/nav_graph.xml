@@ -33,4 +33,11 @@
         android:label="Hồ Sơ"
         tools:layout="@layout/fragment_profile" />
 
+    <!-- Statistics Fragment - Thống kê (giữ nguyên Navigation Rail) -->
+    <fragment
+        android:id="@+id/menu_statistics"
+        android:name="com.example.timerstudy.view.fragments.StatisticsFragment"
+        android:label="Thống kê"
+        tools:layout="@layout/fragment_statistics" />
+
 </navigation>
