@@ -21,6 +21,7 @@ import com.example.timerstudy.data.local.database.entities.TaskEntity;
 import com.example.timerstudy.presenter.TaskPresenter;
 import com.example.timerstudy.view.adapters.TaskAdapter;
 import com.example.timerstudy.view.adapters.WeekAdapter;
+import com.example.timerstudy.view.adapters.MonthAdapter;
 import com.example.timerstudy.view.adapters.PriorityAdapter;
 import android.widget.ImageButton;
 
@@ -33,12 +34,12 @@ public class TaskFragment extends Fragment implements TaskContract.View {
 	private TaskAdapter adapter;
 	private TaskPresenter presenter;
 	private TextView tvEmptyState;
-	// week header views
-	private RecyclerView rvWeek;
+	// month header views
+	private RecyclerView rvMonth;
 	private TextView tvMonthYear;
-	private ImageButton btnPrevWeek, btnNextWeek;
-	private WeekAdapter weekAdapter;
-	private java.util.Calendar weekBase;
+	private ImageButton btnPrevMonth, btnNextMonth;
+	private MonthAdapter monthAdapter;
+	private java.util.Calendar monthBase;
 	// Add task views
 	private EditText etNewTask;
 	private ImageButton btnAddTask;
@@ -85,27 +86,26 @@ public class TaskFragment extends Fragment implements TaskContract.View {
 		// Setup Priority Spinner
 		setupPrioritySpinner();
 
-		// setup week header
-		rvWeek = view.findViewById(R.id.rvWeek);
+		// setup month header
+		rvMonth = view.findViewById(R.id.rvMonth);
 		tvMonthYear = view.findViewById(R.id.tvMonthYear);
-		btnPrevWeek = view.findViewById(R.id.btnPrevWeek);
-		btnNextWeek = view.findViewById(R.id.btnNextWeek);
+		btnPrevMonth = view.findViewById(R.id.btnPrevMonth);
+		btnNextMonth = view.findViewById(R.id.btnNextMonth);
 
-		rvWeek.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
-		weekBase = java.util.Calendar.getInstance();
-		// normalize to start of week (Monday)
-		setWeekStartToMonday(weekBase);
-		updateWeekHeader();
+		rvMonth.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+		monthBase = java.util.Calendar.getInstance();
+		// set to first day of current month
+		monthBase.set(java.util.Calendar.DAY_OF_MONTH, 1);
+		updateMonthHeader();
 
-
-		btnPrevWeek.setOnClickListener(v -> {
-			weekBase.add(java.util.Calendar.DATE, -7);
-			updateWeekHeader();
+		btnPrevMonth.setOnClickListener(v -> {
+			monthBase.add(java.util.Calendar.MONTH, -1);
+			updateMonthHeader();
 		});
 
-		btnNextWeek.setOnClickListener(v -> {
-			weekBase.add(java.util.Calendar.DATE, 7);
-			updateWeekHeader();
+		btnNextMonth.setOnClickListener(v -> {
+			monthBase.add(java.util.Calendar.MONTH, 1);
+			updateMonthHeader();
 		});
 
 		// Setup add task button listener
@@ -121,42 +121,62 @@ public class TaskFragment extends Fragment implements TaskContract.View {
 		rvTasks.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
 	}
 
-	private void setWeekStartToMonday(java.util.Calendar cal){
-		// set to start of current week (Monday)
-		int dow = cal.get(java.util.Calendar.DAY_OF_WEEK);
-		// Java Calendar: Sunday=1 ... Saturday=7; we want Monday=1
-		int diff;
-		if (dow == java.util.Calendar.SUNDAY) diff = -6; // go back to Monday
-		else diff = java.util.Calendar.MONDAY - dow;
-		cal.add(java.util.Calendar.DATE, diff);
-	}
-
-	private void updateWeekHeader() {
+	private void updateMonthHeader() {
 		java.util.List<java.util.Date> days = new java.util.ArrayList<>();
-		java.util.Calendar c = (java.util.Calendar) weekBase.clone();
-		for (int i = 0; i < 7; i++) {
+		java.util.Calendar c = (java.util.Calendar) monthBase.clone();
+		
+		// Lấy số ngày trong tháng
+		int daysInMonth = c.getActualMaximum(java.util.Calendar.DAY_OF_MONTH);
+		
+		// Thêm tất cả các ngày trong tháng
+		for (int i = 1; i <= daysInMonth; i++) {
+			c.set(java.util.Calendar.DAY_OF_MONTH, i);
 			days.add(c.getTime());
-			c.add(java.util.Calendar.DATE, 1);
 		}
 
-		java.text.SimpleDateFormat monthFmt = new java.text.SimpleDateFormat("MMM yyyy", java.util.Locale.getDefault());
-		tvMonthYear.setText(monthFmt.format(days.get(3)));
+		// Định dạng hiển thị tháng năm
+		java.text.SimpleDateFormat monthFmt = new java.text.SimpleDateFormat("'Tháng' MM, yyyy", java.util.Locale.forLanguageTag("vi-VN"));
+		tvMonthYear.setText(monthFmt.format(monthBase.getTime()));
 
-		weekAdapter = new WeekAdapter(days);
-		rvWeek.setAdapter(weekAdapter);
-
-		// 👉 Đảm bảo danh sách ngày nằm giữa màn hình
-		rvWeek.post(() -> {
-			int itemWidth = getResources().getDimensionPixelSize(R.dimen.item_day_width);
-			int totalItemWidth = itemWidth * weekAdapter.getItemCount();
-			int screenWidth = rvWeek.getWidth();
-			if (totalItemWidth < screenWidth) {
-				int padding = (screenWidth - totalItemWidth) / 2;
-				rvWeek.setPadding(padding, 0, padding, 0);
-			} else {
-				rvWeek.setPadding(0, 0, 0, 0);
-			}
+		// Tạo adapter với listener để xử lý click ngày
+		monthAdapter = new MonthAdapter(days, (selectedDate, position) -> {
+			// Xử lý khi người dùng chọn ngày
+			onDateSelected(selectedDate);
+			
+			// Scroll đến ngày được chọn để đảm bảo nó hiển thị
+			rvMonth.smoothScrollToPosition(position);
 		});
+		
+		rvMonth.setAdapter(monthAdapter);
+		
+		// Scroll đến ngày hôm nay khi khởi tạo
+		scrollToToday(days);
+	}
+	
+	private void scrollToToday(java.util.List<java.util.Date> days) {
+		java.util.Calendar today = java.util.Calendar.getInstance();
+		java.util.Calendar monthCalendar = (java.util.Calendar) monthBase.clone();
+		
+		// Kiểm tra xem tháng hiện tại có phải là tháng của ngày hôm nay không
+		if (today.get(java.util.Calendar.YEAR) == monthCalendar.get(java.util.Calendar.YEAR) &&
+			today.get(java.util.Calendar.MONTH) == monthCalendar.get(java.util.Calendar.MONTH)) {
+			
+			int todayPosition = today.get(java.util.Calendar.DAY_OF_MONTH) - 1;
+			if (todayPosition >= 0 && todayPosition < days.size()) {
+				rvMonth.post(() -> rvMonth.scrollToPosition(todayPosition));
+			}
+		}
+	}
+	
+	private void onDateSelected(java.util.Date selectedDate) {
+		// Có thể thêm logic để lọc tasks theo ngày được chọn
+		// Ví dụ: presenter.loadTasksForDate(selectedDate);
+		
+		// Hiển thị thông báo ngày được chọn (tạm thời)
+		java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.forLanguageTag("vi-VN"));
+		android.widget.Toast.makeText(requireContext(), 
+			"Đã chọn ngày: " + dateFormat.format(selectedDate), 
+			android.widget.Toast.LENGTH_SHORT).show();
 	}
 
 
