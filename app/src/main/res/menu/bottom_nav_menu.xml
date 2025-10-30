@@ -3,20 +3,20 @@
     <item
         android:id="@+id/homeFragment"
         android:icon="@android:drawable/ic_menu_view"
-        android:title="Trang Chủ" />
+        android:title="Home" />
 
     <item
         android:id="@+id/timerFragment"
-        android:icon="@android:drawable/ic_menu_recent_history"
+        android:icon="@drawable/schedule_24"
         android:title="Timer" />
 
     <item
         android:id="@+id/soundFragment"
-        android:icon="@android:drawable/ic_media_play"
-        android:title="Âm Thanh" />
+        android:icon="@drawable/music_cast_24"
+        android:title="Music" />
 
     <item
         android:id="@+id/profileFragment"
         android:icon="@android:drawable/ic_menu_myplaces"
-        android:title="Hồ Sơ" />
+        android:title="Profile" />
 </menu>

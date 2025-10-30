@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -51,6 +52,9 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
     private static final int REQUEST_MODIFY_AUDIO_SETTINGS = 1001;
     private AudioManager audioManager;
     private android.media.MediaPlayer uploadedPlayer;
+    private ImageButton btnRandomAudio;
+    private ImageButton btnRepeatAudio;
+    private boolean isRepeatMode = false; // false: autoplay, true: repeat
 
     @Nullable
     @Override
@@ -85,6 +89,8 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         uploadContainer = view.findViewById(R.id.uploadContainer);
         uploadButton = view.findViewById(R.id.uploadButton);
         uploadedAudioRecyclerView = view.findViewById(R.id.uploadedAudioRecyclerView);
+        btnRandomAudio = view.findViewById(R.id.btnRandomAudio);
+        btnRepeatAudio = view.findViewById(R.id.btnRepeatAudio);
     }
 
     private void setupRecyclerViews() {
@@ -152,6 +158,19 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
             uploadButton.setOnClickListener(v -> {
                 pickAudioFile();
             });
+        }
+
+        if (btnRandomAudio != null) {
+            btnRandomAudio.setOnClickListener(v -> {
+                playRandomAudio();
+            });
+        }
+
+        if (btnRepeatAudio != null) {
+            btnRepeatAudio.setOnClickListener(v -> {
+                toggleRepeatMode();
+            });
+            updateRepeatButtonUI();
         }
     }
 
@@ -325,6 +344,7 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         volumeLabel.setText("Volume");
         volumeSeekBar.setProgress((int)(volume * 100));
         volumeContainer.setVisibility(View.VISIBLE);
+        updateRepeatButtonUI();
     }
 
     @Override
@@ -352,5 +372,35 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
     public void onDestroy() {
         super.onDestroy();
         stopUploadedAudio();
+    }
+
+    private void playRandomAudio() {
+        List<SoundItem> allSounds = new ArrayList<>();
+        allSounds.addAll(musicAdapter.getSoundItems());
+        allSounds.addAll(whiteNoiseAdapter.getSoundItems());
+        if (allSounds.isEmpty()) return;
+        int idx = (int) (Math.random() * allSounds.size());
+        SoundItem item = allSounds.get(idx);
+        presenter.onSoundItemClicked(item.getName());
+    }
+
+    private void toggleRepeatMode() {
+        isRepeatMode = !isRepeatMode;
+        updateRepeatButtonUI();
+    }
+
+    private void updateRepeatButtonUI() {
+        if (btnRepeatAudio != null) {
+            if (isRepeatMode) {
+                // Sửa lại icon repeat cho Android chuẩn
+                // btnRepeatAudio.setImageResource(android.R.drawable.ic_menu_revert);
+                btnRepeatAudio.setImageResource(R.drawable.repeat_24);
+                btnRepeatAudio.setContentDescription("Repeat");
+            } else {
+                // btnRepeatAudio.setImageResource(android.R.drawable.ic_media_next);
+                btnRepeatAudio.setImageResource(R.drawable.autoplay_24);
+                btnRepeatAudio.setContentDescription("Autoplay");
+            }
+        }
     }
 }

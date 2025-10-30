@@ -34,5 +34,10 @@
         <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="p">shortEdges</item>
     </style>
 
-    <style name="Theme.TimerStudy" parent="Base.Theme.TimerStudy" />
+    <style name="Theme.TimerStudy" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorAccent">@color/blue_accent</item>
+    </style>
 </resources>

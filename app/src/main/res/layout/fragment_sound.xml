@@ -101,6 +101,17 @@
     android:layout_marginTop="24dp"
     android:visibility="gone">
 
+    <!-- Nút random audio -->
+        <ImageButton
+        android:id="@+id/btnRandomAudio"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/shuffle_24"
+        android:contentDescription="Random Audio"
+        android:tint="@color/blue_accent"
+        android:layout_marginEnd="8dp"/>
+
     <TextView
         android:id="@+id/volumeLabel"
         android:layout_width="wrap_content"
@@ -115,8 +126,18 @@
         android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:max="100"
-        android:progress="50" />
+        android:progress="50"
+        android:layout_marginEnd="8dp"/>
 
+    <!-- Nút repeat/autoplay -->
+    <ImageButton
+        android:id="@+id/btnRepeatAudio"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/repeat_24"
+        android:contentDescription="Repeat/Autoplay"
+        android:tint="@color/blue_accent"/>
 </LinearLayout>
 
 </LinearLayout>
