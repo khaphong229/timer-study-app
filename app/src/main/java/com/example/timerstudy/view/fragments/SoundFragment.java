@@ -329,9 +329,9 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
 
     @Override
     public void updateSoundList(List<SoundItem> sounds) {
-        List<SoundItem> musicSounds = sounds.subList(0, Math.min(6, sounds.size())); 
-        List<SoundItem> whiteNoiseSounds = sounds.size() > 6 ? 
-            sounds.subList(6, sounds.size()) : 
+        List<SoundItem> musicSounds = sounds.subList(0, Math.min(10, sounds.size()));
+        List<SoundItem> whiteNoiseSounds = sounds.size() > 10 ?
+            sounds.subList(10, sounds.size()) :
             sounds.subList(0, 0);
         
         musicAdapter.updateSounds(musicSounds);

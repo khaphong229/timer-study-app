@@ -9,7 +9,7 @@
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="White Noise"
+            android:text="Music Library"
             android:textColor="@color/black"
             android:textSize="16sp"
             android:textStyle="bold"
@@ -27,7 +27,7 @@
                 android:id="@+id/asmrTab"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="ASMR"
+                android:text="Dé Soltuné Montepré"
                 android:textSize="16sp"
                 android:textColor="@color/blue_accent"
                 android:padding="12dp" />
@@ -36,7 +36,7 @@
                 android:id="@+id/musicTab"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="MUSIC"
+                android:text="Lofi Chill"
                 android:textSize="16sp"
                 android:textColor="@color/gray_text"
                 android:padding="12dp" />
@@ -45,7 +45,7 @@
                 android:id="@+id/uploadTab"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="UPLOAD"
+                android:text="Upload"
                 android:textSize="16sp"
                 android:textColor="@color/gray_text"
                 android:padding="12dp" />

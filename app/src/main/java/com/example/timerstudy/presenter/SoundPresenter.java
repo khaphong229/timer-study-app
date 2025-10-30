@@ -42,19 +42,24 @@ public class SoundPresenter {
     }
 
     private void initializeSounds() {
-        soundItems.add(new SoundItem("City streets", R.raw.test, false, 0.5f));
-        soundItems.add(new SoundItem("A Jazz Piano", R.raw.test, false, 0.5f));
-        soundItems.add(new SoundItem("Holiday", R.raw.test, false, 0.5f));
-        soundItems.add(new SoundItem("Super Spiffy", R.raw.test, false, 0.5f));
-        soundItems.add(new SoundItem("Peaceful horizons", R.raw.test, false, 0.5f));
-        soundItems.add(new SoundItem("Miss you", R.raw.test, false, 0.5f));
-        
-        soundItems.add(new SoundItem("Library", R.raw.test, false, 0.5f));
-        soundItems.add(new SoundItem("Night", R.raw.test, false, 0.5f));
-        soundItems.add(new SoundItem("Rain", R.raw.test, false, 0.5f));
-        soundItems.add(new SoundItem("Train", R.raw.test, false, 0.5f));
-        soundItems.add(new SoundItem("Storm", R.raw.test, false, 0.5f));
-        
+        soundItems.add(new SoundItem("Morning Time", R.raw.morning_time, false, 0.5f));
+        soundItems.add(new SoundItem("After The Rain", R.raw.after_the_rain, false, 0.5f));
+        soundItems.add(new SoundItem("Breathtaking", R.raw.breaktaking, false, 0.5f));
+        soundItems.add(new SoundItem("Disappear", R.raw.disappear, false, 0.5f));
+        soundItems.add(new SoundItem("Ethereal", R.raw.ethereal, false, 0.5f));
+        soundItems.add(new SoundItem("Goodnight", R.raw.goodnight, false, 0.5f));
+        soundItems.add(new SoundItem("Im Fine", R.raw.im_fine, false, 0.5f));
+        soundItems.add(new SoundItem("Moonlight Drive", R.raw.moonlight_drive, false, 0.5f));
+        soundItems.add(new SoundItem("No Words", R.raw.no_words, false, 0.5f));
+        soundItems.add(new SoundItem("Viewfinder", R.raw.viewfinder, false, 0.5f));
+
+        soundItems.add(new SoundItem("Am Tham Ben Em", R.raw.am_tham_ben_em, false, 0.5f));
+        soundItems.add(new SoundItem("Buong Doi Tay Nhau Ra", R.raw.buong_doi_tay_nhau_ra, false, 0.5f));
+        soundItems.add(new SoundItem("Chung Ta Cua Hien Tai", R.raw.chung_ta_cua_hien_tai, false, 0.5f));
+        soundItems.add(new SoundItem("Chung Ta Khong Thuoc Ve Nhau", R.raw.chung_ta_khong_thuoc_ve_nhau, false, 0.5f));
+        soundItems.add(new SoundItem("Lac Troi", R.raw.lac_troi, false, 0.5f));
+        soundItems.add(new SoundItem("Noi Nay Co Anh", R.raw.noi_nay_co_anh, false, 0.5f));
+
         view.updateSoundList(soundItems);
     }
 
