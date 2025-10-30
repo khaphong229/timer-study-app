@@ -2,7 +2,7 @@
     <string name="app_name">My Base App</string>
 
     <!-- Navigation -->
-    <string name="nav_home">Trang Chủ</string>
+<!--    <string name="nav_home">Trang Chủ</string>-->
     <string name="nav_profile">Hồ Sơ</string>
 
     <!-- Home Fragment -->
