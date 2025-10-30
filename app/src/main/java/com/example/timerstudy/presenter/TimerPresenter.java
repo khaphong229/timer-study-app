@@ -37,6 +37,7 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
         model.startTimer();
         if (view != null) {
             view.updateControlButtons(true);
+            view.keepScreenOn();
         }
     }
     
@@ -45,6 +46,7 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
         model.pauseTimer();
         if (view != null) {
             view.updateControlButtons(false);
+            view.allowScreenOff();
         }
     }
     
@@ -53,6 +55,7 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
         model.resetTimer();
         if (view != null) {
             view.updateControlButtons(false);
+            view.allowScreenOff();
         }
     }
     
@@ -70,6 +73,9 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
     public void onDestroy() {
         model.pauseTimer();
         detachView();
+        if (view != null) {
+            view.allowScreenOff();
+        }
     }
     
     // TimerModel.TimerListener implementation
@@ -86,6 +92,7 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
             view.showSessionCompleted();
             view.updateCompletedSessions(model.getCompletedSessions());
             view.updateControlButtons(false);
+            view.allowScreenOff();
         }
     }
     
