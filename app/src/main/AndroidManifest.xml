@@ -25,6 +25,11 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".view.activities.StatisticsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TimerStudy" />
+
          <meta-data
         android:name="defaultOrientation"
         android:value="landscape" />

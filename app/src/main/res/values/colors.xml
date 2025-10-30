@@ -45,6 +45,9 @@
     <color name="blue_accent">#4285F4</color>
     <color name="light_blue_bg">#1A4285F4</color>
 
+    <color name="colorPrimary">#6200EE</color>
+    <color name="colorAccent">#03DAC5</color>
+
     <!-- Priority Colors -->
     <color name="priority_low">#4CAF50</color>        <!-- Xanh lá - Thấp -->
     <color name="priority_medium">#FF9800</color>     <!-- Cam - Trung bình -->

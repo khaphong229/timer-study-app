@@ -22,7 +22,7 @@ import java.util.Date;
     indices = {
         @Index(value = "user_id"),
         @Index(value = "goal_date"),
-        @Index(value = {"user_id", "goal_date"}, unique = true, name = "unique_user_goal_date")
+        @Index(value = {"user_id", "goal_date"}, name = "unique_user_goal_date")
     }
 )
 public class GoalEntity {

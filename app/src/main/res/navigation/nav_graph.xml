@@ -3,14 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/homeFragment">
+    app:startDestination="@+id/timerFragment">
 
     <!-- Home Fragment - Màn hình chính hiển thị thông tin user -->
-    <fragment
-        android:id="@+id/homeFragment"
-        android:name="com.example.timerstudy.view.fragments.HomeFragment"
-        android:label="Trang Chủ"
-        tools:layout="@layout/fragment_home" />
+<!--    <fragment-->
+<!--        android:id="@+id/homeFragment"-->
+<!--        android:name="com.example.timerstudy.view.fragments.HomeFragment"-->
+<!--        android:label="Trang Chủ"-->
+<!--        tools:layout="@layout/fragment_home" />-->
 
     <!-- Timer Fragment - Màn hình hiển thị bộ đếm thời gian -->
     <fragment
@@ -33,6 +33,12 @@
         android:label="Hồ Sơ"
         tools:layout="@layout/fragment_profile" />
 
+    <!-- Statistics Fragment - Thống kê (giữ nguyên Navigation Rail) -->
+    <fragment
+        android:id="@+id/menu_statistics"
+        android:name="com.example.timerstudy.view.fragments.StatisticsFragment"
+        android:label="Thống kê"
+        tools:layout="@layout/fragment_statistics" />
     <fragment
         android:id="@+id/taskFragment"
         android:name="com.example.timerstudy.view.fragments.TaskFragment"

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:id="@+id/homeFragment"
-        android:icon="@android:drawable/ic_menu_view"
-        android:title="Trang Chủ" />
+<!--    <item-->
+<!--        android:id="@+id/homeFragment"-->
+<!--        android:icon="@android:drawable/ic_menu_view"-->
+<!--        android:title="Trang Chủ" />-->
 
     <item
         android:id="@+id/timerFragment"
@@ -19,6 +19,16 @@
         android:id="@+id/profileFragment"
         android:icon="@android:drawable/ic_menu_myplaces"
         android:title="Hồ Sơ" />
+
+    <item
+        android:id="@+id/menu_statistics"
+        android:icon="@android:drawable/ic_menu_sort_by_size"
+        android:title="Thống kê" />
+
+    <item
+        android:id="@+id/menu_seed_data"
+        android:icon="@android:drawable/ic_menu_add"
+        android:title="Seed dữ liệu" />
     <item
         android:id="@+id/taskFragment"
         android:icon="@android:drawable/ic_menu_myplaces"

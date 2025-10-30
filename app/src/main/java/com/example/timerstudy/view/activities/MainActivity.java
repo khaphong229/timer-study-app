@@ -1,5 +1,6 @@
 package com.example.timerstudy.view.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
@@ -9,6 +10,8 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.example.timerstudy.R;
 import com.google.android.material.navigationrail.NavigationRailView;
+import com.google.android.material.navigation.NavigationBarView;
+import com.example.timerstudy.utils.FakeDataSeeder;
 
 public class MainActivity extends AppCompatActivity {
     
@@ -27,6 +30,14 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = navHostFragment.getNavController();
         navigationRail = findViewById(R.id.navigation_rail);
         NavigationUI.setupWithNavController(navigationRail, navController);
+
+        navigationRail.setOnItemSelectedListener(item -> {
+            if (item.getItemId() == R.id.menu_seed_data) {
+                FakeDataSeeder.seed(this);
+                return true;
+            }
+            return NavigationUI.onNavDestinationSelected(item, navController);
+        });
     }
     
     /**
