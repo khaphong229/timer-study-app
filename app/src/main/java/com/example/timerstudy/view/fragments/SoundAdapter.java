@@ -60,6 +60,10 @@ public class SoundAdapter extends RecyclerView.Adapter<SoundAdapter.SoundViewHol
         }
     }
 
+    public List<SoundItem> getSoundItems() {
+        return soundItems;
+    }
+
     class SoundViewHolder extends RecyclerView.ViewHolder {
         private TextView soundName;
         private View itemView;

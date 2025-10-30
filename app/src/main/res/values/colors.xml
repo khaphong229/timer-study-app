@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Material Design 3 Color Scheme - Primary -->
-    <color name="md_theme_primary">#6750A4</color>
+    <color name="md_theme_primary">#2196F3</color>
     <color name="md_theme_onPrimary">#FFFFFF</color>
-    <color name="md_theme_primaryContainer">#EADDFF</color>
-    <color name="md_theme_onPrimaryContainer">#21005D</color>
+    <color name="md_theme_primaryContainer">#E3F2FD</color>
+    <color name="md_theme_onPrimaryContainer">#1976D2</color>
 
     <!-- Secondary -->
     <color name="md_theme_secondary">#625B71</color>
@@ -32,18 +32,21 @@
     <color name="md_theme_outline">#79747E</color>
 
     <!-- Legacy colors (giữ lại nếu có) -->
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
 
     <!-- Dark theme colors (optional - cho night mode) -->
-    <color name="md_theme_primary_dark">#D0BCFF</color>
+    <color name="md_theme_primary_dark">#1976D2</color>
     <color name="md_theme_onPrimary_dark">#381E72</color>
     <color name="md_theme_surface_dark">#1C1B1F</color>
     <color name="md_theme_onSurface_dark">#E6E1E5</color>
 
-    <color name="gray_text">#808080</color>
-    <color name="blue_accent">#4285F4</color>
-    <color name="light_blue_bg">#1A4285F4</color>
+    <color name="gray_text">#757575</color>
+    <color name="blue_accent">#2196F3</color>
+    <color name="light_blue_bg">#E3F2FD</color>
+
+    <color name="purple_500">#2196F3</color>
+    <color name="purple_700">#1976D2</color>
 
     <color name="colorPrimary">#6200EE</color>
     <color name="colorAccent">#03DAC5</color>
