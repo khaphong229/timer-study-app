@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
@@ -36,7 +37,6 @@ public class TimerFragment extends Fragment implements TimerContract.View {
     private TextView tvSessionType;
     private TextView tvCompletedSessions;
     private ImageButton btnPlayPause;
-    private ImageButton btnPause;
     private ImageButton btnReset;
     private ImageButton btnTimerSettings;
     private SeekBar seekBarStudy;
@@ -299,5 +299,26 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         if (presenter != null) {
             presenter.onDestroy();
         }
+        allowScreenOff();
+        showNavigationRail();
     }
+
+    @Override
+    public void keepScreenOn() {
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            });
+        }
+    }
+
+    @Override
+    public void allowScreenOff() {
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            });
+        }
+    }
+
 }

@@ -9,6 +9,9 @@ public interface TimerContract {
         void showSessionCompleted();
         void updateControlButtons(boolean isRunning);
         void showToast(String message);
+        void keepScreenOn();
+        void allowScreenOff();
+
     }
     
     interface Presenter {
