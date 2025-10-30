@@ -1,6 +1,7 @@
 package com.example.timerstudy.presenter;
 
 import com.example.timerstudy.model.TimerModel;
+import com.example.timerstudy.view.contracts.TimerContract;
 
 public class TimerPresenter implements TimerContract.Presenter, TimerModel.TimerListener {
     
@@ -93,6 +94,8 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
             view.updateCompletedSessions(model.getCompletedSessions());
             view.updateControlButtons(false);
             view.allowScreenOff();
+            view.playCompletionSound();
+            view.vibrateDevice();
         }
     }
     
@@ -107,5 +110,14 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
         long minutes = timeInMillis / 1000 / 60;
         long seconds = (timeInMillis / 1000) % 60;
         return String.format("%02d:%02d", minutes, seconds);
+    }
+
+    @Override
+    public int getCompletedSessions() {
+        return model.getCompletedSessions();
+    }
+
+    public int getStudyDurationMinutes() {
+        return (int) (model.getStudyDuration() / 1000 / 60);
     }
 }

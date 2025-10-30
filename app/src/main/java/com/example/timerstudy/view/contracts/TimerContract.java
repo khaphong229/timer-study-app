@@ -1,4 +1,4 @@
-package com.example.timerstudy.presenter;
+package com.example.timerstudy.view.contracts;
 
 public interface TimerContract {
     
@@ -11,7 +11,8 @@ public interface TimerContract {
         void showToast(String message);
         void keepScreenOn();
         void allowScreenOff();
-
+        void playCompletionSound();
+        void vibrateDevice();
     }
     
     interface Presenter {
@@ -23,5 +24,7 @@ public interface TimerContract {
         void onStudyDurationChanged(int minutes);
         void onBreakDurationChanged(int minutes);
         void onDestroy();
+        int getCompletedSessions();
+        int getStudyDurationMinutes();
     }
 }
