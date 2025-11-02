@@ -30,6 +30,8 @@ import com.example.timerstudy.view.contracts.TimerContract;
 import com.google.android.material.card.MaterialCardView;
 import pl.droidsonroids.gif.GifImageView;
 
+import java.util.Timer;
+
 import com.example.timerstudy.R;
 import com.example.timerstudy.view.contracts.TimerContract;
 import com.example.timerstudy.presenter.TimerPresenter;
@@ -73,6 +75,24 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         initializeViews(view);
         setupPresenter();
         setupListeners();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (presenter != null) {
+            presenter.attachView(this);
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+       
+        if (presenter != null) {
+            presenter.detachView();
+        }
     }
 
     private void initializeViews(View view) {
@@ -121,7 +141,7 @@ public class TimerFragment extends Fragment implements TimerContract.View {
     }
 
     private void setupPresenter() {
-        presenter = new TimerPresenter();
+        presenter = TimerPresenter.getInstance();
         presenter.attachView(this);
     }
 
@@ -153,13 +173,11 @@ public class TimerFragment extends Fragment implements TimerContract.View {
             toggleSeekbarPanel();
         });
 
-
         gifImageView.setOnClickListener(v -> {
             toggleNavigationRail();
             hideSeekbarPanel();
-            
-        });
 
+        });
 
         seekBarStudy.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -229,11 +247,11 @@ public class TimerFragment extends Fragment implements TimerContract.View {
     private void showSeekbarPanel() {
         isSeekbarVisible = true;
         cardSeekbarPanel.setVisibility(View.VISIBLE);
-            cardSeekbarPanel.setAlpha(0f);
-            cardSeekbarPanel.animate()
-                    .alpha(1f)
-                    .setDuration(300)
-                    .setListener(null);
+        cardSeekbarPanel.setAlpha(0f);
+        cardSeekbarPanel.animate()
+                .alpha(1f)
+                .setDuration(300)
+                .setListener(null);
     }
 
     /**
@@ -329,6 +347,7 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         super.onDestroy();
         if (presenter != null) {
             presenter.onDestroy();
+            presenter.detachView();
         }
         allowScreenOff();
         showNavigationRail();

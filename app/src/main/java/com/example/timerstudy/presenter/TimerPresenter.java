@@ -4,26 +4,34 @@ import com.example.timerstudy.model.TimerModel;
 import com.example.timerstudy.view.contracts.TimerContract;
 
 public class TimerPresenter implements TimerContract.Presenter, TimerModel.TimerListener {
-    
+
     private TimerContract.View view;
     private TimerModel model;
-    
+    public static TimerPresenter instance;
+
+    public static TimerPresenter getInstance() {
+        if (instance == null) {
+            instance = new TimerPresenter();
+        }
+        return instance;
+    }
+
     public TimerPresenter() {
         model = new TimerModel();
         model.setTimerListener(this);
     }
-    
+
     @Override
     public void attachView(TimerContract.View view) {
         this.view = view;
         initializeView();
     }
-    
+
     @Override
     public void detachView() {
         this.view = null;
     }
-    
+
     private void initializeView() {
         if (view != null) {
             view.updateTimeDisplay(formatTime(model.getCurrentTimeRemaining()));
@@ -32,7 +40,7 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
             view.updateControlButtons(model.isRunning());
         }
     }
-    
+
     @Override
     public void onStartClicked() {
         model.startTimer();
@@ -41,7 +49,7 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
             view.keepScreenOn();
         }
     }
-    
+
     @Override
     public void onPauseClicked() {
         model.pauseTimer();
@@ -50,7 +58,7 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
             view.allowScreenOff();
         }
     }
-    
+
     @Override
     public void onResetClicked() {
         model.resetTimer();
@@ -59,17 +67,17 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
             view.allowScreenOff();
         }
     }
-    
+
     @Override
     public void onStudyDurationChanged(int minutes) {
         model.setStudyDuration(minutes * 60 * 1000L);
     }
-    
+
     @Override
     public void onBreakDurationChanged(int minutes) {
         model.setBreakDuration(minutes * 60 * 1000L);
     }
-    
+
     @Override
     public void onDestroy() {
         model.pauseTimer();
@@ -78,7 +86,7 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
             view.allowScreenOff();
         }
     }
-    
+
     // TimerModel.TimerListener implementation
     @Override
     public void onTimeUpdate(long timeRemaining) {
@@ -86,7 +94,7 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
             view.updateTimeDisplay(formatTime(timeRemaining));
         }
     }
-    
+
     @Override
     public void onSessionComplete() {
         if (view != null) {
@@ -98,14 +106,14 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
             view.vibrateDevice();
         }
     }
-    
+
     @Override
     public void onSessionTypeChange(boolean isStudySession) {
         if (view != null) {
             view.updateSessionType(isStudySession);
         }
     }
-    
+
     private String formatTime(long timeInMillis) {
         long minutes = timeInMillis / 1000 / 60;
         long seconds = (timeInMillis / 1000) % 60;
@@ -120,4 +128,6 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
     public int getStudyDurationMinutes() {
         return (int) (model.getStudyDuration() / 1000 / 60);
     }
+
+
 }
