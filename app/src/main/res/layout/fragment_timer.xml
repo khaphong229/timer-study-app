@@ -13,7 +13,7 @@
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
         android:adjustViewBounds="false"
-        android:src="@drawable/image"
+        android:src="@drawable/bg_default"
         android:clickable="true"
         android:focusable="true" />
         
