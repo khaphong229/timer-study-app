@@ -1,4 +1,4 @@
-package com.example.timerstudy.presenter;
+package com.example.timerstudy.view.contracts;
 
 public interface TimerContract {
     

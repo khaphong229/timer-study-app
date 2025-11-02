@@ -9,7 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import com.example.timerstudy.view.contracts.YearStatsContract;
-import com.example.timerstudy.view.presenters.YearStatsPresenter;
+import com.example.timerstudy.presenter.YearStatsPresenter;
 
 import com.example.timerstudy.databinding.FragmentYearStatsBinding;
 

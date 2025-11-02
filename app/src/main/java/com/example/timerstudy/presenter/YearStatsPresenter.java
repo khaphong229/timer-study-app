@@ -1,32 +1,30 @@
-package com.example.timerstudy.view.presenters;
+package com.example.timerstudy.presenter;
 
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 
-import com.example.timerstudy.data.local.database.entities.SessionEntity;
 import com.example.timerstudy.data.repository.StatisticsRepository;
-import com.example.timerstudy.data.repository.StatisticsRepository.MonthlyStats;
-import com.example.timerstudy.view.contracts.MonthStatsContract;
+import com.example.timerstudy.data.repository.StatisticsRepository.YearlyStats;
+import com.example.timerstudy.view.contracts.YearStatsContract;
 
 import java.util.Date;
-import java.util.List;
 
-public class MonthStatsPresenter implements MonthStatsContract.Presenter {
+public class YearStatsPresenter implements YearStatsContract.Presenter {
 
     private final StatisticsRepository repository;
-    private MonthStatsContract.View view;
+    private YearStatsContract.View view;
     private final int userId;
     private final Handler mainHandler;
 
-    public MonthStatsPresenter(Context context, int userId) {
+    public YearStatsPresenter(Context context, int userId) {
         this.repository = StatisticsRepository.getInstance(context.getApplicationContext());
         this.userId = userId;
         this.mainHandler = new Handler(Looper.getMainLooper());
     }
 
     @Override
-    public void attach(MonthStatsContract.View view) {
+    public void attach(YearStatsContract.View view) {
         this.view = view;
     }
 
@@ -37,19 +35,18 @@ public class MonthStatsPresenter implements MonthStatsContract.Presenter {
     }
 
     @Override
-    public void loadMonth(Date start, Date end) {
+    public void loadYear(Date start, Date end) {
         runOnMainThread(() -> {
             if (view != null) view.showLoading(true);
         });
 
-        repository.loadMonthlyStats(userId, start, end, new StatisticsRepository.MonthlyStatsWithTimelineCallback() {
+        repository.loadYearlyStats(userId, start, end, new StatisticsRepository.YearlyStatsCallback() {
             @Override
-            public void onSuccess(MonthlyStats stats, List<SessionEntity> timeline) {
+            public void onSuccess(YearlyStats stats) {
                 runOnMainThread(() -> {
                     if (view != null) {
                         view.showLoading(false);
-                        view.showMonthlyStats(stats);
-                        view.showTimeline(timeline);
+                        view.showYearlyStats(stats);
                     }
                 });
             }

@@ -1,4 +1,4 @@
-package com.example.timerstudy.view.fragments;
+package com.example.timerstudy.view.adapters;
 
 import android.view.LayoutInflater;
 import android.view.View;

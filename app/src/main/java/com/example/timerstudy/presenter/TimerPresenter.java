@@ -1,6 +1,7 @@
 package com.example.timerstudy.presenter;
 
 import com.example.timerstudy.model.TimerModel;
+import com.example.timerstudy.view.contracts.TimerContract;
 
 public class TimerPresenter implements TimerContract.Presenter, TimerModel.TimerListener {
     
