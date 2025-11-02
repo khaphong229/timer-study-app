@@ -14,7 +14,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -24,7 +23,6 @@ import android.animation.AnimatorListenerAdapter;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.timerstudy.utils.ViewAnimator;
@@ -33,6 +31,7 @@ import com.google.android.material.card.MaterialCardView;
 import pl.droidsonroids.gif.GifImageView;
 
 import com.example.timerstudy.R;
+import com.example.timerstudy.view.contracts.TimerContract;
 import com.example.timerstudy.presenter.TimerPresenter;
 import com.example.timerstudy.view.activities.MainActivity;
 

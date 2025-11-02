@@ -1,4 +1,4 @@
-package com.example.timerstudy.view.presenters;
+package com.example.timerstudy.presenter;
 
 import android.content.Context;
 import android.os.Handler;

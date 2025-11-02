@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.timerstudy.databinding.FragmentDayStatsBinding;
 import com.example.timerstudy.view.adapters.TimelineAdapter;
 import com.example.timerstudy.view.contracts.DayStatsContract;
-import com.example.timerstudy.view.presenters.DayStatsPresenter;
+import com.example.timerstudy.presenter.DayStatsPresenter;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.text.SimpleDateFormat;
