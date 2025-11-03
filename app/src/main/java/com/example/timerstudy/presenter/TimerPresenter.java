@@ -15,7 +15,7 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
     private Context context;
     private int userId = 1;
     private SessionRepository sessionRepository;
-    private int completedSessionsFromDb = 0; // Lưu count từ DB
+    private int completedSessionsFromDb = 0;
 
     public static TimerPresenter getInstance() {
         if (instance == null) {
@@ -53,7 +53,7 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
         if (view != null) {
             view.updateTimeDisplay(formatTime(model.getCurrentTimeRemaining()));
             view.updateSessionType(model.isStudySession());
-            view.updateCompletedSessions(completedSessionsFromDb); // Hiển thị count từ DB
+            view.updateCompletedSessions(completedSessionsFromDb);
             view.updateControlButtons(model.isRunning());
         }
     }
@@ -114,10 +114,9 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
 
     @Override
     public void onSessionComplete() {
-        if (model.isStudySession()) {
-            saveSessionCompleted();
-        }
-
+    
+        saveSessionCompleted();
+   
         if (view != null) {
             view.showSessionCompleted();
             view.playCompletionSound();
@@ -151,7 +150,7 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
 
     @Override
     public int getCompletedSessions() {
-        return completedSessionsFromDb; // Trả về count từ DB thay vì từ model
+        return completedSessionsFromDb;
     }
 
     @Override
@@ -169,7 +168,7 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
         if (sessionRepository != null) {
             int studyDuration = getStudyDurationMinutes();
             sessionRepository.saveCompletedStudySession(userId, studyDuration);
-            // Count sẽ tự động update qua LiveData observer
+            view.updateCompletedSessions(++completedSessionsFromDb);
         }
     }
 

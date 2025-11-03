@@ -10,6 +10,7 @@ public class TimerModel {
         void onSessionComplete();
 
         void onSessionTypeChange(boolean isStudySession);
+
         void onBreakComplete();
     }
 
@@ -21,7 +22,6 @@ public class TimerModel {
     private long currentTimeRemaining;
     private boolean isRunning = false;
     private boolean isStudySession = true;
-    private int completedSessions = 0;
 
     private CountDownTimer countDownTimer;
     private TimerListener listener;
@@ -79,12 +79,15 @@ public class TimerModel {
 
         if (isStudySession) {
             isStudySession = false;
-            completedSessions++;
+            
+            if (listener != null) {
+                listener.onSessionComplete();
+            }
 
             currentTimeRemaining = isStudySession ? studyDuration : breakDuration;
 
             if (listener != null) {
-                listener.onSessionComplete();
+
                 listener.onSessionTypeChange(isStudySession);
                 listener.onTimeUpdate(currentTimeRemaining);
             }
@@ -137,7 +140,4 @@ public class TimerModel {
         return isStudySession;
     }
 
-    public int getCompletedSessions() {
-        return completedSessions;
-    }
 }
