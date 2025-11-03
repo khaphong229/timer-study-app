@@ -87,6 +87,14 @@ public class AudioPlayerService extends Service {
         super.onDestroy();
     }
 
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        // Khi app bị vuốt khỏi đa nhiệm, dừng audio và tự hủy Service
+        stopAudio();
+        stopSelf();
+        super.onTaskRemoved(rootIntent);
+    }
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
