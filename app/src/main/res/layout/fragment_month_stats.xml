@@ -86,19 +86,19 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:baselineAligned="false"
                     android:orientation="horizontal"
-                    android:weightSum="2"
-                    android:baselineAligned="false">
+                    android:weightSum="2">
 
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardTotalTime"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:layout_marginEnd="8dp"
+                        android:layout_weight="1"
                         android:minHeight="200dp"
-                        app:cardElevation="2dp"
                         app:cardCornerRadius="16dp"
+                        app:cardElevation="2dp"
                         app:strokeWidth="0dp">
 
                         <LinearLayout
@@ -109,34 +109,34 @@
 
                             <com.google.android.material.progressindicator.CircularProgressIndicator
                                 android:id="@+id/progressMonthly"
-                                android:layout_width="80dp"
-                                android:layout_height="80dp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
                                 android:layout_gravity="center"
-                                app:indicatorSize="80dp"
-                                app:trackThickness="8dp"
-                                app:indicatorColor="?attr/colorPrimary"
-                                app:trackColor="?attr/colorSurfaceVariant"
+                                android:max="100"
                                 android:progress="0"
-                                android:max="100" />
+                                app:indicatorColor="?attr/colorPrimary"
+                                app:indicatorSize="80dp"
+                                app:trackColor="?attr/colorSurfaceVariant"
+                                app:trackThickness="8dp" />
 
                             <com.google.android.material.textview.MaterialTextView
                                 android:id="@+id/textTotalTime"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="12dp"
                                 android:gravity="center"
                                 android:textAppearance="?attr/textAppearanceHeadlineMedium"
                                 android:textStyle="bold"
-                                android:layout_marginTop="12dp"
                                 tools:text="40h 30m" />
 
                             <com.google.android.material.textview.MaterialTextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
                                 android:gravity="center"
                                 android:text="Tổng thời gian trong tháng"
                                 android:textAppearance="?attr/textAppearanceBodyMedium"
-                                android:textColor="?attr/colorOnSurfaceVariant"
-                                android:layout_marginTop="4dp" />
+                                android:textColor="?attr/colorOnSurfaceVariant" />
 
                         </LinearLayout>
 
@@ -146,61 +146,50 @@
                         android:id="@+id/cardSessions"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:layout_marginStart="8dp"
+                        android:layout_weight="1"
                         android:minHeight="200dp"
-                        app:cardElevation="2dp"
                         app:cardCornerRadius="16dp"
+                        app:cardElevation="2dp"
                         app:strokeWidth="0dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:gravity="center"
                             android:orientation="vertical"
-                            android:padding="16dp"
-                            android:gravity="center">
+                            android:padding="16dp">
 
-                            <com.google.android.material.textview.MaterialTextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="📚"
-                                android:textSize="48sp"
-                                android:layout_marginTop="8dp" />
+                            <ImageView
+                                android:layout_width="80dp"
+                                android:layout_height="80dp"
+                                android:layout_marginTop="8dp"
+                                android:src="@drawable/book_closed_svgrepo_com" />
 
                             <com.google.android.material.textview.MaterialTextView
                                 android:id="@+id/textSessions"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="12dp"
                                 android:gravity="center"
                                 android:textAppearance="?attr/textAppearanceHeadlineMedium"
                                 android:textStyle="bold"
-                                android:layout_marginTop="12dp"
                                 tools:text="45" />
 
                             <com.google.android.material.textview.MaterialTextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
                                 android:gravity="center"
                                 android:text="Phiên học trong tháng"
                                 android:textAppearance="?attr/textAppearanceBodyMedium"
-                                android:textColor="?attr/colorOnSurfaceVariant"
-                                android:layout_marginTop="4dp" />
+                                android:textColor="?attr/colorOnSurfaceVariant" />
 
                         </LinearLayout>
 
                     </com.google.android.material.card.MaterialCardView>
 
                 </LinearLayout>
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/textMotivation"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="16dp"
-                    android:gravity="center"
-                    android:textAppearance="?attr/textAppearanceBodyLarge"
-                    android:layout_marginTop="16dp"
-                    tools:text="Tiếp tục duy trì phong độ trong tháng!" />
 
                 <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"

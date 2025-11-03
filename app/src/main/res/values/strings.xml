@@ -34,7 +34,7 @@
     <string name="toast_update_failed">Không thể cập nhật</string>
 
     <string name="action_settings">Settings</string>
-    <string name="tab_day">Day</string>
-    <string name="tab_month">Month</string>
-    <string name="tab_year">Year</string>
+    <string name="tab_day">Ngày</string>
+    <string name="tab_month">Tháng</string>
+    <string name="tab_year">Năm</string>
 </resources>
