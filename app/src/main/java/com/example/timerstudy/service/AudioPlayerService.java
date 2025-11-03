@@ -13,10 +13,11 @@ import androidx.core.app.NotificationCompat;
 import com.example.timerstudy.R;
 
 public class AudioPlayerService extends Service {
-    public static final String ACTION_PLAY = "PLAY";
-    public static final String ACTION_STOP = "STOP";
-    public static final String EXTRA_RES_ID = "RES_ID";
-    public static final String EXTRA_VOLUME = "VOLUME";
+    public static final String ACTION_PLAY = "ACTION_PLAY";
+    public static final String ACTION_STOP = "ACTION_STOP";
+    public static final String ACTION_SET_VOLUME = "ACTION_SET_VOLUME";
+    public static final String EXTRA_RES_ID = "EXTRA_RES_ID";
+    public static final String EXTRA_VOLUME = "EXTRA_VOLUME";
     private static final int NOTIF_ID = 1002;
     private static final String CHANNEL_ID = "audio_play_channel";
 
@@ -30,13 +31,23 @@ public class AudioPlayerService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        String action = intent.getAction();
-        if (ACTION_PLAY.equals(action)) {
-            int resId = intent.getIntExtra(EXTRA_RES_ID, 0);
-            float volume = intent.getFloatExtra(EXTRA_VOLUME, 0.5f);
-            playAudio(resId, volume);
-        } else if (ACTION_STOP.equals(action)) {
-            stopAudio();
+        if (intent != null) {
+            String action = intent.getAction();
+
+            switch (action) {
+                case ACTION_PLAY:
+                    int resId = intent.getIntExtra(EXTRA_RES_ID, 0);
+                    float volume = intent.getFloatExtra(EXTRA_VOLUME, 0.5f);
+                    playAudio(resId, volume);
+                    break;
+                case ACTION_STOP:
+                    stopAudio();
+                    break;
+                case ACTION_SET_VOLUME:
+                    float newVolume = intent.getFloatExtra(EXTRA_VOLUME, 0.5f);
+                    setVolume(newVolume);
+                    break;
+            }
         }
         return START_STICKY;
     }
@@ -56,10 +67,18 @@ public class AudioPlayerService extends Service {
 
     private void stopAudio() {
         if (mediaPlayer != null) {
-            mediaPlayer.stop();
+            if (mediaPlayer.isPlaying()) {
+                mediaPlayer.stop();
+            }
             mediaPlayer.release();
             mediaPlayer = null;
             stopForeground(true);
+        }
+    }
+
+    private void setVolume(float volume) {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            mediaPlayer.setVolume(volume, volume);
         }
     }
 
@@ -75,9 +94,10 @@ public class AudioPlayerService extends Service {
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
-                CHANNEL_ID, "Audio Playback", NotificationManager.IMPORTANCE_LOW);
+                    CHANNEL_ID, "Audio Playback", NotificationManager.IMPORTANCE_LOW);
             NotificationManager manager = getSystemService(NotificationManager.class);
-            if (manager != null) manager.createNotificationChannel(channel);
+            if (manager != null)
+                manager.createNotificationChannel(channel);
         }
     }
 

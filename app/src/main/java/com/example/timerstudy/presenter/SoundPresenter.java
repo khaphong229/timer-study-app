@@ -26,8 +26,11 @@ public class SoundPresenter {
 
     public interface SoundView {
         void updateSoundList(List<SoundItem> sounds);
+
         void showVolumeSlider(String soundName, float volume);
+
         void hideVolumeSlider();
+
         void updatePlayingState(String soundName, boolean isPlaying);
     }
 
@@ -145,9 +148,23 @@ public class SoundPresenter {
         if (item != null) {
             item.setVolume(volume);
             if (item.isPlaying()) {
+                // Chỉ cập nhật volume, không restart audio
                 Intent intent = new Intent(context, AudioPlayerService.class);
-                intent.setAction(AudioPlayerService.ACTION_PLAY);
-                intent.putExtra(AudioPlayerService.EXTRA_RES_ID, item.getResourceId());
+                intent.setAction(AudioPlayerService.ACTION_SET_VOLUME);
+                intent.putExtra(AudioPlayerService.EXTRA_VOLUME, volume);
+                context.startService(intent);
+            }
+        }
+    }
+
+    public void updateVolumeOnly(String soundName, float volume) {
+        SoundItem item = findSoundByName(soundName);
+        if (item != null) {
+            item.setVolume(volume);
+            if (item.isPlaying()) {
+                // Chỉ cập nhật volume
+                Intent intent = new Intent(context, AudioPlayerService.class);
+                intent.setAction(AudioPlayerService.ACTION_SET_VOLUME);
                 intent.putExtra(AudioPlayerService.EXTRA_VOLUME, volume);
                 context.startService(intent);
             }
