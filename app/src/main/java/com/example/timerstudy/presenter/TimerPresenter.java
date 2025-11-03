@@ -1,5 +1,8 @@
 package com.example.timerstudy.presenter;
 
+import android.content.Context;
+
+import com.example.timerstudy.data.repository.SessionRepository;
 import com.example.timerstudy.model.TimerModel;
 import com.example.timerstudy.view.contracts.TimerContract;
 
@@ -8,6 +11,11 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
     private TimerContract.View view;
     private TimerModel model;
     public static TimerPresenter instance;
+
+    private Context context;
+    private int userId = 1;
+    private SessionRepository sessionRepository;
+    private int completedSessionsFromDb = 0; // Lưu count từ DB
 
     public static TimerPresenter getInstance() {
         if (instance == null) {
@@ -21,10 +29,19 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
         model.setTimerListener(this);
     }
 
+    public void initialize(Context context) {
+        this.context = context;
+        this.sessionRepository = SessionRepository.getInstance(context);
+
+        loadCompletedSessionsCount();
+    }
+
     @Override
     public void attachView(TimerContract.View view) {
         this.view = view;
         initializeView();
+
+        observeCompletedSessionsCount();
     }
 
     @Override
@@ -36,7 +53,7 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
         if (view != null) {
             view.updateTimeDisplay(formatTime(model.getCurrentTimeRemaining()));
             view.updateSessionType(model.isStudySession());
-            view.updateCompletedSessions(model.getCompletedSessions());
+            view.updateCompletedSessions(completedSessionsFromDb); // Hiển thị count từ DB
             view.updateControlButtons(model.isRunning());
         }
     }
@@ -97,9 +114,12 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
 
     @Override
     public void onSessionComplete() {
+        if (model.isStudySession()) {
+            saveSessionCompleted();
+        }
+
         if (view != null) {
             view.showSessionCompleted();
-            view.updateCompletedSessions(model.getCompletedSessions());
             view.playCompletionSound();
             view.vibrateDevice();
         }
@@ -110,21 +130,6 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
         if (view != null) {
             view.updateSessionType(isStudySession);
         }
-    }
-
-    private String formatTime(long timeInMillis) {
-        long minutes = timeInMillis / 1000 / 60;
-        long seconds = (timeInMillis / 1000) % 60;
-        return String.format("%02d:%02d", minutes, seconds);
-    }
-
-    @Override
-    public int getCompletedSessions() {
-        return model.getCompletedSessions();
-    }
-
-    public int getStudyDurationMinutes() {
-        return (int) (model.getStudyDuration() / 1000 / 60);
     }
 
     @Override
@@ -138,4 +143,61 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
         }
     }
 
+    private String formatTime(long timeInMillis) {
+        long minutes = timeInMillis / 1000 / 60;
+        long seconds = (timeInMillis / 1000) % 60;
+        return String.format("%02d:%02d", minutes, seconds);
+    }
+
+    @Override
+    public int getCompletedSessions() {
+        return completedSessionsFromDb; // Trả về count từ DB thay vì từ model
+    }
+
+    @Override
+    public int getStudyDurationMinutes() {
+        return (int) (model.getStudyDuration() / 1000 / 60);
+    }
+
+    @Override
+    public int getBreakDurationMinutes() {
+        return (int) (model.getBreakDuration() / 1000 / 60);
+    }
+
+    @Override
+    public void saveSessionCompleted() {
+        if (sessionRepository != null) {
+            int studyDuration = getStudyDurationMinutes();
+            sessionRepository.saveCompletedStudySession(userId, studyDuration);
+            // Count sẽ tự động update qua LiveData observer
+        }
+    }
+
+
+    private void loadCompletedSessionsCount() {
+        if (sessionRepository != null) {
+            sessionRepository.loadCompletedSessionsCountToday(userId);
+        }
+    }
+
+    private void observeCompletedSessionsCount() {
+        if (sessionRepository != null && view != null) {
+            sessionRepository.getCompletedSessionsCountLiveData().observe(
+                    ((androidx.lifecycle.LifecycleOwner) view),
+                    count -> {
+                        if (count != null) {
+                            completedSessionsFromDb = count;
+                            if (view != null) {
+                                view.updateCompletedSessions(count);
+                            }
+                        }
+                    }
+            );
+        }
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+        loadCompletedSessionsCount(); 
+    }
 }

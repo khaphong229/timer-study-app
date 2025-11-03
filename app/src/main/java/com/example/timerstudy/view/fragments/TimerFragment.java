@@ -142,6 +142,7 @@ public class TimerFragment extends Fragment implements TimerContract.View {
 
     private void setupPresenter() {
         presenter = TimerPresenter.getInstance();
+        presenter.initialize(requireContext());
         presenter.attachView(this);
     }
 

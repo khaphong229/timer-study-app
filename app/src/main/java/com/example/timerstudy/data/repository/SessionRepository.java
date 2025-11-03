@@ -36,6 +36,7 @@ public class SessionRepository {
     private final MutableLiveData<List<SessionEntity>> allSessionsLiveData;
     private final MutableLiveData<List<SessionEntity>> userSessionsLiveData;
     private final MutableLiveData<SessionEntity> currentSessionLiveData;
+    private final MutableLiveData<Integer> completedSessionsCountLiveData;
     private final MutableLiveData<Boolean> isLoadingLiveData;
     private final MutableLiveData<String> errorLiveData;
     
@@ -56,6 +57,7 @@ public class SessionRepository {
         allSessionsLiveData = new MutableLiveData<>();
         userSessionsLiveData = new MutableLiveData<>();
         currentSessionLiveData = new MutableLiveData<>();
+        completedSessionsCountLiveData = new MutableLiveData<>(); // THÊM dòng này
         isLoadingLiveData = new MutableLiveData<>();
         errorLiveData = new MutableLiveData<>();
     }
@@ -122,6 +124,15 @@ public class SessionRepository {
      */
     public LiveData<String> getErrorLiveData() {
         return errorLiveData;
+    }
+    
+    /**
+     * Get completed sessions count LiveData
+     * 
+     * @return LiveData containing count of completed sessions
+     */
+    public LiveData<Integer> getCompletedSessionsCountLiveData() {
+        return completedSessionsCountLiveData;
     }
     
     // ==================== SESSION OPERATIONS ====================
@@ -598,5 +609,83 @@ public class SessionRepository {
      */
     public boolean isClosed() {
         return executorService == null || executorService.isShutdown();
+    }
+
+    /**
+     * Load completed sessions count for today
+     * 
+     * @param userId User ID to filter by
+     */
+    public void loadCompletedSessionsCountToday(int userId) {
+        executorService.execute(() -> {
+            try {
+                List<SessionEntity> sessions = sessionDao.getCompletedSessionsByUser(userId);
+                
+                java.util.Calendar calendar = java.util.Calendar.getInstance();
+                calendar.set(java.util.Calendar.HOUR_OF_DAY, 0);
+                calendar.set(java.util.Calendar.MINUTE, 0);
+                calendar.set(java.util.Calendar.SECOND, 0);
+                calendar.set(java.util.Calendar.MILLISECOND, 0);
+                long todayStart = calendar.getTimeInMillis();
+                
+                int count = 0;
+                for (SessionEntity session : sessions) {
+                    if (session.getSessionDate() != null 
+                        && session.getSessionDate().getTime() >= todayStart
+                        && SessionEntity.TYPE_FOCUS_SESSION.equals(session.getSessionType())) {
+                        count++;
+                    }
+                }
+                
+                completedSessionsCountLiveData.postValue(count);
+                Log.d(TAG, "Today's completed sessions count: " + count);
+                errorLiveData.postValue(null);
+            } catch (Exception e) {
+                Log.e(TAG, "Error loading completed sessions count", e);
+                errorLiveData.postValue("Failed to load count: " + e.getMessage());
+            }
+        });
+    }
+    
+    /**
+     * Save completed study session
+     * 
+     * @param userId User ID
+     * @param durationMinutes Duration in minutes
+     */
+    public void saveCompletedStudySession(int userId, int durationMinutes) {
+        executorService.execute(() -> {
+            try {
+                isLoadingLiveData.postValue(true);
+                
+                java.util.Date now = new java.util.Date();
+                
+                SessionEntity session = new SessionEntity();
+                session.setUserId(userId);
+                session.setSessionType(SessionEntity.TYPE_FOCUS_SESSION);
+                session.setDurationMinutes(durationMinutes);
+                session.setActualDurationMinutes(durationMinutes);
+                session.setStartTime(now);
+                session.setSessionDate(now);
+                session.setEndTime(now);
+                session.setStatus(SessionEntity.STATUS_COMPLETED);
+                session.setCompleted(true);
+                session.setCreatedAt(now);
+                session.setUpdatedAt(now);
+                
+                long sessionId = sessionDao.insertSession(session);
+                
+                Log.d(TAG, "Saved completed study session: " + sessionId);
+        
+                loadCompletedSessionsCountToday(userId);
+                loadSessionsByUserId(userId);
+                errorLiveData.postValue(null);
+            } catch (Exception e) {
+                Log.e(TAG, "Error saving completed study session", e);
+                errorLiveData.postValue("Failed to save session: " + e.getMessage());
+            } finally {
+                isLoadingLiveData.postValue(false);
+            }
+        });
     }
 }

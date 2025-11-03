@@ -26,5 +26,7 @@ public interface TimerContract {
         void onDestroy();
         int getCompletedSessions();
         int getStudyDurationMinutes();
+        int getBreakDurationMinutes();
+        void saveSessionCompleted();
     }
 }
