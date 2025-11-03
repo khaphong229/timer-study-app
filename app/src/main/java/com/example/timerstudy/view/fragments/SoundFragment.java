@@ -1,13 +1,17 @@
 package com.example.timerstudy.view.fragments;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.OpenableColumns;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -60,6 +64,8 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
     private boolean isRepeatMode = false; // false: autoplay, true: repeat
     private int currentTab = 1; // 0: asmr/white noise, 1: music, 2: upload
     private boolean isUpdatingSeekBar = false; // Prevent infinite loop
+    private BroadcastReceiver volumeReceiver;
+    private Handler volumeHandler;
 
     @Nullable
     @Override
@@ -79,6 +85,10 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
 
         presenter = new SoundPresenter(this, getContext());
         audioManager = (AudioManager) requireContext().getSystemService(Context.AUDIO_SERVICE);
+        volumeHandler = new Handler(Looper.getMainLooper());
+
+        // Setup volume change listener
+        setupVolumeChangeListener();
 
         // Kiểm tra quyền audio khi khởi tạo fragment
         checkAudioPermissionOnStart();
@@ -429,6 +439,19 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
     public void onDestroy() {
         super.onDestroy();
         stopUploadedAudio();
+
+        // Unregister volume receiver
+        if (volumeReceiver != null) {
+            try {
+                requireContext().unregisterReceiver(volumeReceiver);
+            } catch (Exception e) {
+                // Receiver might already be unregistered
+            }
+        }
+
+        if (volumeHandler != null) {
+            volumeHandler.removeCallbacksAndMessages(null);
+        }
     }
 
     private void playRandomAudio() {
@@ -506,6 +529,29 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
             // Cập nhật volume cho audio từ service mà không restart
             presenter.updateVolumeOnly(soundName, volume);
         }
+    }
+
+    private void setupVolumeChangeListener() {
+        volumeReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if ("android.media.VOLUME_CHANGED_ACTION".equals(intent.getAction())) {
+                    int streamType = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_TYPE", -1);
+                    if (streamType == AudioManager.STREAM_MUSIC) {
+                        // Delay slightly to ensure volume change is processed
+                        volumeHandler.postDelayed(() -> {
+                            if (currentPlayingSoundName != null) {
+                                syncSeekBarWithDeviceVolume();
+                            }
+                        }, 100);
+                    }
+                }
+            }
+        };
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("android.media.VOLUME_CHANGED_ACTION");
+        requireContext().registerReceiver(volumeReceiver, filter);
     }
 
     @Override
