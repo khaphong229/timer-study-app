@@ -56,6 +56,7 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
     private ImageButton btnRandomAudio;
     private ImageButton btnRepeatAudio;
     private boolean isRepeatMode = false; // false: autoplay, true: repeat
+    private int currentTab = 1; // 0: asmr/white noise, 1: music, 2: upload
 
     @Nullable
     @Override
@@ -112,21 +113,25 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         asmrTab.setOnClickListener(v -> {
             showWhiteNoiseView();
             updateTabSelection(true);
+            currentTab = 0; // Set to ASMR tab
         });
         
         musicTab.setOnClickListener(v -> {
             showMusicView();
             updateTabSelection(false);
+            currentTab = 1; // Set to Music tab
         });
         
         TextView uploadTab = requireView().findViewById(R.id.uploadTab);
         uploadTab.setOnClickListener(v -> {
             showUploadView();
             updateTabSelectionUpload();
+            currentTab = 2; // Set to Upload tab
         });
         
         showMusicView();
         updateTabSelection(false);
+        currentTab = 1; // Default to Music tab
     }
 
     private void setupVolumeControl() {
@@ -376,13 +381,30 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
     }
 
     private void playRandomAudio() {
-        List<SoundItem> allSounds = new ArrayList<>();
-        allSounds.addAll(musicAdapter.getSoundItems());
-        allSounds.addAll(whiteNoiseAdapter.getSoundItems());
-        if (allSounds.isEmpty()) return;
-        int idx = (int) (Math.random() * allSounds.size());
-        SoundItem item = allSounds.get(idx);
-        presenter.onSoundItemClicked(item.getName());
+        List<SoundItem> currentTabSounds = new ArrayList<>();
+        
+        switch (currentTab) {
+            case 0: // ASMR/White Noise tab
+                currentTabSounds.addAll(whiteNoiseAdapter.getSoundItems());
+                break;
+            case 1: // Music tab
+                currentTabSounds.addAll(musicAdapter.getSoundItems());
+                break;
+            case 2: // Upload tab
+                currentTabSounds.addAll(uploadedAudioList);
+                break;
+        }
+        
+        if (currentTabSounds.isEmpty()) return;
+        
+        int idx = (int) (Math.random() * currentTabSounds.size());
+        SoundItem item = currentTabSounds.get(idx);
+        
+        if (currentTab == 2) { // Upload tab
+            playUploadedAudio(item);
+        } else { // Music or ASMR tab
+            presenter.onSoundItemClicked(item.getName());
+        }
     }
 
     private void toggleRepeatMode() {
