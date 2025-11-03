@@ -3,11 +3,14 @@ package com.example.timerstudy.model;
 import android.os.CountDownTimer;
 
 public class TimerModel {
-    
+
     public interface TimerListener {
         void onTimeUpdate(long timeRemaining);
+
         void onSessionComplete();
+
         void onSessionTypeChange(boolean isStudySession);
+        void onBreakComplete();
     }
 
     private static final long DEFAULT_STUDY_DURATION = 25 * 60 * 1000;
@@ -19,7 +22,7 @@ public class TimerModel {
     private boolean isRunning = false;
     private boolean isStudySession = true;
     private int completedSessions = 0;
-    
+
     private CountDownTimer countDownTimer;
     private TimerListener listener;
 
@@ -32,8 +35,9 @@ public class TimerModel {
     }
 
     public void startTimer() {
-        if (isRunning) return;
-        
+        if (isRunning)
+            return;
+
         isRunning = true;
         countDownTimer = new CountDownTimer(currentTimeRemaining, 1000) {
             @Override
@@ -53,8 +57,9 @@ public class TimerModel {
     }
 
     public void pauseTimer() {
-        if (!isRunning) return;
-        
+        if (!isRunning)
+            return;
+
         isRunning = false;
         if (countDownTimer != null) {
             countDownTimer.cancel();
@@ -71,23 +76,37 @@ public class TimerModel {
 
     private void completeSession() {
         isRunning = false;
-        
+
         if (isStudySession) {
+            isStudySession = false;
             completedSessions++;
-        }
-        
-        isStudySession = !isStudySession;
-        currentTimeRemaining = isStudySession ? studyDuration : breakDuration;
-        
-        if (listener != null) {
-            listener.onSessionComplete();
-            listener.onSessionTypeChange(isStudySession);
-            listener.onTimeUpdate(currentTimeRemaining);
+
+            currentTimeRemaining = isStudySession ? studyDuration : breakDuration;
+
+            if (listener != null) {
+                listener.onSessionComplete();
+                listener.onSessionTypeChange(isStudySession);
+                listener.onTimeUpdate(currentTimeRemaining);
+            }
+            startTimer();
+
+        } else {
+            isStudySession = true;
+            currentTimeRemaining = studyDuration;
+
+            if (listener != null) {
+                listener.onBreakComplete();
+                listener.onSessionTypeChange(isStudySession);
+                listener.onTimeUpdate(currentTimeRemaining);
+            }
         }
     }
 
     // Getters and Setters
-    public long getStudyDuration() { return studyDuration; }
+    public long getStudyDuration() {
+        return studyDuration;
+    }
+
     public void setStudyDuration(long studyDuration) {
         this.studyDuration = studyDuration;
         if (isStudySession && !isRunning) {
@@ -95,7 +114,10 @@ public class TimerModel {
         }
     }
 
-    public long getBreakDuration() { return breakDuration; }
+    public long getBreakDuration() {
+        return breakDuration;
+    }
+
     public void setBreakDuration(long breakDuration) {
         this.breakDuration = breakDuration;
         if (!isStudySession && !isRunning) {
@@ -103,8 +125,19 @@ public class TimerModel {
         }
     }
 
-    public long getCurrentTimeRemaining() { return currentTimeRemaining; }
-    public boolean isRunning() { return isRunning; }
-    public boolean isStudySession() { return isStudySession; }
-    public int getCompletedSessions() { return completedSessions; }
+    public long getCurrentTimeRemaining() {
+        return currentTimeRemaining;
+    }
+
+    public boolean isRunning() {
+        return isRunning;
+    }
+
+    public boolean isStudySession() {
+        return isStudySession;
+    }
+
+    public int getCompletedSessions() {
+        return completedSessions;
+    }
 }

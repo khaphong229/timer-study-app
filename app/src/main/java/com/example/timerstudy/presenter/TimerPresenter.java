@@ -100,8 +100,6 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
         if (view != null) {
             view.showSessionCompleted();
             view.updateCompletedSessions(model.getCompletedSessions());
-            view.updateControlButtons(false);
-            view.allowScreenOff();
             view.playCompletionSound();
             view.vibrateDevice();
         }
@@ -129,5 +127,15 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
         return (int) (model.getStudyDuration() / 1000 / 60);
     }
 
+    @Override
+    public void onBreakComplete() {
+        if (view != null) {
+            view.showToast("Break time completed! Ready for next study session.");
+            view.updateControlButtons(false);
+            view.allowScreenOff();
+            view.playCompletionSound();
+            view.vibrateDevice();
+        }
+    }
 
 }
