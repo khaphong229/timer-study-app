@@ -15,6 +15,15 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <!-- 🔹 Bộ lọc -->
+    <include
+        android:id="@+id/layout_filter"
+        layout="@layout/layout_filter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/layout_month_header"
+        app:layout_constraintStart_toStartOf="parent" />
+
     <!-- 🔹 Danh sách công việc -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvTasks"
@@ -23,8 +32,8 @@
         android:clipToPadding="false"
         android:paddingHorizontal="8dp"
         android:paddingBottom="8dp"
-        app:layout_constraintTop_toBottomOf="@id/layout_month_header"
-        app:layout_constraintBottom_toTopOf="@id/layoutAddTask"
+        app:layout_constraintTop_toBottomOf="@id/layout_filter"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         tools:listitem="@layout/item_task" />
@@ -39,78 +48,22 @@
         android:textAlignment="center"
         android:textColor="#757575"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/layout_month_header"
-        app:layout_constraintBottom_toTopOf="@id/layoutAddTask"
+        app:layout_constraintTop_toBottomOf="@id/layout_filter"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- 🔹 Ô thêm task - Di chuyển xuống dưới cùng -->
-    <LinearLayout
-        android:id="@+id/layoutAddTask"
-        android:layout_width="match_parent"
+    <!-- 🔹 Nút thêm task (FloatingActionButton) -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAddTask"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="#FFFFFF"
-        android:elevation="8dp"
-        android:orientation="vertical"
-        android:padding="16dp"
+        android:contentDescription="Thêm task mới"
+        android:src="@android:drawable/ic_input_add"
+        app:tint="#FFFFFF"
+        app:backgroundTint="#2196F3"
+        app:borderWidth="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginTop="8dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Mức độ ưu tiên:"
-                android:textSize="14sp"
-                android:textColor="#666666"
-                android:layout_marginEnd="8dp" />
-
-            <Spinner
-                android:id="@+id/spinnerPriority"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="56dp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <EditText
-                android:id="@+id/etNewTask"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@android:drawable/edit_text"
-                android:hint="Nhập task mới..."
-                android:padding="12dp"
-                android:textSize="16sp"
-                android:maxLines="2"
-                android:inputType="textCapSentences|textMultiLine" />
-
-            <ImageButton
-                android:id="@+id/btnAddTask"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginStart="8dp"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Thêm task"
-                android:src="@android:drawable/ic_menu_send"
-                android:scaleType="centerInside"
-                android:tint="#2196F3" />
-        </LinearLayout>
-    </LinearLayout>
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_margin="24dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

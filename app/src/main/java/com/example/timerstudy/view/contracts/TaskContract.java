@@ -2,17 +2,16 @@ package com.example.timerstudy.view.contracts;
 
 import com.example.timerstudy.data.local.database.entities.TaskEntity;
 
+import java.util.Date;
 import java.util.List;
 
 /**
  * Contract interface for Task MVP pattern
- * Defines the communication between View and Presenter
+ * ĐỊnh nghĩa các phương thức gaio tiếp giauwx View và Presenter
  */
 public interface TaskContract {
 
-    /**
-     * View interface - what the presenter can call on the view
-     */
+    // view có những phương thức nào mà presenter có thể gọi
     interface View {
         void showTasks(List<TaskEntity> tasks);
         void showEmptyState();
@@ -23,19 +22,22 @@ public interface TaskContract {
         void clearTaskInput();
         void resetPrioritySelection();
         void showTaskAddedSuccess();
+        void updateFilteredTasks(List<TaskEntity> filteredTasks);
+        void updateTaskCount(int completed, int total);
     }
 
-    /**
-     * Presenter interface - what the view can call on the presenter
-     */
+    // presenter có những phương thức nào mà view có thể gọi
     interface Presenter {
         void attachView(View view);
         void detachView();
         void loadTasks();
-        void addTask(String title, String priority);
+        void addTask(String title, String priority, Date selectedDate);
         void updateTask(TaskEntity task);
         void deleteTask(TaskEntity task);
         void toggleTaskCompletion(TaskEntity task, boolean isCompleted);
         void refreshTasks();
+        void setFilter(String priorityFilter, boolean showCompleted);
+        void applyFilter();
+        void setSelectedDate(Date date);
     }
 }

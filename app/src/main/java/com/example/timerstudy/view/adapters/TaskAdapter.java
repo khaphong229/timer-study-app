@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.timerstudy.R;
 import com.example.timerstudy.data.local.database.entities.TaskEntity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
@@ -20,6 +21,8 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     private final OnTaskCheckedListener listener;
     private final OnTaskDeleteListener deleteListener;
     private final OnTaskEditListener editListener;
+
+    private List<TaskEntity> originalTasks;
 
     public interface OnTaskCheckedListener {
         void onCheckedChange(TaskEntity task, boolean isChecked);
@@ -41,7 +44,8 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     }
 
     public void setTasks(List<TaskEntity> newTasks){
-        this.tasks=newTasks;
+        this.tasks=new ArrayList<>(newTasks);
+        this.originalTasks= new ArrayList<>(tasks);
         notifyDataSetChanged();
     }
 
@@ -104,6 +108,13 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         });
     }
 
+    public List<TaskEntity> getOriginalTasks(){
+        return originalTasks;
+    }
+
+    public List<TaskEntity> getTasks(){
+        return new ArrayList<>(tasks);
+    }
 
     @Override
     public int getItemCount(){

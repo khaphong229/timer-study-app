@@ -1,3 +1,4 @@
+
 package com.example.timerstudy.data.repository;
 
 import android.content.Context;
@@ -22,6 +23,10 @@ public class TaskRepository {
     }
 
     // ASYNC methods with callbacks - RECOMMENDED APPROACH
+
+    public List<TaskEntity> getTasksByUserAndDate(int userId, long taskDate) {
+        return taskDao.getTasksByUserAndDate(userId, taskDate);
+    }
     public void getAllTasks(DataCallback<List<TaskEntity>> callback){
         executor.execute(() -> {
             try {
@@ -87,7 +92,6 @@ public class TaskRepository {
         });
     }
 
-    // Synchronous methods - better for sequential operations
     public void insertTask(TaskEntity task){
         taskDao.insertTask(task);
     }
