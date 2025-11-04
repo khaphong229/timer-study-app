@@ -18,4 +18,9 @@
         <item name="cardElevation">4dp</item>
         <item name="cardUseCompatPadding">true</item>
     </style>
+
+    <!-- Custom NavigationRailView Style -->
+    <style name="Widget.TimerStudy.NavigationRailView" parent="Widget.Material3.NavigationRailView">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
 </resources>

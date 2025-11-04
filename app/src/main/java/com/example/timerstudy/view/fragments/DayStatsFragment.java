@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.timerstudy.databinding.FragmentDayStatsBinding;
 import com.example.timerstudy.view.adapters.TimelineAdapter;
 import com.example.timerstudy.view.contracts.DayStatsContract;
-import com.example.timerstudy.view.presenters.DayStatsPresenter;
+import com.example.timerstudy.presenter.DayStatsPresenter;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.text.SimpleDateFormat;
@@ -131,9 +131,9 @@ public class DayStatsFragment extends Fragment implements DayStatsContract.View 
             }
 
             // Show motivational message
-            if (binding.textMotivation != null) {
-                binding.textMotivation.setText(getMotivationalMessage(stats.totalFocusMinutes, stats.completedSessions));
-            }
+//            if (binding.textMotivation != null) {
+//                binding.textMotivation.setText(getMotivationalMessage(stats.totalFocusMinutes, stats.completedSessions));
+//            }
         });
     }
 
@@ -205,12 +205,12 @@ public class DayStatsFragment extends Fragment implements DayStatsContract.View 
         animator.start();
     }
 
-    private String getMotivationalMessage(int minutes, int sessions) {
-        if (minutes >= 240) return "🔥 Xuất sắc! Bạn đã hoàn thành mục tiêu!";
-        if (minutes >= 120) return "💪 Làm tốt lắm! Tiếp tục phát huy!";
-        if (sessions > 0) return "👍 Khởi đầu tốt đấy!";
-        return "🚀 Hãy bắt đầu phiên học đầu tiên!";
-    }
+//    private String getMotivationalMessage(int minutes, int sessions) {
+//        if (minutes >= 240) return "Xuất sắc! Bạn đã hoàn thành mục tiêu!";
+//        if (minutes >= 120) return "Làm tốt lắm! Tiếp tục phát huy!";
+//        if (sessions > 0) return "Khởi đầu tốt đấy!";
+//        return "Hãy bắt đầu phiên học đầu tiên!";
+//    }
 
     @Override
     public void onDestroyView() {

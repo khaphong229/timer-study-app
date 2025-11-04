@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-<!--    <item-->
-<!--        android:id="@+id/homeFragment"-->
-<!--        android:icon="@android:drawable/ic_menu_view"-->
-<!--        android:title="Trang Chủ" />-->
-
     <item
         android:id="@+id/timerFragment"
         android:icon="@drawable/schedule_24"
@@ -14,11 +9,6 @@
         android:id="@+id/soundFragment"
         android:icon="@drawable/music_cast_24"
         android:title="Music" />
-
-    <item
-        android:id="@+id/profileFragment"
-        android:icon="@android:drawable/ic_menu_myplaces"
-        android:title="Hồ Sơ" />
 
     <item
         android:id="@+id/menu_statistics"
