@@ -31,13 +31,13 @@ public class MainActivity extends AppCompatActivity {
         navigationRail = findViewById(R.id.navigation_rail);
         NavigationUI.setupWithNavController(navigationRail, navController);
 
-        navigationRail.setOnItemSelectedListener(item -> {
-            if (item.getItemId() == R.id.menu_seed_data) {
-                FakeDataSeeder.seed(this);
-                return true;
-            }
-            return NavigationUI.onNavDestinationSelected(item, navController);
-        });
+        // navigationRail.setOnItemSelectedListener(item -> {
+        //     if (item.getItemId() == R.id.menu_seed_data) {
+        //         FakeDataSeeder.seed(this);
+        //         return true;
+        //     }
+        //     return NavigationUI.onNavDestinationSelected(item, navController);
+        // });
     }
     
     /**

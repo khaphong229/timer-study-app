@@ -30,8 +30,8 @@
         <item name="colorOnErrorContainer">@color/md_theme_onErrorContainer</item>
 
         <!-- Thêm dòng này để override font của Material -->
-        <item name="android:fontFamily">@font/svn</item>
-        <item name="fontFamily">@font/svn</item>
+        <item name="android:fontFamily">@font/bold</item>
+        <item name="fontFamily">@font/bold</item>
 
         <!-- Fullscreen mode - Ẩn status bar và navigation bar -->
         <item name="android:windowFullscreen">true</item>

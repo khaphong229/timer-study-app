@@ -190,8 +190,7 @@
                             android:textAllCaps="false"
                             android:textColor="#FFFFFF"
                             android:textSize="54sp"
-                            android:textStyle="bold"
-                            android:paddingVertical="10sp" />
+                            android:textStyle="bold" />
 
                     <!-- Completed Sessions -->
                     <TextView
