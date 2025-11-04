@@ -20,14 +20,19 @@ public class SoundPresenter {
     private List<SoundItem> soundItems;
     private Map<String, MediaPlayer> mediaPlayers;
     private Context context;
+    private boolean isRepeatMode = false;
 
     private static final String PREF_NAME = "audio_pref";
     private static final String KEY_PLAYING = "playing_audio";
+    private static final String KEY_REPEAT_MODE = "repeat_mode";
 
     public interface SoundView {
         void updateSoundList(List<SoundItem> sounds);
+
         void showVolumeSlider(String soundName, float volume);
+
         void hideVolumeSlider();
+
         void updatePlayingState(String soundName, boolean isPlaying);
     }
 
@@ -37,8 +42,6 @@ public class SoundPresenter {
         this.soundItems = new ArrayList<>();
         this.mediaPlayers = new HashMap<>();
         initializeSounds();
-        // Xoá dòng này:
-        // restorePlayingState();
     }
 
     private void initializeSounds() {
@@ -66,6 +69,8 @@ public class SoundPresenter {
     public void restorePlayingState() {
         SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         String playingName = prefs.getString(KEY_PLAYING, null);
+        isRepeatMode = prefs.getBoolean(KEY_REPEAT_MODE, false);
+
         if (playingName != null) {
             SoundItem item = findSoundByName(playingName);
             if (item != null) {
@@ -80,7 +85,10 @@ public class SoundPresenter {
 
     private void savePlayingState(String soundName) {
         SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-        prefs.edit().putString(KEY_PLAYING, soundName).apply();
+        prefs.edit()
+                .putString(KEY_PLAYING, soundName)
+                .putBoolean(KEY_REPEAT_MODE, isRepeatMode)
+                .apply();
     }
 
     private void clearPlayingState() {
@@ -105,6 +113,8 @@ public class SoundPresenter {
         intent.setAction(AudioPlayerService.ACTION_PLAY);
         intent.putExtra(AudioPlayerService.EXTRA_RES_ID, item.getResourceId());
         intent.putExtra(AudioPlayerService.EXTRA_VOLUME, item.getVolume());
+        intent.putExtra(AudioPlayerService.EXTRA_REPEAT_MODE, isRepeatMode);
+        intent.putExtra(AudioPlayerService.EXTRA_SOUND_NAME, soundName);
         context.startService(intent);
 
         item.setPlaying(true);
@@ -145,13 +155,45 @@ public class SoundPresenter {
         if (item != null) {
             item.setVolume(volume);
             if (item.isPlaying()) {
+                // Chỉ cập nhật volume, không restart audio
                 Intent intent = new Intent(context, AudioPlayerService.class);
-                intent.setAction(AudioPlayerService.ACTION_PLAY);
-                intent.putExtra(AudioPlayerService.EXTRA_RES_ID, item.getResourceId());
+                intent.setAction(AudioPlayerService.ACTION_SET_VOLUME);
                 intent.putExtra(AudioPlayerService.EXTRA_VOLUME, volume);
                 context.startService(intent);
             }
         }
+    }
+
+    public void updateVolumeOnly(String soundName, float volume) {
+        SoundItem item = findSoundByName(soundName);
+        if (item != null) {
+            item.setVolume(volume);
+            if (item.isPlaying()) {
+                // Chỉ cập nhật volume
+                Intent intent = new Intent(context, AudioPlayerService.class);
+                intent.setAction(AudioPlayerService.ACTION_SET_VOLUME);
+                intent.putExtra(AudioPlayerService.EXTRA_VOLUME, volume);
+                context.startService(intent);
+            }
+        }
+    }
+
+    public void setRepeatMode(boolean repeatMode) {
+        this.isRepeatMode = repeatMode;
+
+        // Update service with new repeat mode
+        Intent intent = new Intent(context, AudioPlayerService.class);
+        intent.setAction(AudioPlayerService.ACTION_SET_REPEAT);
+        intent.putExtra(AudioPlayerService.EXTRA_REPEAT_MODE, repeatMode);
+        context.startService(intent);
+
+        // Save repeat mode
+        SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putBoolean(KEY_REPEAT_MODE, repeatMode).apply();
+    }
+
+    public boolean isRepeatMode() {
+        return isRepeatMode;
     }
 
     public void onDestroy() {
@@ -167,5 +209,27 @@ public class SoundPresenter {
             }
         }
         return null;
+    }
+
+    // Thêm phương thức để lấy danh sách soundItems
+    public List<SoundItem> getSoundItems() {
+        return soundItems;
+    }
+
+    // Thêm phương thức playNextSound cho autoplay
+    public void playNextSound(String currentSoundName) {
+        if (soundItems.isEmpty())
+            return;
+        int currentIndex = -1;
+        for (int i = 0; i < soundItems.size(); i++) {
+            if (soundItems.get(i).getName().equals(currentSoundName)) {
+                currentIndex = i;
+                break;
+            }
+        }
+        int nextIndex = (currentIndex + 1) % soundItems.size();
+        SoundItem nextItem = soundItems.get(nextIndex);
+        stopAllSounds();
+        playSound(nextItem.getName(), nextItem);
     }
 }

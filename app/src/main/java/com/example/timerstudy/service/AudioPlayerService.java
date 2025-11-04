@@ -13,14 +13,22 @@ import androidx.core.app.NotificationCompat;
 import com.example.timerstudy.R;
 
 public class AudioPlayerService extends Service {
-    public static final String ACTION_PLAY = "PLAY";
-    public static final String ACTION_STOP = "STOP";
-    public static final String EXTRA_RES_ID = "RES_ID";
-    public static final String EXTRA_VOLUME = "VOLUME";
+    public static final String ACTION_PLAY = "ACTION_PLAY";
+    public static final String ACTION_STOP = "ACTION_STOP";
+    public static final String ACTION_SET_VOLUME = "ACTION_SET_VOLUME";
+    public static final String ACTION_SET_REPEAT = "ACTION_SET_REPEAT";
+
+    public static final String EXTRA_RES_ID = "EXTRA_RES_ID";
+    public static final String EXTRA_VOLUME = "EXTRA_VOLUME";
+    public static final String EXTRA_REPEAT_MODE = "EXTRA_REPEAT_MODE";
+    public static final String EXTRA_SOUND_NAME = "EXTRA_SOUND_NAME";
+
     private static final int NOTIF_ID = 1002;
     private static final String CHANNEL_ID = "audio_play_channel";
 
     private MediaPlayer mediaPlayer;
+    private boolean isRepeatMode = false;
+    private String currentSoundName;
 
     @Override
     public void onCreate() {
@@ -30,34 +38,81 @@ public class AudioPlayerService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent == null)
+            return START_NOT_STICKY;
+
         String action = intent.getAction();
-        if (ACTION_PLAY.equals(action)) {
-            int resId = intent.getIntExtra(EXTRA_RES_ID, 0);
-            float volume = intent.getFloatExtra(EXTRA_VOLUME, 0.5f);
-            playAudio(resId, volume);
-        } else if (ACTION_STOP.equals(action)) {
-            stopAudio();
+        if (action == null)
+            return START_NOT_STICKY;
+
+        switch (action) {
+            case ACTION_PLAY:
+                int resId = intent.getIntExtra(EXTRA_RES_ID, -1);
+                float volume = intent.getFloatExtra(EXTRA_VOLUME, 0.5f);
+                isRepeatMode = intent.getBooleanExtra(EXTRA_REPEAT_MODE, false);
+                currentSoundName = intent.getStringExtra(EXTRA_SOUND_NAME);
+                playAudio(resId, volume);
+                break;
+            case ACTION_STOP:
+                stopAudio();
+                break;
+            case ACTION_SET_VOLUME:
+                float newVolume = intent.getFloatExtra(EXTRA_VOLUME, 0.5f);
+                setVolume(newVolume);
+                break;
+            case ACTION_SET_REPEAT:
+                isRepeatMode = intent.getBooleanExtra(EXTRA_REPEAT_MODE, false);
+                if (mediaPlayer != null) {
+                    mediaPlayer.setLooping(isRepeatMode);
+                }
+                break;
         }
-        return START_STICKY;
+
+        return START_NOT_STICKY;
     }
 
     private void playAudio(int resId, float volume) {
         stopAudio();
-        if (resId != 0) {
+
+        try {
             mediaPlayer = MediaPlayer.create(this, resId);
             if (mediaPlayer != null) {
-                mediaPlayer.setLooping(true);
+                mediaPlayer.setLooping(isRepeatMode);
                 mediaPlayer.setVolume(volume, volume);
+
+                mediaPlayer.setOnCompletionListener(mp -> {
+                    if (!isRepeatMode) {
+                        // Send broadcast when audio completed
+                        Intent completionIntent = new Intent("com.example.timerstudy.AUDIO_COMPLETED");
+                        completionIntent.putExtra("soundName", currentSoundName);
+                        sendBroadcast(completionIntent);
+                    }
+                });
+
                 mediaPlayer.start();
                 startForeground(NOTIF_ID, buildNotification());
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void setVolume(float volume) {
+        if (mediaPlayer != null) {
+            mediaPlayer.setVolume(volume, volume);
         }
     }
 
     private void stopAudio() {
         if (mediaPlayer != null) {
-            mediaPlayer.stop();
-            mediaPlayer.release();
+            try {
+                if (mediaPlayer.isPlaying()) {
+                    mediaPlayer.stop();
+                }
+                mediaPlayer.release();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             mediaPlayer = null;
             stopForeground(true);
         }
@@ -75,16 +130,25 @@ public class AudioPlayerService extends Service {
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
-                CHANNEL_ID, "Audio Playback", NotificationManager.IMPORTANCE_LOW);
+                    CHANNEL_ID, "Audio Playback", NotificationManager.IMPORTANCE_LOW);
             NotificationManager manager = getSystemService(NotificationManager.class);
-            if (manager != null) manager.createNotificationChannel(channel);
+            if (manager != null)
+                manager.createNotificationChannel(channel);
         }
     }
 
     @Override
     public void onDestroy() {
-        stopAudio();
         super.onDestroy();
+        stopAudio();
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        // Khi app bị vuốt khỏi đa nhiệm, dừng audio và tự hủy Service
+        stopAudio();
+        stopSelf();
+        super.onTaskRemoved(rootIntent);
     }
 
     @Nullable
