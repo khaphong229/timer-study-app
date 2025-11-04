@@ -25,6 +25,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
+import com.example.timerstudy.presenter.ShopPresenter;
 import com.example.timerstudy.utils.ViewAnimator;
 import com.example.timerstudy.view.contracts.TimerContract;
 import com.google.android.material.card.MaterialCardView;
@@ -61,6 +62,8 @@ public class TimerFragment extends Fragment implements TimerContract.View {
     private MediaPlayer mediaPlayer;
     private Vibrator vibrator;
 
+    private ShopPresenter shopPresenter;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -73,8 +76,15 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         super.onViewCreated(view, savedInstanceState);
 
         initializeViews(view);
+        setupShopPresenter();
         setupPresenter();
         setupListeners();
+        applyBackground();
+    }
+
+    private void setupShopPresenter() {
+        shopPresenter = ShopPresenter.getInstance();
+        shopPresenter.initialize(requireContext());
     }
 
     @Override
@@ -84,15 +94,22 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         if (presenter != null) {
             presenter.attachView(this);
         }
+
+        applyBackground();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-       
+
         if (presenter != null) {
             presenter.detachView();
         }
+    }
+
+    public void applyBackground() {
+        int id = shopPresenter.getBackgroundSlectedResourceId();
+        gifImageView.setImageResource(id);
     }
 
     private void initializeViews(View view) {
@@ -118,6 +135,7 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         }
 
         // Set default values
+
         seekBarStudy.setMax(60);
         seekBarStudy.setProgress(25);
         seekBarBreak.setMax(30);
