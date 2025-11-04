@@ -49,6 +49,11 @@ public class ShopModel {
                             ShopItem.ItemType.BACKGROUND
                     );
 
+                    if (name == "bg_default") {
+                        item.setPurchased(true);
+                        savePurchasedItem(item.getId());
+                    }
+
                     if (purchasedIds.contains(String.valueOf(id))) {
                         item.setPurchased(true);
                     }

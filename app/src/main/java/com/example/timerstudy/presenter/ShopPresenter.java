@@ -88,7 +88,7 @@ public class ShopPresenter implements ShopContract.Presenter {
         }
     }
 
-    private void saveSelectedBackground(int backgroundId) {
+    public void saveSelectedBackground(int backgroundId) {
         if (context != null) {
             model.saveSelectedBackground(backgroundId);
         }
@@ -165,12 +165,17 @@ public class ShopPresenter implements ShopContract.Presenter {
         return model.getBackgroundResourceId(itemId);
     }
 
-    public int getBackgroundSlectedResourceId() {
+    public int getBackgroundSelectedResourceId() {
         if (model == null) {
             return getDefaultBackgroundResourceId();
         }
         int id = getSelectedBackgroundId();
-        return getBackgroundResourceId(id);
+        int resourceId = getBackgroundResourceId(id);
+        if (resourceId == -1) {
+            resourceId = R.drawable.bg_default;
+            saveSelectedBackground(id);
+        }
+        return resourceId;
     }
 
     private int getDefaultBackgroundResourceId() {
