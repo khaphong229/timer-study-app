@@ -20,4 +20,12 @@
         <item>@color/priority_medium</item>
         <item>@color/priority_high</item>
     </integer-array>
+
+    <!--Các tùy chọn lọc cho Spinner trong layout_filter.xml -->
+    <string-array name="filter_priority">
+        <item>Tất cả</item>
+        <item>Ưu tiên thấp</item>
+        <item>Ưu tiên trung bình</item>
+        <item>Ưu tiên cao</item>
+    </string-array>
 </resources>

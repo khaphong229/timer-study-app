@@ -8,6 +8,7 @@ import com.example.timerstudy.data.local.database.entities.TaskEntity;
 import com.example.timerstudy.data.repository.TaskRepository;
 import com.example.timerstudy.data.repository.UserRepository;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -25,6 +26,10 @@ public class TaskPresenter implements TaskContract.Presenter {
     private TaskRepository taskRepository;
     private UserRepository userRepository;
     private ExecutorService executor;
+    private Date selectedDate;
+    private String currentPriorityFilter = "all";
+    private boolean showCompletedTasks = true;
+    private List<TaskEntity> allTasks;
     
     public TaskPresenter(TaskContract.View view, Context context) {
         this.view = view;
@@ -49,32 +54,44 @@ public class TaskPresenter implements TaskContract.Presenter {
         }
     }
     
+
+    public void setSelectedDate(Date date) {
+        this.selectedDate = date;
+        
+        loadTasks();
+    }
+
     @Override
     public void loadTasks() {
-        // Don't show loading for refresh operations
         boolean isInitialLoad = view != null;
         if (isInitialLoad) {
             view.showLoading();
         }
-        
+
         executor.execute(() -> {
             try {
                 int userId = userRepository.getCurrentUserId();
-                List<TaskEntity> tasks = taskRepository.getTasksByUserId(userId);
+                Date date = selectedDate;
+                if (date == null) date = new Date();
+                date = normalizeDate(date); // Normalize the date
+                long dayMillis = date.getTime();
                 
-                // Update UI on main thread
+                // Load tasks for the selected date
+                List<TaskEntity> tasks = taskRepository.getTasksByUserAndDate(userId, dayMillis);
+                allTasks = tasks != null ? new ArrayList<>(tasks) : new ArrayList<>();
+
                 runOnMainThread(() -> {
                     if (view != null) {
                         if (isInitialLoad) {
-                            view.hideLoading();
+                            view.showEmptyState();
                         }
-                        
-                        if (tasks == null || tasks.isEmpty()) {
+                        if (allTasks.isEmpty()) {
                             view.showEmptyState();
                         } else {
-                            view.hideEmptyState();
-                            view.showTasks(tasks);
+                            view.showEmptyState();
                         }
+                        // Always apply filter after loading tasks
+                        applyFilter();
                     }
                 });
             } catch (Exception e) {
@@ -90,9 +107,22 @@ public class TaskPresenter implements TaskContract.Presenter {
             }
         });
     }
+
+    private Date normalizeDate(Date date) {
+        if (date == null) {
+            date = new Date();
+        }
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(java.util.Calendar.HOUR_OF_DAY, 0);
+        cal.set(java.util.Calendar.MINUTE, 0);
+        cal.set(java.util.Calendar.SECOND, 0);
+        cal.set(java.util.Calendar.MILLISECOND, 0);
+        return cal.getTime();
+    }
     
     @Override
-    public void addTask(String title, String priority) {
+    public void addTask(String title, String priority, Date selectedDate) {
         if (title == null || title.trim().isEmpty()) {
             if (view != null) {
                 view.showError("Vui lòng nhập nội dung task");
@@ -110,7 +140,9 @@ public class TaskPresenter implements TaskContract.Presenter {
                 TaskEntity newTask = new TaskEntity();
                 newTask.setTitle(title.trim());
                 newTask.setPriority(priority);
-                newTask.setTaskDate(new Date());
+                // Normalize the task date to avoid time issues
+                Date normalizedDate = normalizeDate(selectedDate != null ? selectedDate : new Date());
+                newTask.setTaskDate(normalizedDate);
                 newTask.setCreatedAt(new Date());
                 newTask.setUpdatedAt(new Date());
                 newTask.setCompleted(false);
@@ -133,7 +165,7 @@ public class TaskPresenter implements TaskContract.Presenter {
                         view.clearTaskInput();
                         view.resetPrioritySelection();
                         view.showTaskAddedSuccess();
-                        // Refresh task list after UI updates
+                        // Reload tasks from database
                         loadTasks();
                     });
                 }
@@ -254,6 +286,32 @@ public class TaskPresenter implements TaskContract.Presenter {
                 Log.e(TAG, "Error initializing user", e);
             }
         });
+    }
+
+    @Override
+    public void setFilter(String priorityFilter, boolean showCompleted) {
+        this.currentPriorityFilter = priorityFilter;
+        this.showCompletedTasks = showCompleted;
+        applyFilter();
+    }
+
+    @Override
+    public void applyFilter(){
+        if(allTasks == null){
+            loadTasks();
+            return;
+        }
+        List<TaskEntity> filteredTasks = new ArrayList<>();
+        for(TaskEntity task: allTasks){
+            boolean priorityMatches = currentPriorityFilter.equals("all") || task.getPriority().equalsIgnoreCase(currentPriorityFilter);
+            boolean completedMatches = showCompletedTasks || !task.isCompleted();
+            if(priorityMatches && completedMatches){
+                filteredTasks.add(task);
+            }
+        }
+        if(view != null){
+            view.updateFilteredTasks(filteredTasks);
+        }
     }
     
     /**

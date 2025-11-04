@@ -35,7 +35,8 @@ public class FakeDataSeeder {
             generateSessions(sessionDao, userId, 30);
 
             // Generate tasks for last 14 days
-            generateTasks(taskDao, userId, 14);
+            taskDao.deleteAllTasks();
+
 
             // Generate goals for last 14 days
             generateGoals(goalDao, userId, 14);
@@ -93,39 +94,10 @@ public class FakeDataSeeder {
         }
     }
 
+    // Task generation removed - only real tasks will be saved
+    @Deprecated
     private static void generateTasks(TaskDao taskDao, int userId, int daysBack) {
-        Random rnd = new Random();
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-
-        for (int d = 0; d < daysBack; d++) {
-            Date day = cal.getTime();
-
-            int count = 1 + rnd.nextInt(3);
-            for (int i = 0; i < count; i++) {
-                TaskEntity t = new TaskEntity();
-                t.setUserId(userId);
-                t.setTitle("Task " + (i + 1) + " (" + d + "d ago)");
-                t.setDescription("Auto generated task");
-                t.setTaskDate(day);
-                t.setPriority(TaskEntity.PRIORITY_MEDIUM);
-                boolean completed = rnd.nextBoolean();
-                t.setCompleted(completed);
-                if (completed) {
-                    t.setCompletedAt(day);
-                }
-                t.setTotalTimeSpent(10 + rnd.nextInt(120));
-                t.setEstimatedSessions(1 + rnd.nextInt(4));
-                t.setActualSessions(rnd.nextInt(4));
-                t.setOrderIndex(i);
-                taskDao.insertTask(t);
-            }
-
-            cal.add(Calendar.DAY_OF_MONTH, -1);
-        }
+        // Method removed to ensure only real user tasks are stored
     }
 
     private static void generateGoals(GoalDao goalDao, int userId, int daysBack) {
