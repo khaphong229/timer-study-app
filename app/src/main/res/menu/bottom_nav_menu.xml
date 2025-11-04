@@ -10,17 +10,27 @@
         android:icon="@drawable/music_cast_24"
         android:title="Music" />
 
+    <!-- <item
+        android:id="@+id/profileFragment"
+        android:icon="@android:drawable/ic_menu_myplaces"
+        android:title="Hồ Sơ" /> -->
+
     <item
         android:id="@+id/menu_statistics"
         android:icon="@android:drawable/ic_menu_sort_by_size"
         android:title="Thống kê" />
 
-    <item
+    <!-- <item
         android:id="@+id/menu_seed_data"
         android:icon="@android:drawable/ic_menu_add"
-        android:title="Seed dữ liệu" />
+        android:title="Seed dữ liệu" /> -->
     <item
         android:id="@+id/taskFragment"
         android:icon="@android:drawable/ic_menu_myplaces"
         android:title="Tasks" />
+
+    <item
+        android:id="@+id/nav_shop"
+        android:icon="@android:drawable/ic_menu_gallery"
+        android:title="Shop" />
 </menu>
