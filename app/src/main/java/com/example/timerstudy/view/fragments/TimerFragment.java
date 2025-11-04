@@ -31,10 +31,7 @@ import com.example.timerstudy.view.contracts.TimerContract;
 import com.google.android.material.card.MaterialCardView;
 import pl.droidsonroids.gif.GifImageView;
 
-import java.util.Timer;
-
 import com.example.timerstudy.R;
-import com.example.timerstudy.view.contracts.TimerContract;
 import com.example.timerstudy.presenter.TimerPresenter;
 import com.example.timerstudy.view.activities.MainActivity;
 
@@ -108,7 +105,7 @@ public class TimerFragment extends Fragment implements TimerContract.View {
     }
 
     public void applyBackground() {
-        int id = shopPresenter.getBackgroundSlectedResourceId();
+        int id = shopPresenter.getBackgroundSelectedResourceId();
         gifImageView.setImageResource(id);
     }
 
