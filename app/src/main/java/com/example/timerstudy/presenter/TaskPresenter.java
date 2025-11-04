@@ -118,7 +118,7 @@ public class TaskPresenter implements TaskContract.Presenter {
         List<TaskEntity> filteredTasks = new ArrayList<>();
         for (TaskEntity task : allTasks) {
             boolean priorityMatch = currentPriorityFilter.equals("all") ||
-                    task.getPriority().toLowerCase().equals(currentPriorityFilter);
+                    task.getPriority().toLowerCase().equals(currentPriorityFilter.toLowerCase());
             boolean completedMatch = task.isCompleted() == showCompletedTasks;
 
             if (priorityMatch && completedMatch) {

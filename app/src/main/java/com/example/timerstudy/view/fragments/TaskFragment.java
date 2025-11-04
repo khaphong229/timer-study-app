@@ -333,9 +333,9 @@ public class TaskFragment extends Fragment implements TaskContract.View {
 			public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 				String priorityFilter;
 				switch (position) {
-					case 1: priorityFilter = "high"; break;
+					case 1: priorityFilter = "low"; break;
 					case 2: priorityFilter = "medium"; break;
-					case 3: priorityFilter = "low"; break;
+					case 3: priorityFilter = "high"; break;
 					default: priorityFilter = "all"; break;
 				}
 				presenter.setFilter(priorityFilter, cbShowCompleted.isChecked());
@@ -358,9 +358,9 @@ public class TaskFragment extends Fragment implements TaskContract.View {
 	private String getCurrentPriorityFilter() {
 		int position = spinnerFilterPriority.getSelectedItemPosition();
 		switch (position) {
-			case 1: return "high";
+			case 1: return "low";
 			case 2: return "medium";
-			case 3: return "low";
+			case 3: return "high";
 			default: return "all";
 		}
 	}
