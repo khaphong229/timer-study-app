@@ -23,6 +23,7 @@ public interface TaskContract {
         void resetPrioritySelection();
         void showTaskAddedSuccess();
         void updateFilteredTasks(List<TaskEntity> filteredTasks);
+        void updateTaskCount(int completed, int total);
     }
 
     // presenter có những phương thức nào mà view có thể gọi

@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -61,7 +62,10 @@ public class TaskFragment extends Fragment implements TaskContract.View {
 	private View btnPrevMonth, btnNextMonth;
 	private Spinner spinnerFilterPriority;
 	private CheckBox cbShowCompleted;
-
+	private TextView tvTaskCount;
+	private ProgressBar progressBarDaily;
+	private TextView tvProgressPercentage;
+	private View filterLayout;
 
 	@Nullable
 	@Override // khởi tạo giao diện
@@ -90,9 +94,12 @@ public class TaskFragment extends Fragment implements TaskContract.View {
 		btnNextMonth = monthHeader.findViewById(R.id.btnNextMonth);
 
 		// anh xa filter
-		View filterLayout = view.findViewById(R.id.layout_filter);
+		filterLayout = view.findViewById(R.id.layout_filter);
 		spinnerFilterPriority = filterLayout.findViewById(R.id.spinnerFilterPriority);
 		cbShowCompleted = filterLayout.findViewById(R.id.cbShowCompleted);
+		tvTaskCount = filterLayout.findViewById(R.id.tvTaskCount);
+		progressBarDaily = filterLayout.findViewById(R.id.progressBarDaily);
+		tvProgressPercentage = filterLayout.findViewById(R.id.tvProgressPercentage);
 
 		//  Setup RecyclerView task
 		rvTasks.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -101,6 +108,9 @@ public class TaskFragment extends Fragment implements TaskContract.View {
 				this::showDeleteConfirmation,
 				this::showEditTaskDialog);
 		rvTasks.setAdapter(taskAdapter);
+
+		// Setup scroll listener để ẩn/hiện filter khi scroll
+		setupScrollBehavior();
 
 		//  Setup tháng (header)
 		setupMonthHeader();
@@ -140,7 +150,7 @@ public class TaskFragment extends Fragment implements TaskContract.View {
 		for (int i = 1; i <= daysInMonth; i++) {
 			c.set(Calendar.DAY_OF_MONTH, i);
 			days.add(c.getTime());
-		}
+		};
 
 		SimpleDateFormat monthFmt = new SimpleDateFormat("'Tháng' MM, yyyy", Locale.forLanguageTag("vi-VN"));
 		tvMonthYear.setText(monthFmt.format(monthBase.getTime()));
@@ -165,8 +175,9 @@ public class TaskFragment extends Fragment implements TaskContract.View {
 
 	private void onDateSelected(Date date) {
 		if (date == null) return;
-		
-		this.selectedDate = normalizeDate(date);
+		selectedDate = normalizeDate(date);
+
+		// Load tasks cho ngày được chọn
 		presenter.setSelectedDate(this.selectedDate);
 		
 		SimpleDateFormat fmt = new SimpleDateFormat("dd/MM/yyyy", Locale.forLanguageTag("vi-VN"));
@@ -334,7 +345,8 @@ public class TaskFragment extends Fragment implements TaskContract.View {
 			public void onNothingSelected(AdapterView<?> parent) {}
 		});
 
-		cbShowCompleted.setChecked(true);
+		// Mặc định hiển thị task chưa hoàn thành
+		cbShowCompleted.setChecked(false);
 		cbShowCompleted.setOnCheckedChangeListener((buttonView, isChecked) -> {
 			presenter.setFilter(
 				getCurrentPriorityFilter(),
@@ -352,6 +364,44 @@ public class TaskFragment extends Fragment implements TaskContract.View {
 			default: return "all";
 		}
 	}
+	@Override
+	public void updateTaskCount(int completed, int total) {
+		if (isAdded()) {
+			requireActivity().runOnUiThread(() -> {
+				// Cập nhật task count
+				tvTaskCount.setText(completed + "/" + total);
+
+				// Tính phần trăm tiến độ
+				int percentage = total > 0 ? (completed * 100) / total : 0;
+				
+				// Cập nhật progress bar và percentage
+				if (progressBarDaily != null) {
+					progressBarDaily.setProgress(percentage);
+				}
+				if (tvProgressPercentage != null) {
+					tvProgressPercentage.setText(percentage + "%");
+				}
+
+				// Thay đổi màu dựa trên tiến độ
+				int color;
+				if (total > 0 && completed == total) {
+					color = getResources().getColor(android.R.color.holo_green_dark);
+				} else if (completed > 0) {
+					color = getResources().getColor(android.R.color.holo_orange_dark);
+				} else {
+					color = getResources().getColor(android.R.color.darker_gray);
+				}
+				
+				tvTaskCount.setTextColor(color);
+				if (tvProgressPercentage != null) {
+					tvProgressPercentage.setTextColor(color);
+				}
+				if (progressBarDaily != null) {
+					progressBarDaily.setProgressTintList(android.content.res.ColorStateList.valueOf(color));
+				}
+			});
+		}
+	}
 
 	@Override
 	public void updateFilteredTasks(List<TaskEntity> filteredTasks) {
@@ -362,5 +412,41 @@ public class TaskFragment extends Fragment implements TaskContract.View {
 				rvTasks.setVisibility(filteredTasks.isEmpty() ? View.GONE : View.VISIBLE);
 			});
 		}
+	}
+
+	/**
+	 * Setup scroll behavior để ẩn/hiện filter khi scroll
+	 */
+	private void setupScrollBehavior() {
+		rvTasks.addOnScrollListener(new RecyclerView.OnScrollListener() {
+			private boolean isFilterVisible = true;
+
+			@Override
+			public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+				super.onScrolled(recyclerView, dx, dy);
+				
+				if (filterLayout != null) {
+					if (dy > 10 && isFilterVisible) {
+						// Scroll xuống - ẩn filter
+						isFilterVisible = false;
+						filterLayout.animate()
+								.translationY(-filterLayout.getHeight())
+								.alpha(0f)
+								.setDuration(200)
+								.withEndAction(() -> filterLayout.setVisibility(View.GONE))
+								.start();
+					} else if (dy < -10 && !isFilterVisible) {
+						// Scroll lên - hiện filter
+						isFilterVisible = true;
+						filterLayout.setVisibility(View.VISIBLE);
+						filterLayout.animate()
+								.translationY(0)
+								.alpha(1f)
+								.setDuration(200)
+								.start();
+					}
+				}
+			}
+		});
 	}
 }
