@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme using Material3 -->
-    <style name="Base.Theme.TimerStudy" parent="Theme.Material3.DayNight.NoActionBar">
+    <!-- Base application theme using Material3 (Light only) -->
+    <style name="Base.Theme.TimerStudy" parent="Theme.Material3.Light.NoActionBar">
         <!-- Primary brand color -->
         <item name="colorPrimary">@color/md_theme_primary</item>
         <item name="colorOnPrimary">@color/md_theme_onPrimary</item>
@@ -29,16 +29,16 @@
         <item name="colorErrorContainer">@color/md_theme_errorContainer</item>
         <item name="colorOnErrorContainer">@color/md_theme_onErrorContainer</item>
 
-        <!-- Thêm dòng này để override font của Material -->
+        <!-- Override font -->
         <item name="android:fontFamily">@font/bold</item>
         <item name="fontFamily">@font/bold</item>
 
-        <!-- Fullscreen mode - Ẩn status bar và navigation bar -->
+        <!-- Fullscreen mode -->
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="p">shortEdges</item>
     </style>
 
-    <style name="Theme.TimerStudy" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.TimerStudy" parent="Theme.MaterialComponents.NoActionBar">
         <item name="colorPrimary">@color/purple_500</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
         <item name="colorOnPrimary">@color/white</item>

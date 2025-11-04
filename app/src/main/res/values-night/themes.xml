@@ -1,42 +1,41 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Dark theme for night mode -->
-    <style name="Base.Theme.TimerStudy" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Primary brand color (dark) -->
+    <style name="Base.Theme.TimerStudy" parent="Theme.Material3.Light.NoActionBar">
+        <!-- Primary brand color -->
         <item name="colorPrimary">@color/purple_500</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">#4F378B</item>
         <item name="colorOnPrimaryContainer">#EADDFF</item>
 
-        <!-- Secondary brand color (dark) -->
+        <!-- Secondary brand color -->
         <item name="colorSecondary">#CCC2DC</item>
         <item name="colorOnSecondary">#332D41</item>
         <item name="colorSecondaryContainer">#4A4458</item>
         <item name="colorOnSecondaryContainer">#E8DEF8</item>
 
-        <!-- Surface (dark) -->
-        <item name="colorSurface">@color/md_theme_surface_dark</item>
-        <item name="colorOnSurface">@color/md_theme_onSurface_dark</item>
+        <!-- Surface -->
+        <item name="colorSurface">@color/md_theme_surface</item>
+        <item name="colorOnSurface">@color/md_theme_onSurface</item>
         <item name="colorSurfaceVariant">#49454F</item>
         <item name="colorOnSurfaceVariant">#CAC4D0</item>
 
-        <!-- Background (dark) -->
-        <item name="android:colorBackground">#1C1B1F</item>
-        <item name="colorOnBackground">#E6E1E5</item>
+        <!-- Background -->
+        <item name="android:colorBackground">#FFFFFF</item>
+        <item name="colorOnBackground">#000000</item>
 
-        <!-- Error (dark) -->
+        <!-- Error -->
         <item name="colorError">#F2B8B5</item>
         <item name="colorOnError">#601410</item>
         <item name="colorErrorContainer">#8C1D18</item>
         <item name="colorOnErrorContainer">#F9DEDC</item>
 
-        <!-- Status bar (dark) -->
-        <item name="android:statusBarColor">@color/md_theme_surface_dark</item>
-        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+        <!-- Status bar -->
+        <item name="android:statusBarColor">@color/md_theme_surface</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
 
-        <!-- Navigation bar (dark) -->
-        <item name="android:navigationBarColor">@color/md_theme_surface_dark</item>
-        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
+        <!-- Navigation bar -->
+        <item name="android:navigationBarColor">@color/md_theme_surface</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
     </style>
 
     <style name="Theme.TimerStudy" parent="Base.Theme.TimerStudy">

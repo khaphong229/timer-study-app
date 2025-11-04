@@ -35,11 +35,13 @@
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
 
-    <!-- Dark theme colors (optional - cho night mode) -->
+    <!-- XÓA các màu dark theme nếu không dùng -->
+    <!--
     <color name="md_theme_primary_dark">#1976D2</color>
     <color name="md_theme_onPrimary_dark">#381E72</color>
     <color name="md_theme_surface_dark">#1C1B1F</color>
     <color name="md_theme_onSurface_dark">#E6E1E5</color>
+    -->
 
     <color name="gray_text">#757575</color>
     <color name="blue_accent">#2196F3</color>
