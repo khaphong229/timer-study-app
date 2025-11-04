@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.media.AudioManager;
@@ -33,6 +34,8 @@ import com.example.timerstudy.R;
 import com.example.timerstudy.model.SoundItem;
 import com.example.timerstudy.presenter.SoundPresenter;
 import com.example.timerstudy.view.adapters.SoundAdapter;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,6 +69,10 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
     private boolean isUpdatingSeekBar = false; // Prevent infinite loop
     private BroadcastReceiver volumeReceiver;
     private Handler volumeHandler;
+    private BroadcastReceiver audioCompletionReceiver;
+
+    private static final String PREF_NAME = "uploaded_audio_pref";
+    private static final String KEY_UPLOADED_AUDIO_LIST = "uploaded_audio_list";
 
     @Nullable
     @Override
@@ -90,6 +97,9 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         // Setup volume change listener
         setupVolumeChangeListener();
 
+        // Setup audio completion listener
+        setupAudioCompletionListener();
+
         // Kiểm tra quyền audio khi khởi tạo fragment
         checkAudioPermissionOnStart();
 
@@ -99,6 +109,10 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
 
         // Đồng bộ SeekBar với âm lượng thiết bị khi khởi tạo
         syncSeekBarWithDeviceVolume();
+
+        // Load uploaded audio list from SharedPreferences
+        loadUploadedAudioListFromPrefs();
+        uploadedAudioAdapter.updateSounds(uploadedAudioList);
     }
 
     private void initViews(View view) {
@@ -322,12 +336,21 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         if (item.getUri() != null) {
             uploadedPlayer = android.media.MediaPlayer.create(getContext(), item.getUri());
             if (uploadedPlayer != null) {
-                uploadedPlayer.setLooping(true);
+                uploadedPlayer.setLooping(isRepeatMode);
                 uploadedPlayer.setVolume(item.getVolume(), item.getVolume());
+
+                // Set completion listener for auto next
+                uploadedPlayer.setOnCompletionListener(mp -> {
+                    if (!isRepeatMode) {
+                        playNextAudio();
+                    }
+                });
+
                 uploadedPlayer.start();
                 item.setPlaying(true);
                 uploadedAudioAdapter.updatePlayingState(item.getName(), true);
                 showVolumeSlider(item.getName(), item.getVolume());
+                currentPlayingSoundName = item.getName();
             }
         }
     }
@@ -365,6 +388,7 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
                 item.setUri(audioUri);
                 uploadedAudioList.add(item);
                 uploadedAudioAdapter.updateSounds(uploadedAudioList);
+                saveUploadedAudioListToPrefs(); // Lưu vào SharedPreferences
             }
         }
     }
@@ -440,10 +464,18 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         super.onDestroy();
         stopUploadedAudio();
 
-        // Unregister volume receiver
+        // Unregister receivers
         if (volumeReceiver != null) {
             try {
                 requireContext().unregisterReceiver(volumeReceiver);
+            } catch (Exception e) {
+                // Receiver might already be unregistered
+            }
+        }
+
+        if (audioCompletionReceiver != null) {
+            try {
+                requireContext().unregisterReceiver(audioCompletionReceiver);
             } catch (Exception e) {
                 // Receiver might already be unregistered
             }
@@ -485,6 +517,14 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
     private void toggleRepeatMode() {
         isRepeatMode = !isRepeatMode;
         updateRepeatButtonUI();
+
+        // Update looping for uploaded audio if playing
+        if (uploadedPlayer != null && uploadedPlayer.isPlaying()) {
+            uploadedPlayer.setLooping(isRepeatMode);
+        }
+
+        // Update repeat mode for service audio
+        presenter.setRepeatMode(isRepeatMode);
     }
 
     private void updateRepeatButtonUI() {
@@ -552,6 +592,94 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         IntentFilter filter = new IntentFilter();
         filter.addAction("android.media.VOLUME_CHANGED_ACTION");
         requireContext().registerReceiver(volumeReceiver, filter);
+    }
+
+    private void setupAudioCompletionListener() {
+        audioCompletionReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if ("com.example.timerstudy.AUDIO_COMPLETED".equals(intent.getAction())) {
+                    String completedSoundName = intent.getStringExtra("soundName");
+                    if (!isRepeatMode) {
+                        // Sửa lại: chỉ playNextAudio cho tab Upload, còn lại gọi
+                        // presenter.playNextSound
+                        if (currentTab == 2) {
+                            playNextAudio();
+                        } else {
+                            presenter.playNextSound(currentPlayingSoundName);
+                        }
+                    }
+                }
+            }
+        };
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("com.example.timerstudy.AUDIO_COMPLETED");
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            requireContext().registerReceiver(audioCompletionReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            requireContext().registerReceiver(audioCompletionReceiver, filter);
+        }
+    }
+
+    private void playNextAudio() {
+        List<SoundItem> currentTabSounds = new ArrayList<>();
+
+        switch (currentTab) {
+            case 0: // ASMR/White Noise tab
+                currentTabSounds.addAll(whiteNoiseAdapter.getSoundItems());
+                break;
+            case 1: // Music tab
+                currentTabSounds.addAll(musicAdapter.getSoundItems());
+                break;
+            case 2: // Upload tab
+                currentTabSounds.addAll(uploadedAudioList);
+                break;
+        }
+
+        if (currentTabSounds.isEmpty())
+            return;
+
+        // Find current playing audio index
+        int currentIndex = -1;
+        for (int i = 0; i < currentTabSounds.size(); i++) {
+            if (currentTabSounds.get(i).getName().equals(currentPlayingSoundName)) {
+                currentIndex = i;
+                break;
+            }
+        }
+
+        // Get next audio
+        int nextIndex = (currentIndex + 1) % currentTabSounds.size();
+        SoundItem nextItem = currentTabSounds.get(nextIndex);
+
+        // Play next audio
+        if (currentTab == 2) { // Upload tab
+            playUploadedAudio(nextItem);
+        } else { // Music or ASMR tab
+            presenter.onSoundItemClicked(nextItem.getName());
+        }
+    }
+
+    private void saveUploadedAudioListToPrefs() {
+        SharedPreferences prefs = requireContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        Gson gson = new Gson();
+        String json = gson.toJson(uploadedAudioList);
+        prefs.edit().putString(KEY_UPLOADED_AUDIO_LIST, json).apply();
+    }
+
+    private void loadUploadedAudioListFromPrefs() {
+        SharedPreferences prefs = requireContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        String json = prefs.getString(KEY_UPLOADED_AUDIO_LIST, null);
+        if (json != null) {
+            Gson gson = new Gson();
+            ArrayList<SoundItem> list = gson.fromJson(json, new TypeToken<ArrayList<SoundItem>>() {
+            }.getType());
+            if (list != null) {
+                uploadedAudioList.clear();
+                uploadedAudioList.addAll(list);
+            }
+        }
     }
 
     @Override
