@@ -11,16 +11,17 @@
         android:title="Music" />
 
     <item
-        android:id="@+id/menu_statistics"
-        android:icon="@android:drawable/ic_menu_sort_by_size"
-        android:title="Thống kê" />
+        android:id="@+id/taskFragment"
+        android:icon="@drawable/todo"
+        android:title="Todo" />
 
     <item
-        android:id="@+id/menu_seed_data"
-        android:icon="@android:drawable/ic_menu_add"
-        android:title="Seed dữ liệu" />
+        android:id="@+id/menu_statistics"
+        android:icon="@drawable/statistic"
+        android:title="Statistic" />
     <item
-        android:id="@+id/taskFragment"
-        android:icon="@android:drawable/ic_menu_myplaces"
-        android:title="Tasks" />
+        android:id="@+id/nav_shop"
+        android:icon="@android:drawable/ic_menu_gallery"
+        android:title="Shop" />
+    
 </menu>

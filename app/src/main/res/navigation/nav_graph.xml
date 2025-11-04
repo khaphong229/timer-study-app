@@ -27,11 +27,11 @@
         tools:layout="@layout/fragment_sound" />
 
     <!-- Profile Fragment - Màn hình hiển thị thông tin chi tiết -->
-    <fragment
+    <!-- <fragment
         android:id="@+id/profileFragment"
         android:name="com.example.timerstudy.view.fragments.ProfileFragment"
         android:label="Hồ Sơ"
-        tools:layout="@layout/fragment_profile" />
+        tools:layout="@layout/fragment_profile" /> -->
 
     <!-- Statistics Fragment - Thống kê (giữ nguyên Navigation Rail) -->
     <fragment
@@ -39,10 +39,17 @@
         android:name="com.example.timerstudy.view.fragments.StatisticsFragment"
         android:label="Thống kê"
         tools:layout="@layout/fragment_statistics" />
+        
     <fragment
         android:id="@+id/taskFragment"
         android:name="com.example.timerstudy.view.fragments.TaskFragment"
         android:label="To do"
         tools:layout="@layout/fragment_task" />
+
+    <fragment
+        android:id="@+id/nav_shop"
+        android:name="com.example.timerstudy.view.fragments.ShopFragment"
+        android:label="Shop"
+        tools:layout="@layout/fragment_shop" />
 
 </navigation>
