@@ -382,23 +382,8 @@ public class TaskFragment extends Fragment implements TaskContract.View {
 					tvProgressPercentage.setText(percentage + "%");
 				}
 
-				// Thay đổi màu dựa trên tiến độ
-				int color;
-				if (total > 0 && completed == total) {
-					color = getResources().getColor(android.R.color.holo_green_dark);
-				} else if (completed > 0) {
-					color = getResources().getColor(android.R.color.holo_orange_dark);
-				} else {
-					color = getResources().getColor(android.R.color.darker_gray);
-				}
-				
-				tvTaskCount.setTextColor(color);
-				if (tvProgressPercentage != null) {
-					tvProgressPercentage.setTextColor(color);
-				}
-				if (progressBarDaily != null) {
-					progressBarDaily.setProgressTintList(android.content.res.ColorStateList.valueOf(color));
-				}
+				// Giữ màu gradient đẹp - không thay đổi màu
+				// Progress bar đã có gradient riêng trong drawable
 			});
 		}
 	}
