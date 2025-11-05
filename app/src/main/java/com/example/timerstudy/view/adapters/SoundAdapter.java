@@ -76,16 +76,16 @@ public class SoundAdapter extends RecyclerView.Adapter<SoundAdapter.SoundViewHol
 
         public void bind(SoundItem item) {
             soundName.setText(item.getName());
-            
-            // Change appearance based on playing state
+
             if (item.isPlaying()) {
                 soundName.setTextColor(itemView.getContext().getResources().getColor(R.color.blue_accent, null));
                 itemView.setBackgroundColor(itemView.getContext().getResources().getColor(R.color.light_blue_bg, null));
             } else {
                 soundName.setTextColor(itemView.getContext().getResources().getColor(R.color.gray_text, null));
-                itemView.setBackgroundColor(itemView.getContext().getResources().getColor(android.R.color.transparent, null));
+                itemView.setBackgroundColor(
+                        itemView.getContext().getResources().getColor(android.R.color.transparent, null));
             }
-            
+
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onSoundClick(item.getName());

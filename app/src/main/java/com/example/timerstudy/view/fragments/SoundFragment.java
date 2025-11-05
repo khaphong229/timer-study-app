@@ -36,11 +36,12 @@ import com.example.timerstudy.presenter.SoundPresenter;
 import com.example.timerstudy.view.adapters.SoundAdapter;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.example.timerstudy.contract.SoundContract;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class SoundFragment extends Fragment implements SoundPresenter.SoundView {
+public class SoundFragment extends Fragment implements SoundContract.View {
     private RecyclerView musicRecyclerView;
     private RecyclerView whiteNoiseRecyclerView;
     private TextView asmrTab, musicTab;
@@ -66,7 +67,7 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
     private ImageButton btnRepeatAudio;
     private boolean isRepeatMode = false; // false: autoplay, true: repeat
     private int currentTab = 1; // 0: asmr/white noise, 1: music, 2: upload
-    private boolean isUpdatingSeekBar = false; // Prevent infinite loop
+    private boolean isUpdatingSeekBar = false;
     private BroadcastReceiver volumeReceiver;
     private Handler volumeHandler;
     private BroadcastReceiver audioCompletionReceiver;
@@ -94,23 +95,16 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         audioManager = (AudioManager) requireContext().getSystemService(Context.AUDIO_SERVICE);
         volumeHandler = new Handler(Looper.getMainLooper());
 
-        // Setup volume change listener
         setupVolumeChangeListener();
 
-        // Setup audio completion listener
         setupAudioCompletionListener();
 
-        // Kiểm tra quyền audio khi khởi tạo fragment
         checkAudioPermissionOnStart();
 
-        // Gọi restorePlayingState sau khi presenter đã được khởi tạo và view đã sẵn
-        // sàng
         presenter.restorePlayingState();
 
-        // Đồng bộ SeekBar với âm lượng thiết bị khi khởi tạo
         syncSeekBarWithDeviceVolume();
 
-        // Load uploaded audio list from SharedPreferences
         loadUploadedAudioListFromPrefs();
         uploadedAudioAdapter.updateSounds(uploadedAudioList);
     }
@@ -148,25 +142,25 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         asmrTab.setOnClickListener(v -> {
             showWhiteNoiseView();
             updateTabSelection(true);
-            currentTab = 0; // Set to ASMR tab
+            currentTab = 0; // ASMR tab
         });
 
         musicTab.setOnClickListener(v -> {
             showMusicView();
             updateTabSelection(false);
-            currentTab = 1; // Set to Music tab
+            currentTab = 1; // Music tab
         });
 
         TextView uploadTab = requireView().findViewById(R.id.uploadTab);
         uploadTab.setOnClickListener(v -> {
             showUploadView();
             updateTabSelectionUpload();
-            currentTab = 2; // Set to Upload tab
+            currentTab = 2; // Upload tab
         });
 
         showMusicView();
         updateTabSelection(false);
-        currentTab = 1; // Default to Music tab
+        currentTab = 1; // Default Music tab
     }
 
     private void setupVolumeControl() {
@@ -176,7 +170,6 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
                 if (fromUser && currentPlayingSoundName != null && !isUpdatingSeekBar) {
                     float volume = progress / 100.0f;
 
-                    // Chỉ cập nhật volume của MediaPlayer, không restart audio
                     updateAudioVolume(currentPlayingSoundName, volume);
 
                     if (ContextCompat.checkSelfPermission(requireContext(),
@@ -251,7 +244,6 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
                             REQUEST_MODIFY_AUDIO_SETTINGS_INITIAL);
                 })
                 .setNegativeButton("Skip", (dialog, which) -> {
-                    // User can still use the app without this permission
                     dialog.dismiss();
                 })
                 .setCancelable(false)
@@ -268,8 +260,6 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
                     setDeviceVolume(volumeSeekBar.getProgress());
                 }
             } else if (requestCode == REQUEST_MODIFY_AUDIO_SETTINGS_INITIAL) {
-                // Show a toast or message that some features may be limited
-                // Optional: you can show a message here
             }
         }
     }
@@ -278,7 +268,6 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         musicRecyclerView.setVisibility(View.VISIBLE);
         whiteNoiseRecyclerView.setVisibility(View.GONE);
         uploadContainer.setVisibility(View.GONE);
-        // Chỉ ẩn volume slider, không dừng âm thanh
         hideVolumeSlider();
     }
 
@@ -286,7 +275,6 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         musicRecyclerView.setVisibility(View.GONE);
         whiteNoiseRecyclerView.setVisibility(View.VISIBLE);
         uploadContainer.setVisibility(View.GONE);
-        // Chỉ ẩn volume slider, không dừng âm thanh
         hideVolumeSlider();
     }
 
@@ -294,7 +282,6 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         musicRecyclerView.setVisibility(View.GONE);
         whiteNoiseRecyclerView.setVisibility(View.GONE);
         uploadContainer.setVisibility(View.VISIBLE);
-        // Chỉ ẩn volume slider, không dừng âm thanh
         hideVolumeSlider();
     }
 
@@ -339,7 +326,6 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
                 uploadedPlayer.setLooping(isRepeatMode);
                 uploadedPlayer.setVolume(item.getVolume(), item.getVolume());
 
-                // Set completion listener for auto next
                 uploadedPlayer.setOnCompletionListener(mp -> {
                     if (!isRepeatMode) {
                         playNextAudio();
@@ -388,7 +374,7 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
                 item.setUri(audioUri);
                 uploadedAudioList.add(item);
                 uploadedAudioAdapter.updateSounds(uploadedAudioList);
-                saveUploadedAudioListToPrefs(); // Lưu vào SharedPreferences
+                saveUploadedAudioListToPrefs();
             }
         }
     }
@@ -434,7 +420,6 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         volumeContainer.setVisibility(View.VISIBLE);
         updateRepeatButtonUI();
 
-        // Đồng bộ với âm lượng thiết bị
         syncSeekBarWithDeviceVolume();
     }
 
@@ -464,12 +449,10 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         super.onDestroy();
         stopUploadedAudio();
 
-        // Unregister receivers
         if (volumeReceiver != null) {
             try {
                 requireContext().unregisterReceiver(volumeReceiver);
             } catch (Exception e) {
-                // Receiver might already be unregistered
             }
         }
 
@@ -477,7 +460,6 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
             try {
                 requireContext().unregisterReceiver(audioCompletionReceiver);
             } catch (Exception e) {
-                // Receiver might already be unregistered
             }
         }
 
@@ -518,24 +500,19 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         isRepeatMode = !isRepeatMode;
         updateRepeatButtonUI();
 
-        // Update looping for uploaded audio if playing
         if (uploadedPlayer != null && uploadedPlayer.isPlaying()) {
             uploadedPlayer.setLooping(isRepeatMode);
         }
 
-        // Update repeat mode for service audio
         presenter.setRepeatMode(isRepeatMode);
     }
 
     private void updateRepeatButtonUI() {
         if (btnRepeatAudio != null) {
             if (isRepeatMode) {
-                // Sửa lại icon repeat cho Android chuẩn
-                // btnRepeatAudio.setImageResource(android.R.drawable.ic_menu_revert);
                 btnRepeatAudio.setImageResource(R.drawable.repeat_24);
                 btnRepeatAudio.setContentDescription("Repeat");
             } else {
-                // btnRepeatAudio.setImageResource(android.R.drawable.ic_media_next);
                 btnRepeatAudio.setImageResource(R.drawable.autoplay_24);
                 btnRepeatAudio.setContentDescription("Autoplay");
             }
@@ -555,10 +532,8 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
     }
 
     private void updateAudioVolume(String soundName, float volume) {
-        // Cập nhật volume cho uploaded audio nếu đang phát
         if (uploadedPlayer != null && uploadedPlayer.isPlaying()) {
             uploadedPlayer.setVolume(volume, volume);
-            // Cập nhật volume trong SoundItem
             for (SoundItem item : uploadedAudioList) {
                 if (item.getName().equals(soundName)) {
                     item.setVolume(volume);
@@ -566,7 +541,6 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
                 }
             }
         } else {
-            // Cập nhật volume cho audio từ service mà không restart
             presenter.updateVolumeOnly(soundName, volume);
         }
     }
@@ -578,7 +552,6 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
                 if ("android.media.VOLUME_CHANGED_ACTION".equals(intent.getAction())) {
                     int streamType = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_TYPE", -1);
                     if (streamType == AudioManager.STREAM_MUSIC) {
-                        // Delay slightly to ensure volume change is processed
                         volumeHandler.postDelayed(() -> {
                             if (currentPlayingSoundName != null) {
                                 syncSeekBarWithDeviceVolume();
@@ -601,8 +574,6 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
                 if ("com.example.timerstudy.AUDIO_COMPLETED".equals(intent.getAction())) {
                     String completedSoundName = intent.getStringExtra("soundName");
                     if (!isRepeatMode) {
-                        // Sửa lại: chỉ playNextAudio cho tab Upload, còn lại gọi
-                        // presenter.playNextSound
                         if (currentTab == 2) {
                             playNextAudio();
                         } else {
@@ -640,7 +611,6 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         if (currentTabSounds.isEmpty())
             return;
 
-        // Find current playing audio index
         int currentIndex = -1;
         for (int i = 0; i < currentTabSounds.size(); i++) {
             if (currentTabSounds.get(i).getName().equals(currentPlayingSoundName)) {
@@ -649,19 +619,17 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
             }
         }
 
-        // Get next audio
         int nextIndex = (currentIndex + 1) % currentTabSounds.size();
         SoundItem nextItem = currentTabSounds.get(nextIndex);
 
         // Play next audio
-        if (currentTab == 2) { // Upload tab
+        if (currentTab == 2) {
             playUploadedAudio(nextItem);
-        } else { // Music or ASMR tab
+        } else {
             presenter.onSoundItemClicked(nextItem.getName());
         }
     }
 
-    // DTO class for uploaded audio
     private static class UploadedAudioDTO {
         String name;
         int resourceId;
@@ -678,7 +646,7 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
             UploadedAudioDTO dto = new UploadedAudioDTO();
             dto.name = item.getName();
             dto.resourceId = item.getResourceId();
-            dto.isPlaying = false; // Không lưu trạng thái playing
+            dto.isPlaying = false;
             dto.volume = item.getVolume();
             dto.uriString = item.getUri() != null ? item.getUri().toString() : null;
             dtoList.add(dto);
@@ -692,7 +660,6 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         String json = prefs.getString(KEY_UPLOADED_AUDIO_LIST, null);
         if (json != null) {
             Gson gson = new Gson();
-            // Deserialize thành DTO, không phải SoundItem!
             ArrayList<UploadedAudioDTO> dtoList = gson.fromJson(json, new TypeToken<ArrayList<UploadedAudioDTO>>() {
             }.getType());
             if (dtoList != null) {
@@ -708,7 +675,6 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
     @Override
     public void onResume() {
         super.onResume();
-        // Đồng bộ lại khi fragment resume
         syncSeekBarWithDeviceVolume();
     }
 }

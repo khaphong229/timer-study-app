@@ -3,22 +3,20 @@ package com.example.timerstudy.presenter;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.media.MediaPlayer;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import com.example.timerstudy.R;
 import com.example.timerstudy.model.SoundItem;
 import com.example.timerstudy.service.AudioPlayerService;
+import com.example.timerstudy.contract.SoundContract;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class SoundPresenter {
-    private SoundView view;
+public class SoundPresenter implements SoundContract.Presenter {
+    private SoundContract.View view;
     private List<SoundItem> soundItems;
-    private Map<String, MediaPlayer> mediaPlayers;
+    private Map<String, android.media.MediaPlayer> mediaPlayers;
     private Context context;
     private boolean isRepeatMode = false;
 
@@ -26,17 +24,7 @@ public class SoundPresenter {
     private static final String KEY_PLAYING = "playing_audio";
     private static final String KEY_REPEAT_MODE = "repeat_mode";
 
-    public interface SoundView {
-        void updateSoundList(List<SoundItem> sounds);
-
-        void showVolumeSlider(String soundName, float volume);
-
-        void hideVolumeSlider();
-
-        void updatePlayingState(String soundName, boolean isPlaying);
-    }
-
-    public SoundPresenter(SoundView view, Context context) {
+    public SoundPresenter(SoundContract.View view, Context context) {
         this.view = view;
         this.context = context;
         this.soundItems = new ArrayList<>();
@@ -155,7 +143,6 @@ public class SoundPresenter {
         if (item != null) {
             item.setVolume(volume);
             if (item.isPlaying()) {
-                // Chỉ cập nhật volume, không restart audio
                 Intent intent = new Intent(context, AudioPlayerService.class);
                 intent.setAction(AudioPlayerService.ACTION_SET_VOLUME);
                 intent.putExtra(AudioPlayerService.EXTRA_VOLUME, volume);
@@ -169,7 +156,6 @@ public class SoundPresenter {
         if (item != null) {
             item.setVolume(volume);
             if (item.isPlaying()) {
-                // Chỉ cập nhật volume
                 Intent intent = new Intent(context, AudioPlayerService.class);
                 intent.setAction(AudioPlayerService.ACTION_SET_VOLUME);
                 intent.putExtra(AudioPlayerService.EXTRA_VOLUME, volume);
@@ -181,13 +167,11 @@ public class SoundPresenter {
     public void setRepeatMode(boolean repeatMode) {
         this.isRepeatMode = repeatMode;
 
-        // Update service with new repeat mode
         Intent intent = new Intent(context, AudioPlayerService.class);
         intent.setAction(AudioPlayerService.ACTION_SET_REPEAT);
         intent.putExtra(AudioPlayerService.EXTRA_REPEAT_MODE, repeatMode);
         context.startService(intent);
 
-        // Save repeat mode
         SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         prefs.edit().putBoolean(KEY_REPEAT_MODE, repeatMode).apply();
     }
@@ -211,12 +195,10 @@ public class SoundPresenter {
         return null;
     }
 
-    // Thêm phương thức để lấy danh sách soundItems
     public List<SoundItem> getSoundItems() {
         return soundItems;
     }
 
-    // Thêm phương thức playNextSound cho autoplay
     public void playNextSound(String currentSoundName) {
         if (soundItems.isEmpty())
             return;

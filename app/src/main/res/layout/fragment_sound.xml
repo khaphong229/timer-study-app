@@ -101,7 +101,7 @@
     android:layout_marginTop="24dp"
     android:visibility="gone">
 
-    <!-- Nút random audio -->
+    <!-- random audio -->
         <ImageButton
         android:id="@+id/btnRandomAudio"
         android:layout_width="40dp"
@@ -129,7 +129,7 @@
         android:progress="50"
         android:layout_marginEnd="8dp"/>
 
-    <!-- Nút repeat/autoplay -->
+    <!-- repeat/autoplay -->
     <ImageButton
         android:id="@+id/btnRepeatAudio"
         android:layout_width="40dp"
