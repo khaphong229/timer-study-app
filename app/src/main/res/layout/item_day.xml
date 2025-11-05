@@ -13,9 +13,9 @@
         android:id="@+id/tvDayOfWeek"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Thứ 2"
+        android:text="MON"
         android:textColor="@android:color/black"
-        android:textSize="12sp"
+        android:textSize="11sp"
         android:textStyle="bold" />
 
     <TextView

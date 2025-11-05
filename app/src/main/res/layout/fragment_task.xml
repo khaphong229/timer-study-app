@@ -60,7 +60,7 @@
         android:contentDescription="Add new task"
         android:src="@android:drawable/ic_input_add"
         app:tint="#FFFFFF"
-        app:backgroundTint="#5CE65C"
+        app:backgroundTint="#2196F3"
         app:borderWidth="0dp"
         app:elevation="8dp"
         app:pressedTranslationZ="12dp"
