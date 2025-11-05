@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/fragment_bg_gradient">
 
-    <!-- 🔹 Header: Lịch theo tháng -->
+    <!-- Header: Monthly Calendar -->
     <include 
         android:id="@+id/layout_month_header"
         layout="@layout/layout_month_header"
@@ -15,7 +15,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- 🔹 Bộ lọc -->
+    <!-- Filter Section -->
     <include
         android:id="@+id/layout_filter"
         layout="@layout/layout_filter"
@@ -24,7 +24,7 @@
         app:layout_constraintTop_toBottomOf="@id/layout_month_header"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- 🔹 Danh sách công việc -->
+    <!-- Task List -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvTasks"
         android:layout_width="match_parent"
@@ -44,7 +44,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="24dp"
-        android:text="Chưa có task nào. Thêm task mới để bắt đầu."
+        android:text="No tasks yet. Add a new task to get started."
         android:textAlignment="center"
         android:textColor="#757575"
         android:visibility="gone"
@@ -52,15 +52,15 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- 🔹 Nút thêm task (FloatingActionButton) -->
+    <!-- Add Task Button (FloatingActionButton) -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddTask"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:contentDescription="Thêm task mới"
+        android:contentDescription="Add new task"
         android:src="@android:drawable/ic_input_add"
         app:tint="#FFFFFF"
-        app:backgroundTint="#6C5CE7"
+        app:backgroundTint="#5CE65C"
         app:borderWidth="0dp"
         app:elevation="8dp"
         app:pressedTranslationZ="12dp"

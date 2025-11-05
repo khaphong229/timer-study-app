@@ -18,9 +18,9 @@ import java.util.Locale;
 public class MonthAdapter extends RecyclerView.Adapter<MonthAdapter.DayViewHolder> {
 
     private final List<Date> days;
-    private final Locale vi = Locale.forLanguageTag("vi-VN");
-    private final SimpleDateFormat dayOfWeekFmt = new SimpleDateFormat("EEEE", vi); // Thứ hai
-    private final SimpleDateFormat dayOfMonthFmt = new SimpleDateFormat("dd/MM", vi);
+    private final Locale en = Locale.ENGLISH;
+    private final SimpleDateFormat dayOfWeekFmt = new SimpleDateFormat("EEEE", en); // Monday, Tuesday...
+    private final SimpleDateFormat dayOfMonthFmt = new SimpleDateFormat("dd/MM", en);
     private Date selectedDate;
     private OnDayClickListener onDayClickListener;
 
@@ -31,7 +31,7 @@ public class MonthAdapter extends RecyclerView.Adapter<MonthAdapter.DayViewHolde
     public MonthAdapter(List<Date> days, OnDayClickListener listener) {
         this.days = days;
         this.onDayClickListener = listener;
-        // Mặc định chọn ngày hôm nay
+        // Default select today
         this.selectedDate = new Date();
     }
 
@@ -55,10 +55,10 @@ public class MonthAdapter extends RecyclerView.Adapter<MonthAdapter.DayViewHolde
     public void onBindViewHolder(@NonNull DayViewHolder holder, int position) {
         Date d = days.get(position);
         
-        // Tên ngày trong tuần (Thứ hai, Thứ ba...)
+        // Day of week name (Monday, Tuesday...)
         String dayName = dayOfWeekFmt.format(d);
         if (dayName != null && dayName.length() > 0) {
-            dayName = dayName.substring(0, 1).toUpperCase(vi) + dayName.substring(1);
+            dayName = dayName.substring(0, 1).toUpperCase(en) + dayName.substring(1);
         }
         holder.tvDayOfWeek.setText(dayName);
         holder.tvDate.setText(dayOfMonthFmt.format(d));

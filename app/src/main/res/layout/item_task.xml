@@ -27,13 +27,14 @@
             app:layout_constraintBottom_toBottomOf="parent"
             android:background="@drawable/priority_indicator_bg" />
 
-        <!-- Checkbox với màu pastel -->
-        <CheckBox
+        <!-- Checkbox hình tròn custom -->
+        <androidx.appcompat.widget.AppCompatCheckBox
             android:id="@+id/cbCompleted"
             android:layout_width="28dp"
             android:layout_height="28dp"
             android:layout_marginStart="4dp"
-            android:buttonTint="#FF6B9D"
+            android:background="@null"
+            app:buttonCompat="@drawable/custom_checkbox_selector"
             app:layout_constraintStart_toEndOf="@id/viewPriority"
             app:layout_constraintTop_toTopOf="parent" />
 
