@@ -152,7 +152,7 @@ public class TaskFragment extends Fragment implements TaskContract.View {
 			days.add(c.getTime());
 		};
 
-		SimpleDateFormat monthFmt = new SimpleDateFormat("'Tháng' MM, yyyy", Locale.forLanguageTag("vi-VN"));
+		SimpleDateFormat monthFmt = new SimpleDateFormat("MMMM, yyyy", Locale.ENGLISH);
 		tvMonthYear.setText(monthFmt.format(monthBase.getTime()));
 
 		monthAdapter = new MonthAdapter(days, (selectedDate, position) -> {
@@ -198,9 +198,9 @@ public class TaskFragment extends Fragment implements TaskContract.View {
 		spinnerPriority.setSelection(1);
 
 		new AlertDialog.Builder(requireContext())
-				.setTitle("Thêm công việc mới")
+				.setTitle("Add New Task")
 				.setView(dialogView)
-				.setPositiveButton("Thêm", (dialog, which) -> {
+				.setPositiveButton("Add", (dialog, which) -> {
 					String title = etTaskTitle.getText().toString().trim();
 					if (!title.isEmpty()) {
 						String[] priorityValues = getResources().getStringArray(R.array.priority_values);
@@ -208,10 +208,10 @@ public class TaskFragment extends Fragment implements TaskContract.View {
 						// Use the current selectedDate from presenter
 						presenter.addTask(title, priority, selectedDate);
 					} else {
-						Toast.makeText(requireContext(), "Vui lòng nhập tên task", Toast.LENGTH_SHORT).show();
+						Toast.makeText(requireContext(), "Please enter task name", Toast.LENGTH_SHORT).show();
 					}
 				})
-				.setNegativeButton("Hủy", null)
+				.setNegativeButton("Cancel", null)
 				.show();
 	}
 
@@ -238,32 +238,32 @@ public class TaskFragment extends Fragment implements TaskContract.View {
 		}
 
 		new AlertDialog.Builder(requireContext())
-				.setTitle("Sửa Task")
+				.setTitle("Edit Task")
 				.setView(dialogView)
-				.setPositiveButton("Lưu", (dialog, which) -> {
+				.setPositiveButton("Save", (dialog, which) -> {
 					String newTitle = etEditTitle.getText().toString().trim();
 					if (!newTitle.isEmpty()) {
 						task.setTitle(newTitle);
 						task.setPriority(priorityValues[spinnerEditPriority.getSelectedItemPosition()]);
 						presenter.updateTask(task);
-						Toast.makeText(requireContext(), "Đã cập nhật task", Toast.LENGTH_SHORT).show();
+						Toast.makeText(requireContext(), "Task updated", Toast.LENGTH_SHORT).show();
 					} else {
-						Toast.makeText(requireContext(), "Tiêu đề không được để trống", Toast.LENGTH_SHORT).show();
+						Toast.makeText(requireContext(), "Title cannot be empty", Toast.LENGTH_SHORT).show();
 					}
 				})
-				.setNegativeButton("Hủy", null)
+				.setNegativeButton("Cancel", null)
 				.show();
 	}
 
 	// ==========================
-	// DIALOG: XÓA TASK
+	// DIALOG: DELETE TASK
 	// ==========================
 	private void showDeleteConfirmation(TaskEntity task) {
 		new AlertDialog.Builder(requireContext())
-				.setTitle("Xác nhận xóa")
-				.setMessage("Bạn có chắc muốn xóa \"" + task.getTitle() + "\"?")
-				.setPositiveButton("Xóa", (dialog, which) -> presenter.deleteTask(task))
-				.setNegativeButton("Hủy", null)
+				.setTitle("Confirm Delete")
+				.setMessage("Are you sure you want to delete \"" + task.getTitle() + "\"?")
+				.setPositiveButton("Delete", (dialog, which) -> presenter.deleteTask(task))
+				.setNegativeButton("Cancel", null)
 				.show();
 	}
 
@@ -310,7 +310,7 @@ public class TaskFragment extends Fragment implements TaskContract.View {
 
 	@Override
 	public void showTaskAddedSuccess() {
-		Toast.makeText(requireContext(), "Đã thêm task thành công", Toast.LENGTH_SHORT).show();
+		Toast.makeText(requireContext(), "Task added successfully", Toast.LENGTH_SHORT).show();
 	}
 
 	@Override
@@ -382,23 +382,8 @@ public class TaskFragment extends Fragment implements TaskContract.View {
 					tvProgressPercentage.setText(percentage + "%");
 				}
 
-				// Thay đổi màu dựa trên tiến độ
-				int color;
-				if (total > 0 && completed == total) {
-					color = getResources().getColor(android.R.color.holo_green_dark);
-				} else if (completed > 0) {
-					color = getResources().getColor(android.R.color.holo_orange_dark);
-				} else {
-					color = getResources().getColor(android.R.color.darker_gray);
-				}
-				
-				tvTaskCount.setTextColor(color);
-				if (tvProgressPercentage != null) {
-					tvProgressPercentage.setTextColor(color);
-				}
-				if (progressBarDaily != null) {
-					progressBarDaily.setProgressTintList(android.content.res.ColorStateList.valueOf(color));
-				}
+				// Giữ màu gradient đẹp - không thay đổi màu
+				// Progress bar đã có gradient riêng trong drawable
 			});
 		}
 	}

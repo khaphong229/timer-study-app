@@ -37,9 +37,8 @@ public class FakeDataSeeder {
             // Generate tasks for last 14 days
             taskDao.deleteAllTasks();
 
-
+            goalDao.deleteAllGoals();
             // Generate goals for last 14 days
-            generateGoals(goalDao, userId, 14);
         }).start();
     }
 
@@ -100,32 +99,7 @@ public class FakeDataSeeder {
         // Method removed to ensure only real user tasks are stored
     }
 
-    private static void generateGoals(GoalDao goalDao, int userId, int daysBack) {
-        Random rnd = new Random();
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
 
-        for (int d = 0; d < daysBack; d++) {
-            Date day = cal.getTime();
-            GoalEntity g = new GoalEntity();
-            g.setUserId(userId);
-            g.setGoalDate(day);
-            int target = 3 + rnd.nextInt(4);
-            int completed = rnd.nextInt(target + 1);
-            g.setTargetSessions(target);
-            g.setCompletedSessions(completed);
-            int pct = target > 0 ? (completed * 100) / target : 0;
-            g.setCompletionPercentage(pct);
-            boolean achieved = completed >= target;
-            g.setAchieved(achieved);
-            if (achieved) g.setAchievedAt(day);
-            goalDao.insertGoal(g);
-            cal.add(Calendar.DAY_OF_MONTH, -1);
-        }
-    }
 }
 
 

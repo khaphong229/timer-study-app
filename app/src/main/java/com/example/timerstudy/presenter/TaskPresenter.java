@@ -28,7 +28,7 @@ public class TaskPresenter implements TaskContract.Presenter {
     private ExecutorService executor;
     private Date selectedDate;
     private String currentPriorityFilter = "all";
-    private boolean showCompletedTasks = false; // Mặc định hiển thị task chưa hoàn thành
+    private boolean showCompletedTasks = false;
     private List<TaskEntity> allTasks;
 
     public TaskPresenter(TaskContract.View view, Context context) {

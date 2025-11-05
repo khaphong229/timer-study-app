@@ -10,7 +10,7 @@
     android:gravity="center"
     android:padding="8dp">
 
-    <!-- Thanh tiêu đề tháng -->
+    <!-- Month title bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -23,14 +23,14 @@
             android:layout_height="wrap_content"
             android:src="@android:drawable/ic_media_previous"
             android:background="@null"
-            android:contentDescription="Tháng trước" />
+            android:contentDescription="Previous month" />
 
         <TextView
             android:id="@+id/tvMonthYear"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
-            android:text="Tháng 10, 2025"
+            android:text="October, 2025"
             android:textColor="#333"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -41,10 +41,10 @@
             android:layout_height="wrap_content"
             android:src="@android:drawable/ic_media_next"
             android:background="@null"
-            android:contentDescription="Tháng sau" />
+            android:contentDescription="Next month" />
     </LinearLayout>
 
-    <!-- RecyclerView hiển thị tất cả các ngày trong tháng (có thể kéo trượt) -->
+    <!-- RecyclerView displays all days in the month (scrollable) -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvMonth"
         android:layout_width="match_parent"
