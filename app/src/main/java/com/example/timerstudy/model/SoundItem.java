@@ -17,6 +17,14 @@ public class SoundItem {
         this.uri = null;
     }
 
+    public SoundItem(String name, int resourceId, boolean isPlaying, float volume, String uriString) {
+        this.name = name;
+        this.resourceId = resourceId;
+        this.isPlaying = isPlaying;
+        this.volume = volume;
+        this.uri = uriString != null ? android.net.Uri.parse(uriString) : null;
+    }
+
     public String getName() {
         return name;
     }

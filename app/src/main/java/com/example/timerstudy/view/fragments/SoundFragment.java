@@ -661,10 +661,29 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         }
     }
 
+    // DTO class for uploaded audio
+    private static class UploadedAudioDTO {
+        String name;
+        int resourceId;
+        boolean isPlaying;
+        float volume;
+        String uriString;
+    }
+
     private void saveUploadedAudioListToPrefs() {
         SharedPreferences prefs = requireContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         Gson gson = new Gson();
-        String json = gson.toJson(uploadedAudioList);
+        ArrayList<UploadedAudioDTO> dtoList = new ArrayList<>();
+        for (SoundItem item : uploadedAudioList) {
+            UploadedAudioDTO dto = new UploadedAudioDTO();
+            dto.name = item.getName();
+            dto.resourceId = item.getResourceId();
+            dto.isPlaying = false; // Không lưu trạng thái playing
+            dto.volume = item.getVolume();
+            dto.uriString = item.getUri() != null ? item.getUri().toString() : null;
+            dtoList.add(dto);
+        }
+        String json = gson.toJson(dtoList);
         prefs.edit().putString(KEY_UPLOADED_AUDIO_LIST, json).apply();
     }
 
@@ -673,11 +692,15 @@ public class SoundFragment extends Fragment implements SoundPresenter.SoundView 
         String json = prefs.getString(KEY_UPLOADED_AUDIO_LIST, null);
         if (json != null) {
             Gson gson = new Gson();
-            ArrayList<SoundItem> list = gson.fromJson(json, new TypeToken<ArrayList<SoundItem>>() {
+            // Deserialize thành DTO, không phải SoundItem!
+            ArrayList<UploadedAudioDTO> dtoList = gson.fromJson(json, new TypeToken<ArrayList<UploadedAudioDTO>>() {
             }.getType());
-            if (list != null) {
+            if (dtoList != null) {
                 uploadedAudioList.clear();
-                uploadedAudioList.addAll(list);
+                for (UploadedAudioDTO dto : dtoList) {
+                    SoundItem item = new SoundItem(dto.name, dto.resourceId, false, dto.volume, dto.uriString);
+                    uploadedAudioList.add(item);
+                }
             }
         }
     }
