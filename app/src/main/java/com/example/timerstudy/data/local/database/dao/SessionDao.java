@@ -181,6 +181,13 @@ public interface SessionDao {
      * @param userId User ID to filter by
      * @return Average session duration in minutes
      */
+
+    @Query("SELECT COUNT(*) FROM sessions " +
+            "WHERE user_id = :userId " +
+            "AND is_completed = 1 " +
+            "AND session_date BETWEEN :startDate AND :endDate")
+    int getCompletedSessionCountByUserAndDateRange(int userId, long startDate, long endDate);
+
     @Query("SELECT COALESCE(AVG(actual_duration_minutes), 0) FROM sessions WHERE user_id = :userId AND is_completed = 1 AND actual_duration_minutes IS NOT NULL")
     double getAverageSessionDurationByUser(int userId);
     

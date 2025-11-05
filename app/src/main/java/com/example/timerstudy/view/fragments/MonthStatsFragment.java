@@ -128,10 +128,72 @@ public class MonthStatsFragment extends Fragment implements MonthStatsContract.V
     public void showTimeline(java.util.List<com.example.timerstudy.data.local.database.entities.SessionEntity> sessions) {
         if (!isAdded()) return;
         requireActivity().runOnUiThread(() -> {
-            TimelineAdapter adapter = (TimelineAdapter) binding.recyclerTimeline.getAdapter();
-            if (adapter != null) {
-                adapter.submitList(sessions);
+            // Aggregate minutes per day in the month
+            java.text.SimpleDateFormat dayKey = new java.text.SimpleDateFormat("dd MMM", java.util.Locale.getDefault());
+            java.util.Map<String, Integer> dayToMinutes = new java.util.LinkedHashMap<>();
+            for (com.example.timerstudy.data.local.database.entities.SessionEntity s : sessions) {
+                if (s.getSessionDate() == null) continue;
+                String key = dayKey.format(s.getSessionDate());
+                Integer actual = s.getActualDurationMinutes();
+                int minutes = (actual != null ? actual : s.getDurationMinutes());
+                dayToMinutes.put(key, dayToMinutes.getOrDefault(key, 0) + minutes);
             }
+
+            java.util.ArrayList<java.util.Map.Entry<String, Integer>> items = new java.util.ArrayList<>(dayToMinutes.entrySet());
+            items.sort((a, b) -> {
+                try {
+                    int da = Integer.parseInt(a.getKey().substring(0, 2));
+                    int db = Integer.parseInt(b.getKey().substring(0, 2));
+                    return Integer.compare(da, db);
+                } catch (Exception ex) {
+                    return a.getKey().compareTo(b.getKey());
+                }
+            });
+
+            java.util.ArrayList<com.github.mikephil.charting.data.Entry> entries = new java.util.ArrayList<>();
+            java.util.ArrayList<String> labels = new java.util.ArrayList<>();
+            for (int idx = 0; idx < items.size(); idx++) {
+                java.util.Map.Entry<String, Integer> e = items.get(idx);
+                entries.add(new com.github.mikephil.charting.data.Entry(idx, e.getValue()));
+                labels.add(e.getKey());
+            }
+
+            com.github.mikephil.charting.data.LineDataSet dataSet = new com.github.mikephil.charting.data.LineDataSet(entries, "Days");
+            int color = requireContext().getColor(com.google.android.material.R.color.material_dynamic_primary70);
+            dataSet.setColor(color);
+            dataSet.setCircleColor(color);
+            dataSet.setLineWidth(2f);
+            dataSet.setCircleRadius(3f);
+            dataSet.setMode(com.github.mikephil.charting.data.LineDataSet.Mode.CUBIC_BEZIER);
+            dataSet.setDrawValues(true);
+            com.github.mikephil.charting.data.LineData data = new com.github.mikephil.charting.data.LineData(dataSet);
+            data.setValueTextSize(9f);
+
+            if (binding.chartTimelineMonth != null) {
+                binding.chartTimelineMonth.getDescription().setEnabled(true);
+                binding.chartTimelineMonth.getDescription().setText("Day");
+                binding.chartTimelineMonth.getLegend().setEnabled(true);
+                binding.chartTimelineMonth.setScaleEnabled(false);
+                binding.chartTimelineMonth.getAxisRight().setEnabled(false);
+                com.github.mikephil.charting.components.XAxis xAxis = binding.chartTimelineMonth.getXAxis();
+                xAxis.setPosition(com.github.mikephil.charting.components.XAxis.XAxisPosition.BOTTOM);
+                xAxis.setGranularity(1f);
+                xAxis.setDrawGridLines(false);
+                xAxis.setValueFormatter(new com.github.mikephil.charting.formatter.IndexAxisValueFormatter(labels));
+                com.github.mikephil.charting.components.YAxis yAxis = binding.chartTimelineMonth.getAxisLeft();
+                yAxis.setAxisMinimum(0f);
+                yAxis.setValueFormatter(new com.github.mikephil.charting.formatter.ValueFormatter() {
+                    @Override
+                    public String getFormattedValue(float value) {
+                        return Math.max(0, Math.round(value)) + " min";
+                    }
+                });
+
+                binding.chartTimelineMonth.setData(data);
+                binding.chartTimelineMonth.invalidate();
+                binding.chartTimelineMonth.setVisibility(entries.isEmpty() ? View.GONE : View.VISIBLE);
+            }
+
             if (binding.textSessions != null) {
                 int completed = 0;
                 for (com.example.timerstudy.data.local.database.entities.SessionEntity s : sessions) {
@@ -140,9 +202,11 @@ public class MonthStatsFragment extends Fragment implements MonthStatsContract.V
                 binding.textSessions.setText(String.valueOf(completed));
             }
             if (binding.layoutEmpty != null) {
-                binding.layoutEmpty.setVisibility(sessions.isEmpty() ? View.VISIBLE : View.GONE);
+                boolean empty = sessions.isEmpty();
+                binding.layoutEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
             }
-            binding.recyclerTimeline.setVisibility(sessions.isEmpty() ? View.GONE : View.VISIBLE);
+            // Keep RecyclerView hidden when using chart
+            binding.recyclerTimeline.setVisibility(View.GONE);
         });
     }
 

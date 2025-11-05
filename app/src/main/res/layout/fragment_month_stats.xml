@@ -14,13 +14,6 @@
         android:background="@android:color/transparent"
         app:elevation="0dp">
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:title="Thống kê theo tháng"
-            app:titleTextColor="?attr/colorOnSurface" />
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -44,7 +37,7 @@
                 android:gravity="center"
                 android:textAppearance="?attr/textAppearanceBodyLarge"
                 android:textStyle="bold"
-                tools:text="Tháng 10, 2025" />
+                tools:text="October, 2025" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnNextMonth"
@@ -59,7 +52,7 @@
                 style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Tháng này"
+                android:text="This month"
                 android:layout_marginStart="8dp" />
         </LinearLayout>
 
@@ -134,7 +127,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
                                 android:gravity="center"
-                                android:text="Tổng thời gian trong tháng"
+                                android:text="Total time this month"
                                 android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorOnSurfaceVariant" />
 
@@ -181,7 +174,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
                                 android:gravity="center"
-                                android:text="Phiên học trong tháng"
+                                android:text="Study sessions this month"
                                 android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorOnSurfaceVariant" />
 
@@ -194,16 +187,22 @@
                 <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Dòng thời gian"
+                    android:text="Timeline"
                     android:textAppearance="?attr/textAppearanceTitleLarge"
                     android:textStyle="bold"
                     android:layout_marginTop="24dp"
                     android:layout_marginBottom="12dp" />
 
+                <com.github.mikephil.charting.charts.LineChart
+                    android:id="@+id/chartTimelineMonth"
+                    android:layout_width="match_parent"
+                    android:layout_height="260dp" />
+
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recyclerTimeline"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:visibility="gone"
                     android:nestedScrollingEnabled="false"
                     tools:listitem="@layout/item_timeline_session"
                     tools:itemCount="5" />
@@ -226,14 +225,14 @@
                     <com.google.android.material.textview.MaterialTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Chưa có phiên học nào trong tháng"
+                        android:text="No study sessions this month"
                         android:textAppearance="?attr/textAppearanceTitleMedium"
                         android:layout_marginTop="16dp" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Hãy bắt đầu nào!"
+                        android:text="Let's get started!"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:layout_marginTop="8dp" />
@@ -254,14 +253,14 @@
         android:visibility="gone"
         android:indeterminate="true" />
 
-<!--    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton-->
-<!--        android:id="@+id/fabStartSession"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_gravity="bottom|end"-->
-<!--        android:layout_margin="16dp"-->
-<!--        android:text="Bắt đầu học"-->
-<!--        app:icon="@drawable/ic_play"-->
-<!--        app:iconTint="?attr/colorOnPrimary" />-->
+    <!--    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton-->
+    <!--        android:id="@+id/fabStartSession"-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:layout_gravity="bottom|end"-->
+    <!--        android:layout_margin="16dp"-->
+    <!--        android:text="Start studying"-->
+    <!--        app:icon="@drawable/ic_play"-->
+    <!--        app:iconTint="?attr/colorOnPrimary" />-->
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
