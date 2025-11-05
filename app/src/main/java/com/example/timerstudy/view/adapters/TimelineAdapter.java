@@ -34,16 +34,30 @@ public class TimelineAdapter extends ListAdapter<SessionEntity, TimelineAdapter.
 
     static class VH extends RecyclerView.ViewHolder {
         private final ItemTimelineSessionBinding b;
-        private final SimpleDateFormat timeFmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        private final SimpleDateFormat dateFmt = new SimpleDateFormat("EEE, dd/MM/yyyy", Locale.getDefault());
         VH(ItemTimelineSessionBinding binding) {
             super(binding.getRoot());
             this.b = binding;
         }
         void bind(SessionEntity s) {
-            b.textTitle.setText(String.valueOf(s.getSessionType()));
-            String start = s.getStartTime() != null ? timeFmt.format(s.getStartTime()) : "--:--";
-            String end = s.getEndTime() != null ? timeFmt.format(s.getEndTime()) : "--:--";
-            b.textTimeRange.setText(start + " - " + end);
+            // Title: ngày tạo (sessionDate)
+            String dateStr = s.getSessionDate() != null ? dateFmt.format(s.getSessionDate()) : "--";
+            b.textTitle.setText(dateStr);
+
+            // Subtitle: thời gian học (actualDurationMinutes or durationMinutes)
+            Integer actual = s.getActualDurationMinutes();
+            int minutes = actual != null ? actual : s.getDurationMinutes();
+            b.textTimeRange.setText(formatMinutes(minutes));
+        }
+
+        private String formatMinutes(int minutes) {
+            int h = minutes / 60;
+            int m = minutes % 60;
+            if (h > 0) {
+                return h + "h " + String.format(Locale.getDefault(), "%02dm", m);
+            } else {
+                return m + "m";
+            }
         }
     }
 
@@ -55,7 +69,31 @@ public class TimelineAdapter extends ListAdapter<SessionEntity, TimelineAdapter.
 
         @Override
         public boolean areContentsTheSame(@NonNull SessionEntity oldItem, @NonNull SessionEntity newItem) {
-            return oldItem.equals(newItem);
+            // Compare meaningful fields to determine content equality
+            if (oldItem.getSessionId() != newItem.getSessionId()) return false;
+            if (oldItem.getDurationMinutes() != newItem.getDurationMinutes()) return false;
+            if (oldItem.isCompleted() != newItem.isCompleted()) return false;
+            if (oldItem.getFocusSessionCount() != newItem.getFocusSessionCount()) return false;
+            if (oldItem.getPauseCount() != newItem.getPauseCount()) return false;
+            if (oldItem.getTotalPauseDuration() != newItem.getTotalPauseDuration()) return false;
+
+            String oldType = oldItem.getSessionType();
+            String newType = newItem.getSessionType();
+            if (oldType != null ? !oldType.equals(newType) : newType != null) return false;
+
+            String oldStatus = oldItem.getStatus();
+            String newStatus = newItem.getStatus();
+            if (oldStatus != null ? !oldStatus.equals(newStatus) : newStatus != null) return false;
+
+            java.util.Date oldStart = oldItem.getStartTime();
+            java.util.Date newStart = newItem.getStartTime();
+            if (oldStart != null ? !oldStart.equals(newStart) : newStart != null) return false;
+
+            java.util.Date oldEnd = oldItem.getEndTime();
+            java.util.Date newEnd = newItem.getEndTime();
+            if (oldEnd != null ? !oldEnd.equals(newEnd) : newEnd != null) return false;
+
+            return true;
         }
     };
 }

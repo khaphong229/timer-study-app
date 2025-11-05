@@ -12,6 +12,7 @@ import com.example.timerstudy.data.local.database.dao.StatisticsDao;
 import com.example.timerstudy.data.local.database.entities.SessionEntity;
 import com.example.timerstudy.data.local.database.entities.StatisticsCacheEntity;
 import com.example.timerstudy.data.local.database.entities.StreakRecordEntity;
+import com.google.gson.Gson;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -81,6 +82,7 @@ public class StatisticsRepository {
 
     // ==================== Day / Month / Year ====================
 
+    // CỦA MÔ HÌNH MVVP KHÔNG DÙNG DO ĐÃ ĐỔI SANG MVP NHA KÊNH CHAT
     public void loadDailyStats(int userId, Date dayStart, Date dayEnd) {
         executorService.execute(() -> {
             try {
@@ -104,7 +106,6 @@ public class StatisticsRepository {
         });
     }
 
-    // Callback-based API for MVP (no LiveData required by presenter)
     public interface DailyStatsCallback {
         void onSuccess(DailyStats stats, List<SessionEntity> timeline);
         void onError(String errorMessage);
@@ -116,8 +117,13 @@ public class StatisticsRepository {
                 long start = dayStart.getTime();
                 long end = dayEnd.getTime();
                 int totalFocusMin = sessionDao.getTotalFocusTimeByUserAndDateRange(userId, start, end);
-                int completedSessions = sessionDao.getCompletedSessionCountByUser(userId);
+                int completedSessions = sessionDao.getCompletedSessionCountByUserAndDateRange(userId, start, end);
                 List<SessionEntity> timeline = sessionDao.getTodaySessions(userId, start, end);
+                Log.d(TAG, "loadDailyStats: " + timeline.size());
+                Log.d(TAG, "loadDailyStats: " + timeline);
+                Gson gson = new Gson();
+                Log.d(TAG, "loadDailyStats: " + gson.toJson(timeline));
+
                 DailyStats stats = new DailyStats(totalFocusMin, completedSessions);
                 callback.onSuccess(stats, timeline);
             } catch (Exception e) {

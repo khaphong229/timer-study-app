@@ -2,39 +2,39 @@
     <string name="app_name">TimerStudy</string>
 
     <!-- Navigation -->
-<!--    <string name="nav_home">Trang Chủ</string>-->
-    <string name="nav_profile">Hồ Sơ</string>
+    <!--    <string name="nav_home">Home</string>-->
+    <string name="nav_profile">Profile</string>
 
     <!-- Home Fragment -->
-    <string name="home_title">Thông Tin Người Dùng</string>
-    <string name="refresh_data">Làm mới dữ liệu</string>
-    <string name="loading">Đang tải...</string>
+    <string name="home_title">User Information</string>
+    <string name="refresh_data">Refresh Data</string>
+    <string name="loading">Loading...</string>
 
     <!-- Profile Fragment -->
-    <string name="profile_title">Chỉnh Sửa Hồ Sơ</string>
-    <string name="hint_name">Họ và tên</string>
-    <string name="hint_age">Tuổi</string>
+    <string name="profile_title">Edit Profile</string>
+    <string name="hint_name">Full Name</string>
+    <string name="hint_age">Age</string>
     <string name="hint_email">Email</string>
-    <string name="hint_bio">Giới thiệu bản thân</string>
-    <string name="btn_update">Cập nhật thông tin</string>
-    <string name="current_info">Thông tin hiện tại</string>
+    <string name="hint_bio">About Yourself</string>
+    <string name="btn_update">Update Information</string>
+    <string name="current_info">Current Information</string>
 
     <!-- Validation Messages -->
-    <string name="error_empty_name">Vui lòng nhập tên</string>
-    <string name="error_empty_age">Vui lòng nhập tuổi</string>
-    <string name="error_invalid_age">Tuổi không hợp lệ (1-150)</string>
-    <string name="error_empty_email">Vui lòng nhập email</string>
-    <string name="error_invalid_email">Email không hợp lệ</string>
-    <string name="error_empty_bio">Vui lòng nhập giới thiệu</string>
+    <string name="error_empty_name">Please enter your name</string>
+    <string name="error_empty_age">Please enter your age</string>
+    <string name="error_invalid_age">Invalid age (1–150)</string>
+    <string name="error_empty_email">Please enter your email</string>
+    <string name="error_invalid_email">Invalid email address</string>
+    <string name="error_empty_bio">Please enter a short bio</string>
 
     <!-- Toast Messages -->
-    <string name="toast_updating">Đang cập nhật thông tin...</string>
-    <string name="toast_refreshing">Đang làm mới dữ liệu...</string>
-    <string name="toast_update_success">Cập nhật thành công!</string>
-    <string name="toast_update_failed">Không thể cập nhật</string>
+    <string name="toast_updating">Updating information...</string>
+    <string name="toast_refreshing">Refreshing data...</string>
+    <string name="toast_update_success">Update successful!</string>
+    <string name="toast_update_failed">Unable to update</string>
 
     <string name="action_settings">Settings</string>
-    <string name="tab_day">Ngày</string>
-    <string name="tab_month">Tháng</string>
-    <string name="tab_year">Năm</string>
+    <string name="tab_day">Day</string>
+    <string name="tab_month">Month</string>
+    <string name="tab_year">Year</string>
 </resources>

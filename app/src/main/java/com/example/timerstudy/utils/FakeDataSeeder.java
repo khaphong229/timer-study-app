@@ -31,8 +31,8 @@ public class FakeDataSeeder {
             // Ensure a user exists
             int userId = ensureUser(userDao);
 
-            // Generate sessions for last 30 days
-            generateSessions(sessionDao, userId, 30);
+            // Seed random non-overlapping sessions per day for the current month
+            seedRandomNonOverlappingForCurrentMonth(sessionDao, userId);
 
             // Generate tasks for last 14 days
             taskDao.deleteAllTasks();
@@ -55,30 +55,73 @@ public class FakeDataSeeder {
         return (int) id;
     }
 
-    private static void generateSessions(SessionDao sessionDao, int userId, int daysBack) {
-        Random rnd = new Random();
+    private static void seedRandomNonOverlappingForCurrentMonth(SessionDao sessionDao, int userId) {
+        // Clear old demo sessions
+        sessionDao.deleteAllSessions();
+
         Calendar cal = Calendar.getInstance();
+        // Set to first day of current month
+        cal.set(Calendar.DAY_OF_MONTH, 1);
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
 
-        for (int d = 0; d < daysBack; d++) {
-            Date day = cal.getTime();
+        Calendar monthEnd = Calendar.getInstance();
+        monthEnd.set(Calendar.DAY_OF_MONTH, 1);
+        monthEnd.set(Calendar.HOUR_OF_DAY, 0);
+        monthEnd.set(Calendar.MINUTE, 0);
+        monthEnd.set(Calendar.SECOND, 0);
+        monthEnd.set(Calendar.MILLISECOND, 0);
+        monthEnd.add(Calendar.MONTH, 1);
 
-            int sessionsCount = 1 + rnd.nextInt(4);
-            for (int i = 0; i < sessionsCount; i++) {
-                int startMin = 8 * 60 + rnd.nextInt(10 * 60); // between 08:00 and ~18:00
-                int duration = 20 + rnd.nextInt(60); // 20-80 minutes
+        while (cal.before(monthEnd)) {
+            // session_date = date only (00:00 of the day)
+            Calendar day = (Calendar) cal.clone();
+            day.set(Calendar.HOUR_OF_DAY, 0);
+            day.set(Calendar.MINUTE, 0);
+            day.set(Calendar.SECOND, 0);
+            day.set(Calendar.MILLISECOND, 0);
 
-                Calendar start = (Calendar) cal.clone();
+            // Generate 1-4 non-overlapping random sessions between 08:00 and 22:00
+            java.util.Random rnd = new java.util.Random();
+            int count = 1 + rnd.nextInt(4);
+            java.util.List<int[]> intervals = new java.util.ArrayList<>(); // [startMin, endMin]
+
+            int attempts = 0;
+            while (intervals.size() < count && attempts < 100) {
+                attempts++;
+                int windowStart = 8 * 60;   // 08:00 in minutes
+                int windowEnd = 22 * 60;    // 22:00 in minutes
+                int duration = 15 + rnd.nextInt(60); // 15-74 minutes
+                int startMin = windowStart + rnd.nextInt(Math.max(1, windowEnd - windowStart - duration));
+                int endMin = startMin + duration;
+
+                // Check overlap
+                boolean overlaps = false;
+                for (int[] it : intervals) {
+                    if (!(endMin <= it[0] || startMin >= it[1])) { overlaps = true; break; }
+                }
+                if (overlaps) continue;
+
+                intervals.add(new int[]{startMin, endMin});
+            }
+
+            // Sort by start time and insert
+            intervals.sort(java.util.Comparator.comparingInt(a -> a[0]));
+            for (int[] it : intervals) {
+                int startMin = it[0];
+                int endMin = it[1];
+
+                Calendar start = (Calendar) day.clone();
                 start.add(Calendar.MINUTE, startMin);
-                Calendar end = (Calendar) start.clone();
-                end.add(Calendar.MINUTE, duration);
+                Calendar end = (Calendar) day.clone();
+                end.add(Calendar.MINUTE, endMin);
 
+                int duration = endMin - startMin;
                 SessionEntity s = new SessionEntity();
                 s.setUserId(userId);
-                s.setSessionDate(day);
+                s.setSessionDate(day.getTime());
                 s.setStartTime(start.getTime());
                 s.setEndTime(end.getTime());
                 s.setDurationMinutes(duration);
@@ -89,7 +132,8 @@ public class FakeDataSeeder {
                 sessionDao.insertSession(s);
             }
 
-            cal.add(Calendar.DAY_OF_MONTH, -1);
+            // Move to next day
+            cal.add(Calendar.DAY_OF_MONTH, 1);
         }
     }
 

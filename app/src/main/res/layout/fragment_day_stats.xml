@@ -14,13 +14,6 @@
         android:background="@android:color/transparent"
         app:elevation="0dp">
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:title="Thống kê hôm nay"
-            app:titleTextColor="?attr/colorOnSurface" />
-
         <!-- Date Navigation -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -45,7 +38,7 @@
                 android:gravity="center"
                 android:textAppearance="?attr/textAppearanceBodyLarge"
                 android:textStyle="bold"
-                tools:text="Thứ Hai, 28 Tháng 10 2025" />
+                tools:text="Monday, October 28, 2025" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnNextDay"
@@ -60,7 +53,7 @@
                 style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Hôm nay"
+                android:text="Today"
                 android:layout_marginStart="8dp" />
         </LinearLayout>
 
@@ -91,6 +84,7 @@
                     android:weightSum="2"
                     android:baselineAligned="false">
 
+                    <!-- Total Time Card -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardTotalTime"
                         android:layout_width="0dp"
@@ -134,7 +128,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:gravity="center"
-                                android:text="Tổng thời gian trong ngày"
+                                android:text="Total time today"
                                 android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:layout_marginTop="4dp" />
@@ -182,7 +176,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:gravity="center"
-                                android:text="Phiên học"
+                                android:text="Study sessions today"
                                 android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:layout_marginTop="4dp" />
@@ -203,15 +197,15 @@
                     app:cardBackgroundColor="?attr/colorPrimaryContainer"
                     app:strokeWidth="0dp">
 
-<!--                    <com.google.android.material.textview.MaterialTextView-->
-<!--                        android:id="@+id/textMotivation"-->
-<!--                        android:layout_width="match_parent"-->
-<!--                        android:layout_height="wrap_content"-->
-<!--                        android:padding="16dp"-->
-<!--                        android:gravity="center"-->
-<!--                        android:textAppearance="?attr/textAppearanceBodyLarge"-->
-<!--                        android:textColor="?attr/colorOnPrimaryContainer"-->
-<!--                        tools:text=" Xuất sắc! Bạn đã hoàn thành mục tiêu!" />-->
+                    <!--                    <com.google.android.material.textview.MaterialTextView-->
+                    <!--                        android:id="@+id/textMotivation"-->
+                    <!--                        android:layout_width="match_parent"-->
+                    <!--                        android:layout_height="wrap_content"-->
+                    <!--                        android:padding="16dp"-->
+                    <!--                        android:gravity="center"-->
+                    <!--                        android:textAppearance="?attr/textAppearanceBodyLarge"-->
+                    <!--                        android:textColor="?attr/colorOnPrimaryContainer"-->
+                    <!--                        tools:text="Excellent! You’ve reached your goal!" />-->
 
                 </com.google.android.material.card.MaterialCardView>
 
@@ -219,17 +213,24 @@
                 <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Dòng thời gian"
+                    android:text="Timeline"
                     android:textAppearance="?attr/textAppearanceTitleLarge"
                     android:textStyle="bold"
                     android:layout_marginTop="24dp"
                     android:layout_marginBottom="12dp" />
 
-                <!-- Timeline RecyclerView -->
+                <!-- Timeline Chart -->
+                <com.github.mikephil.charting.charts.LineChart
+                    android:id="@+id/chartTimelineDay"
+                    android:layout_width="match_parent"
+                    android:layout_height="220dp" />
+
+                <!-- Keep RecyclerView for fallback, but hidden by default -->
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recyclerTimeline"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:visibility="gone"
                     android:nestedScrollingEnabled="false"
                     tools:listitem="@layout/item_timeline_session"
                     tools:itemCount="5" />
@@ -253,14 +254,14 @@
                     <com.google.android.material.textview.MaterialTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Chưa có phiên học nào"
+                        android:text="No study sessions yet"
                         android:textAppearance="?attr/textAppearanceTitleMedium"
                         android:layout_marginTop="16dp" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Bắt đầu phiên học đầu tiên của bạn!"
+                        android:text="Start your first study session!"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:layout_marginTop="8dp" />
@@ -282,15 +283,15 @@
         android:visibility="gone"
         android:indeterminate="true" />
 
-<!--    &lt;!&ndash; FAB &ndash;&gt;-->
-<!--    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton-->
-<!--        android:id="@+id/fabStartSession"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_gravity="bottom|end"-->
-<!--        android:layout_margin="16dp"-->
-<!--        android:text="Bắt đầu học"-->
-<!--        app:icon="@drawable/ic_play"-->
-<!--        app:iconTint="?attr/colorOnPrimary" />-->
+    <!--    &lt;!&ndash; FAB &ndash;&gt;-->
+    <!--    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton-->
+    <!--        android:id="@+id/fabStartSession"-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:layout_gravity="bottom|end"-->
+    <!--        android:layout_margin="16dp"-->
+    <!--        android:text="Start studying"-->
+    <!--        app:icon="@drawable/ic_play"-->
+    <!--        app:iconTint="?attr/colorOnPrimary" />-->
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -142,16 +142,75 @@ public class DayStatsFragment extends Fragment implements DayStatsContract.View 
         if (!isAdded()) return;
 
         requireActivity().runOnUiThread(() -> {
-            TimelineAdapter adapter = (TimelineAdapter) binding.recyclerTimeline.getAdapter();
-            if (adapter != null) {
-                adapter.submitList(sessions);
+            // Prepare chart entries: x = minutes-of-day, y = studied minutes
+            java.util.ArrayList<com.github.mikephil.charting.data.Entry> entries = new java.util.ArrayList<>();
+            java.util.Calendar cal = java.util.Calendar.getInstance();
+            for (com.example.timerstudy.data.local.database.entities.SessionEntity s : sessions) {
+                Integer actual = s.getActualDurationMinutes();
+                int studiedMinutes = (actual != null ? actual : s.getDurationMinutes());
+                java.util.Date ts = s.getStartTime() != null ? s.getStartTime() : (s.getSessionDate() != null ? s.getSessionDate() : s.getEndTime());
+                float minutesOfDay = 0f;
+                if (ts != null) {
+                    cal.setTime(ts);
+                    minutesOfDay = cal.get(java.util.Calendar.HOUR_OF_DAY) * 60f + cal.get(java.util.Calendar.MINUTE);
+                }
+                entries.add(new com.github.mikephil.charting.data.Entry(minutesOfDay, studiedMinutes));
             }
 
-            // Show empty state if no sessions
+            // Sort entries by time-of-day ascending for a left-to-right line
+            java.util.Collections.sort(entries, java.util.Comparator.comparingDouble(com.github.mikephil.charting.data.Entry::getX));
+            com.github.mikephil.charting.data.LineDataSet dataSet = new com.github.mikephil.charting.data.LineDataSet(entries, "Sessions");
+            int color = requireContext().getColor(com.google.android.material.R.color.material_dynamic_primary70);
+            dataSet.setColor(color);
+            dataSet.setCircleColor(color);
+            dataSet.setLineWidth(2f);
+            dataSet.setCircleRadius(3f);
+            dataSet.setMode(com.github.mikephil.charting.data.LineDataSet.Mode.CUBIC_BEZIER);
+            dataSet.setDrawValues(true);
+            com.github.mikephil.charting.data.LineData data = new com.github.mikephil.charting.data.LineData(dataSet);
+            data.setValueTextSize(9f);
+
+            if (binding.chartTimelineDay != null) {
+                binding.chartTimelineDay.getDescription().setEnabled(true);
+                binding.chartTimelineDay.getDescription().setText("Focus Time");
+                binding.chartTimelineDay.getLegend().setEnabled(true);
+                binding.chartTimelineDay.setScaleEnabled(false);
+                binding.chartTimelineDay.getAxisRight().setEnabled(false);
+
+                com.github.mikephil.charting.components.XAxis xAxis = binding.chartTimelineDay.getXAxis();
+                xAxis.setPosition(com.github.mikephil.charting.components.XAxis.XAxisPosition.BOTTOM);
+                xAxis.setGranularity(15f);
+                xAxis.setDrawGridLines(false);
+                xAxis.setValueFormatter(new com.github.mikephil.charting.formatter.ValueFormatter() {
+                    @Override
+                    public String getFormattedValue(float value) {
+                        int total = Math.max(0, Math.round(value));
+                        int h = total / 60;
+                        int m = total % 60;
+                        return String.format(java.util.Locale.getDefault(), "%02d:%02d", h, m);
+                    }
+                });
+
+                com.github.mikephil.charting.components.YAxis yAxis = binding.chartTimelineDay.getAxisLeft();
+                yAxis.setAxisMinimum(0f);
+                yAxis.setValueFormatter(new com.github.mikephil.charting.formatter.ValueFormatter() {
+                    @Override
+                    public String getFormattedValue(float value) {
+                        return Math.max(0, Math.round(value)) + " min";
+                    }
+                });
+
+                binding.chartTimelineDay.setData(data);
+                binding.chartTimelineDay.invalidate();
+                binding.chartTimelineDay.setVisibility(entries.isEmpty() ? View.GONE : View.VISIBLE);
+            }
+
+            // Empty state visibility
             if (binding.layoutEmpty != null) {
                 binding.layoutEmpty.setVisibility(sessions.isEmpty() ? View.VISIBLE : View.GONE);
             }
-            binding.recyclerTimeline.setVisibility(sessions.isEmpty() ? View.GONE : View.VISIBLE);
+            // Keep RecyclerView hidden when using chart
+            binding.recyclerTimeline.setVisibility(View.GONE);
         });
     }
 
