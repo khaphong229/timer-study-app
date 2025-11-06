@@ -129,7 +129,7 @@ public class TaskPresenter implements TaskContract.Presenter {
             updateTaskCount();
         }
     }
-
+ 
     private void updateTaskCount() {
         if (view != null && allTasks != null) {
             int completed = 0, total = allTasks.size();

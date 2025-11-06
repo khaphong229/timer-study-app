@@ -37,7 +37,6 @@ public class WeekAdapter extends RecyclerView.Adapter<WeekAdapter.DayViewHolder>
     @Override
     public void onBindViewHolder(@NonNull DayViewHolder holder, int position) {
         Date d = days.get(position);
-        // Abbreviated English weekday
         String dayName = dayOfWeekFmt.format(d); // Mon, Tue, ...
         holder.tvDayOfWeek.setText(dayName);
         holder.tvDate.setText(dayOfMonthFmt.format(d));

@@ -1,27 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Priority levels for tasks -->
     <string-array name="priority_levels">
         <item>Low</item>
         <item>Medium</item>
         <item>High</item>
     </string-array>
 
-    <!-- Values corresponding to priority levels -->
     <string-array name="priority_values">
         <item>LOW</item>
         <item>MEDIUM</item>
         <item>HIGH</item>
     </string-array>
 
-    <!-- Colors for priority levels -->
     <integer-array name="priority_colors">
         <item>@color/priority_low</item>
         <item>@color/priority_medium</item>
         <item>@color/priority_high</item>
     </integer-array>
 
-    <!-- Filter options for Spinner in layout_filter.xml -->
     <string-array name="filter_priority">
         <item>All Priorities</item>
         <item>Low Priority</item>

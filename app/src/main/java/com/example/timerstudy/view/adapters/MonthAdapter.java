@@ -32,7 +32,6 @@ public class MonthAdapter extends RecyclerView.Adapter<MonthAdapter.DayViewHolde
     public MonthAdapter(List<Date> days, OnDayClickListener listener) {
         this.days = days;
         this.onDayClickListener = listener;
-        // Default select today
         this.selectedDate = new Date();
     }
 
