@@ -56,6 +56,6 @@
     <!-- Priority Colors -->
     <color name="priority_low">#4CAF50</color>        <!-- Xanh lá - Thấp -->
     <color name="priority_medium">#FF9800</color>     <!-- Cam - Trung bình -->
-    <color name="priority_high">#FF5722</color>       <!-- Cam đỏ - Cao -->
-    <color name="priority_urgent">#F44336</color>     <!-- Đỏ - Rất cao -->
+    <color name#F44336="priority_high">#FF5722</color>       <!-- Cam đỏ - Cao -->
+    <color name="priority_urgent"></color>     <!-- Đỏ - Rất cao -->
 </resources>

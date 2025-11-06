@@ -71,9 +71,9 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         int color;
         if (priority != null) {
             switch (priority.toUpperCase()) {
-                case TaskEntity.PRIORITY_HIGH: color = Color.RED; break;
+                case TaskEntity.PRIORITY_HIGH: color = Color.parseColor("#F44336"); break;
                 case TaskEntity.PRIORITY_MEDIUM: color = Color.parseColor("#FFC107"); break;
-                case TaskEntity.PRIORITY_LOW: color = Color.GREEN; break;
+                case TaskEntity.PRIORITY_LOW: color = Color.parseColor("#4CAF50"); break;
                 default: color = Color.GRAY;
             }
         } else {
