@@ -6,7 +6,7 @@
         android:background="@color/white"
         android:padding="16dp">
 
-    <TextView
+    <!-- <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Music Library"
@@ -14,7 +14,7 @@
             android:textSize="16sp"
             android:textStyle="bold"
             android:layout_gravity="center"
-            android:layout_marginVertical="12dp" />
+            android:layout_marginVertical="12dp" /> -->
 
     <LinearLayout
             android:layout_width="match_parent"
