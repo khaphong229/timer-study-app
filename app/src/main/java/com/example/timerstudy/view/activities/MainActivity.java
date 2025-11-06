@@ -32,11 +32,11 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(navigationRail, navController);
 
         navigationRail.setOnItemSelectedListener(item -> {
-            if (item.getItemId() == R.id.menu_seed_data) {
-                FakeDataSeeder.seed(this);
-                android.widget.Toast.makeText(this, "Seeding demo data...", android.widget.Toast.LENGTH_SHORT).show();
-                return true;
-            }
+//            if (item.getItemId() == R.id.menu_seed_data) {
+//                FakeDataSeeder.seed(this);
+//                android.widget.Toast.makeText(this, "Seeding demo data...", android.widget.Toast.LENGTH_SHORT).show();
+//                return true;
+//            }
             return NavigationUI.onNavDestinationSelected(item, navController);
         });
     }
