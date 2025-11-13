@@ -24,9 +24,9 @@
         android:icon="@drawable/photo"
         android:title="Shop" />
 
-    <!-- <item
+    <item
         android:id="@+id/menu_seed_data"
         android:icon="@android:drawable/ic_menu_upload"
         android:title="Seed" />
-     -->
+    
 </menu>

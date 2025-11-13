@@ -74,7 +74,7 @@ public class ShopModel {
     }
 
     public void calculateUserCoins(int completedSessions) {
-        this.userCoins = completedSessions * 10;
+        this.userCoins = completedSessions * 10000;
     }
 
     public int getUserCoins() {

@@ -19,13 +19,6 @@
             android:layout_marginEnd="8dp"/>
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Your Coins: "
-            android:textSize="16sp"
-            android:textColor="@android:color/white"/>
-
-        <TextView
             android:id="@+id/tvCoins"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -41,17 +34,18 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="32dp"
-        android:visibility="gone"/>
+        android:visibility="gone" />
 
     <GridView
         android:id="@+id/gridViewShop"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
-        android:horizontalSpacing="8dp"
+        android:horizontalSpacing="6dp"
         android:numColumns="4"
-        android:padding="8dp"
+        android:padding="16dp"
+        android:clipToPadding="false"
         android:stretchMode="columnWidth"
-        android:verticalSpacing="5dp" />
+        android:verticalSpacing="6dp" />
 
 </LinearLayout>
