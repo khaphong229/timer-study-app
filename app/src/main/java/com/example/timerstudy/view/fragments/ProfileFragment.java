@@ -4,21 +4,33 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
 import com.example.timerstudy.R;
-import com.google.android.material.textfield.TextInputEditText;
+
+import com.example.timerstudy.data.repository.UserRepository;
+import com.example.timerstudy.model.User;
+
 
 public class ProfileFragment extends Fragment {
     
-    private TextInputEditText etName;
-    private TextInputEditText etAge;
-    private TextInputEditText etEmail;
-    private TextInputEditText etBio;
-    private TextView tvCurrentInfo;
+    private ImageView ivAvatar;
+    private TextView tvUserName;
+    private LinearLayout btnLoginFacebook;
+    private SwitchCompat switchVibrator;
+    private LinearLayout btnNotifications;
+    private LinearLayout btnPrivacy;
+    private LinearLayout btnLogout;
+    
+    private UserRepository userRepository;
+    private User currentUser;
     
     @Nullable
     @Override
@@ -30,50 +42,66 @@ public class ProfileFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         
-        initializeViews(view);
-        loadCurrentInfo();
+        initViews(view);
+        loadUserData();
+        setupListeners();
     }
     
-    private void initializeViews(View view) {
-        etName = view.findViewById(R.id.etName);
-        etAge = view.findViewById(R.id.etAge);
-        etEmail = view.findViewById(R.id.etEmail);
-        etBio = view.findViewById(R.id.etBio);
-        tvCurrentInfo = view.findViewById(R.id.tvCurrentInfo);
+    private void initViews(View view) {
+        ivAvatar = view.findViewById(R.id.ivAvatar);
+        tvUserName = view.findViewById(R.id.tvUserName);
+        btnLoginFacebook = view.findViewById(R.id.btnLoginFacebook);
+        switchVibrator = view.findViewById(R.id.switchVibrator);
+        btnNotifications = view.findViewById(R.id.btnNotifications);
+        btnPrivacy = view.findViewById(R.id.btnPrivacy);
+        btnLogout = view.findViewById(R.id.btnLogout);
         
-        view.findViewById(R.id.btnUpdate).setOnClickListener(v -> updateProfile());
+        userRepository = UserRepository.getInstance(requireContext());
     }
     
-    private void loadCurrentInfo() {
-        // Load default data
-        etName.setText("Timer Study User");
-        etAge.setText("25");
-        etEmail.setText("user@timerstudy.com");
-        etBio.setText("I love using the Timer Study app to improve my productivity!");
-        
-        updateCurrentInfoDisplay();
+    private void loadUserData() {
+        currentUser = userRepository.getCurrentUser();
+        updateUI();
     }
     
-    private void updateProfile() {
-        String name = etName.getText().toString().trim();
-        String age = etAge.getText().toString().trim();
-        String email = etEmail.getText().toString().trim();
-        String bio = etBio.getText().toString().trim();
-        
-        if (name.isEmpty() || age.isEmpty() || email.isEmpty()) {
-            Toast.makeText(requireContext(), "Vui lòng điền đầy đủ thông tin bắt buộc", Toast.LENGTH_SHORT).show();
-            return;
+    private void updateUI() {
+        if (currentUser.isLoggedIn()) {
+            tvUserName.setText(currentUser.getName());
+            btnLoginFacebook.setVisibility(View.GONE);
+        } else {
+            tvUserName.setText("Guest User");
+            btnLoginFacebook.setVisibility(View.VISIBLE);
         }
         
-        updateCurrentInfoDisplay();
-        Toast.makeText(requireContext(), "Cập nhật thông tin thành công!", Toast.LENGTH_SHORT).show();
+        switchVibrator.setChecked(currentUser.isVibratorEnabled());
     }
     
-    private void updateCurrentInfoDisplay() {
-        String info = "Tên: " + etName.getText().toString() + "\n" +
-                     "Tuổi: " + etAge.getText().toString() + "\n" +
-                     "Email: " + etEmail.getText().toString() + "\n" +
-                     "Giới thiệu: " + etBio.getText().toString();
-        tvCurrentInfo.setText(info);
+    private void setupListeners() {
+        btnLoginFacebook.setOnClickListener(v -> {
+            Toast.makeText(requireContext(), "Facebook Login (Coming soon)", Toast.LENGTH_SHORT).show();
+        });
+        
+        btnLogout.setOnClickListener(v -> {
+            currentUser.logout();
+            userRepository.saveUser(currentUser);
+            updateUI();
+            Toast.makeText(requireContext(), "Logged out successfully", Toast.LENGTH_SHORT).show();
+        });
+        
+        btnNotifications.setOnClickListener(v -> {
+            Toast.makeText(requireContext(), "Notifications Settings (Coming soon)", Toast.LENGTH_SHORT).show();
+        });
+        
+        btnPrivacy.setOnClickListener(v -> {
+            Toast.makeText(requireContext(), "Privacy Settings (Coming soon)", Toast.LENGTH_SHORT).show();
+        });
+        
+        switchVibrator.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            currentUser.setVibratorEnabled(isChecked);
+            userRepository.saveUser(currentUser);
+            Toast.makeText(requireContext(), 
+                "Vibrator " + (isChecked ? "enabled" : "disabled"), 
+                Toast.LENGTH_SHORT).show();
+        });
     }
 }

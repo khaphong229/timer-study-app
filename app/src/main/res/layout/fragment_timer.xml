@@ -8,14 +8,14 @@
 
     <!-- GIF Background - Layer dưới cùng -->
     <pl.droidsonroids.gif.GifImageView
-            android:id="@+id/gifImageView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            android:adjustViewBounds="false"
-            android:src="@drawable/bg_default"
-            android:clickable="true"
-            android:focusable="true" />
+        android:id="@+id/gifImageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:adjustViewBounds="false"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop"
+        android:src="@drawable/sbg_default" />
 
     <View
             android:layout_width="match_parent"

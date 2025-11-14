@@ -38,7 +38,7 @@ public class ShopModel {
         for (Field field : fields) {
             try {
                 String name = field.getName();
-                if (name.startsWith("bg_")) {
+                if (name.startsWith("sbg_")) {
                     int resourceId = field.getInt(null);
                     ShopItem item = new ShopItem(
                             id,
@@ -49,7 +49,7 @@ public class ShopModel {
                             ShopItem.ItemType.BACKGROUND
                     );
 
-                    if (name == "bg_default") {
+                    if (name == "sbg_default") {
                         item.setPurchased(true);
                         savePurchasedItem(item.getId());
                     }

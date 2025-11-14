@@ -25,8 +25,8 @@
         android:title="Shop" />
 
     <item
-        android:id="@+id/menu_seed_data"
-        android:icon="@android:drawable/ic_menu_upload"
-        android:title="Seed" />
+        android:id="@+id/profileFragment"
+        android:icon="@android:drawable/picture_frame"
+        android:title="Profile" />
     
 </menu>
