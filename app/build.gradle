@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -47,6 +48,7 @@ dependencies {
     implementation libs.room.ktx
     implementation libs.recyclerview
     implementation libs.cardview
+    implementation libs.firebase.auth
     annotationProcessor libs.room.compiler
     
     testImplementation libs.junit
@@ -68,4 +70,6 @@ dependencies {
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01"
 
     implementation 'com.google.code.gson:gson:2.10.1'
+
+    implementation 'com.facebook.android:facebook-android-sdk:latest.release'
 }

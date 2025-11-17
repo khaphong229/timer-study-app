@@ -55,35 +55,13 @@
             </LinearLayout>
         </LinearLayout>
         <!--  Login with Facebook Button  -->
-        <LinearLayout
+        <com.facebook.login.widget.LoginButton
             android:id="@+id/btnLoginFacebook"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
-            android:background="@drawable/bg_fb_button"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="16dp">
-
-            <ImageView
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:contentDescription="Facebook Login"
-                android:src="@drawable/ic_fb" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:text="Login with Facebook"
-                android:textColor="#FAF0F0"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-        </LinearLayout>
+            android:paddingTop="16dp"
+            android:paddingBottom="16dp" />
         <!--  Settings Section  -->
         <TextView
             android:layout_width="wrap_content"
