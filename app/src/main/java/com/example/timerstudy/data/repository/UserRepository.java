@@ -1,6 +1,7 @@
 package com.example.timerstudy.data.repository;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
@@ -9,6 +10,8 @@ import androidx.lifecycle.MutableLiveData;
 import com.example.timerstudy.data.local.database.AppDatabase;
 import com.example.timerstudy.data.local.database.dao.UserDao;
 import com.example.timerstudy.data.local.database.entities.UserEntity;
+import com.example.timerstudy.model.User;
+import com.google.gson.Gson;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -24,10 +27,16 @@ import java.util.concurrent.Executors;
 public class UserRepository {
     
     private static final String TAG = "UserRepository";
+    private static final String PREF_NAME = "user_profile_prefs";
+    private static final String KEY_CURRENT_USER = "current_user";
     
     // Database and DAO
     private final AppDatabase database;
     private final UserDao userDao;
+    
+    // SharedPreferences for User model
+    private final SharedPreferences sharedPreferences;
+    private final Gson gson;
     
     // Thread executor for background operations
     private final ExecutorService executorService;
@@ -50,6 +59,11 @@ public class UserRepository {
         database = AppDatabase.getDatabase(context);
         userDao = database.userDao();
         executorService = Executors.newFixedThreadPool(4);
+        
+        // Initialize SharedPreferences and Gson
+        sharedPreferences = context.getApplicationContext()
+                .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        gson = new Gson();
         
         // Initialize LiveData
         allUsersLiveData = new MutableLiveData<>();
@@ -493,5 +507,60 @@ public class UserRepository {
      */
     public int getCurrentUserId() {
         return 1;
+    }
+    
+    // ==================== USER MODEL METHODS (for Profile) ====================
+    
+    /**
+     * Get current user (User model for profile)
+     * 
+     * @return User object
+     */
+    public User getCurrentUser() {
+        String userJson = sharedPreferences.getString(KEY_CURRENT_USER, null);
+        if (userJson != null) {
+            try {
+                return gson.fromJson(userJson, User.class);
+            } catch (Exception e) {
+                Log.e(TAG, "Error parsing user JSON", e);
+            }
+        }
+        return new User();
+    }
+    
+    /**
+     * Save user (User model for profile)
+     * 
+     * @param user User object to save
+     */
+    public void saveUser(User user) {
+        try {
+            String userJson = gson.toJson(user);
+            sharedPreferences.edit()
+                    .putString(KEY_CURRENT_USER, userJson)
+                    .apply();
+            Log.d(TAG, "User saved successfully");
+        } catch (Exception e) {
+            Log.e(TAG, "Error saving user", e);
+        }
+    }
+    
+    /**
+     * Clear current user
+     */
+    public void clearCurrentUser() {
+        sharedPreferences.edit()
+                .remove(KEY_CURRENT_USER)
+                .apply();
+        Log.d(TAG, "Current user cleared");
+    }
+    
+    /**
+     * Check if user exists
+     * 
+     * @return true if user data exists
+     */
+    public boolean hasCurrentUser() {
+        return sharedPreferences.contains(KEY_CURRENT_USER);
     }
 }

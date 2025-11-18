@@ -8,14 +8,14 @@
 
     <!-- GIF Background - Layer dưới cùng -->
     <pl.droidsonroids.gif.GifImageView
-            android:id="@+id/gifImageView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            android:adjustViewBounds="false"
-            android:src="@drawable/bg_default"
-            android:clickable="true"
-            android:focusable="true" />
+        android:id="@+id/gifImageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:adjustViewBounds="false"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop"
+        android:src="@drawable/sbg_default" />
 
     <View
             android:layout_width="match_parent"
@@ -38,53 +38,53 @@
 
     <!-- SeekBar Panel - Ẩn/hiện khi nhấn icon -->
     <com.google.android.material.card.MaterialCardView
-            android:id="@+id/card_seekbar_panel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:layout_margin="16dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="8dp"
-            app:cardBackgroundColor="#CC000000"
-            android:visibility="gone">
+        android:id="@+id/card_seekbar_panel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_margin="16dp"
+        android:visibility="gone"
+        app:cardBackgroundColor="#CC000000"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="8dp">
 
         <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tv_study_duration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Study: 25 min"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <SeekBar
+                android:id="@+id/seekbar_study"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp"
-                android:background="@android:color/transparent">
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp" />
 
             <TextView
-                    android:id="@+id/tv_study_duration"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Study: 25 min"
-                    android:textSize="16sp"
-                    android:textColor="@android:color/white"
-                    android:textStyle="bold" />
+                android:id="@+id/tv_break_duration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Break: 5 min"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <SeekBar
-                    android:id="@+id/seekbar_study"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="16dp" />
-
-            <TextView
-                    android:id="@+id/tv_break_duration"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Break: 5 min"
-                    android:textSize="16sp"
-                    android:textColor="@android:color/white"
-                    android:textStyle="bold" />
-
-            <SeekBar
-                    android:id="@+id/seekbar_break"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp" />
+                android:id="@+id/seekbar_break"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" />
 
         </LinearLayout>
 
@@ -167,12 +167,12 @@
 
                     <!-- Hidden ImageView -->
                     <ImageView
-                            android:id="@+id/img_time_bg"
-                            android:layout_width="0dp"
-                            android:layout_height="0dp"
-                            android:contentDescription="@string/app_name"
-                            android:scaleType="centerCrop"
-                            android:visibility="gone" />
+                        android:id="@+id/img_time_bg"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:contentDescription="@string/app_name"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone" />
 
                     <!-- Timer -->
                     <TextView
@@ -211,27 +211,27 @@
                             android:orientation="horizontal">
 
                         <ImageButton
-                                android:id="@+id/btn_play_pause"
-                                android:layout_width="60dp"
-                                android:layout_height="50dp"
-                                android:layout_marginEnd="16dp"
-                                android:background="@drawable/button_circle_primary"
-                                android:contentDescription="Play/Pause"
-                                android:padding="16dp"
-                                android:scaleType="centerInside"
-                                android:src="@drawable/ic_play_48"
-                                app:tint="#FFFFFF" />
+                            android:id="@+id/btn_play_pause"
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:layout_marginEnd="16dp"
+                            android:background="@drawable/button_circle_primary"
+                            android:contentDescription="Play/Pause"
+                            android:padding="16dp"
+                            android:scaleType="centerInside"
+                            android:src="@drawable/ic_play_48"
+                            app:tint="#FFFFFF" />
 
                         <ImageButton
-                                android:id="@+id/btn_reset"
-                                android:layout_width="60dp"
-                                android:layout_height="50dp"
-                                android:background="@drawable/button_circle_secondary"
-                                android:contentDescription="Reset"
-                                android:padding="16dp"
-                                android:scaleType="centerInside"
-                                android:src="@drawable/ic_reset_48"
-                                app:tint="#666666" />
+                            android:id="@+id/btn_reset"
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:background="@drawable/button_circle_secondary"
+                            android:contentDescription="Reset"
+                            android:padding="16dp"
+                            android:scaleType="centerInside"
+                            android:src="@drawable/ic_reset_48"
+                            app:tint="#666666" />
 
                     </LinearLayout>
 

@@ -37,4 +37,6 @@
     <string name="tab_day">Day</string>
     <string name="tab_month">Month</string>
     <string name="tab_year">Year</string>
+
+    <!-- Facebook Configuration - Values are loaded from local.properties (NOT committed to git) -->
 </resources>

@@ -172,13 +172,13 @@ public class ShopPresenter implements ShopContract.Presenter {
         int id = getSelectedBackgroundId();
         int resourceId = getBackgroundResourceId(id);
         if (resourceId == -1) {
-            resourceId = R.drawable.bg_default;
+            resourceId = R.drawable.sbg_default;
             saveSelectedBackground(id);
         }
         return resourceId;
     }
 
     private int getDefaultBackgroundResourceId() {
-        return com.example.timerstudy.R.drawable.bg_default;
+        return com.example.timerstudy.R.drawable.sbg_default;
     }
 }
