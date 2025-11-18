@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "463081496872",
-    "project_id": "timerstudyapp",
-    "storage_bucket": "timerstudyapp.firebasestorage.app"
+    "project_number": "YOUR_PROJECT_NUMBER",
+    "project_id": "YOUR_PROJECT_ID",
+    "storage_bucket": "YOUR_PROJECT_ID.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:463081496872:android:7928546cd823397736301d",
+        "mobilesdk_app_id": "YOUR_MOBILE_SDK_APP_ID",
         "android_client_info": {
           "package_name": "com.example.timerstudy"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCNmz3Ggx_uM8-OhnitVBPw30oULgyPfDg"
+          "current_key": "YOUR_FIREBASE_API_KEY"
         }
       ],
       "services": {
