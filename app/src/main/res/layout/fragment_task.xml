@@ -57,15 +57,15 @@
         android:id="@+id/fabAddTask"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_margin="24dp"
         android:contentDescription="Add new task"
         android:src="@android:drawable/ic_input_add"
-        app:tint="#FFFFFF"
         app:backgroundTint="#2196F3"
-        app:borderWidth="0dp"
         app:elevation="8dp"
-        app:pressedTranslationZ="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_margin="24dp" />
+        app:pressedTranslationZ="12dp"
+
+        app:tint="#FFFFFF" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
