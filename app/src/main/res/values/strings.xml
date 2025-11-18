@@ -38,8 +38,5 @@
     <string name="tab_month">Month</string>
     <string name="tab_year">Year</string>
 
-    <!-- Facebook Configuration - IMPORTANT: Replace with your actual Facebook App ID and Client Token -->
-    <string name="facebook_app_id">1635013364146967</string>
-    <string name="facebook_client_token">9daabaa432e87bc624074e40578cd8a7</string>
-    <string name="fb_login_protocol_scheme">fb1635013364146967</string>
+    <!-- Facebook Configuration - Values are loaded from local.properties (NOT committed to git) -->
 </resources>

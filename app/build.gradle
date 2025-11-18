@@ -15,6 +15,17 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // Load Facebook credentials from local.properties
+        Properties properties = new Properties()
+        if (rootProject.file("local.properties").exists()) {
+            properties.load(rootProject.file("local.properties").newDataInputStream())
+        }
+
+        // Set as build config fields or resources
+        resValue "string", "facebook_app_id", properties.getProperty("facebook.app_id", "")
+        resValue "string", "facebook_client_token", properties.getProperty("facebook.client_token", "")
+        resValue "string", "fb_login_protocol_scheme", "fb" + properties.getProperty("facebook.app_id", "")
     }
 
     buildTypes {
