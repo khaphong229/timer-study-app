@@ -80,7 +80,7 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
     private void initFacebookLogin() {
         mCallbackManager = CallbackManager.Factory.create();
         btnLoginFacebook.setFragment(this);
-        btnLoginFacebook.setReadPermissions("public_profile");
+        btnLoginFacebook.setReadPermissions("public_profile", "email", "user_friends");
 
         btnLoginFacebook.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
             @Override

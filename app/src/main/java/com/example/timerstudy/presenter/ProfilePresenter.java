@@ -153,4 +153,50 @@ public class ProfilePresenter implements ProfileContract.Presenter {
             Log.e(TAG, "Error processing data", e);
         }
     }
+
+    public void getFacebookFriendsList(AccessToken accessToken) {
+        GraphRequest request = GraphRequest.newMyFriendsRequest(
+                accessToken,
+                (objects, response) -> {
+                    try {
+                        // objects là JSONArray chứa danh sách bạn bè
+                        Log.d(TAG, "Friends List Response: " + response.toString());
+
+                        if (objects != null) {
+                            processFriendsList(objects);
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error getting friends", e);
+                    }
+                });
+
+        Bundle parameters = new Bundle();
+        parameters.putString("fields", "id,name,picture");
+        request.setParameters(parameters);
+        request.executeAsync();
+    }
+
+    private void processFriendsList(JSONArray friendsArray) {
+        try {
+            // Danh sách ID của bạn bè dùng app
+            List<String> friendIds = new ArrayList<>();
+
+            for (int i = 0; i < friendsArray.length(); i++) {
+                JSONObject friendObj = friendsArray.getJSONObject(i);
+                String friendId = friendObj.getString("id");
+                String friendName = friendObj.getString("name");
+
+                friendIds.add(friendId);
+                Log.d(TAG, "Found friend using app: " + friendName + " (ID: " + friendId + ")");
+            }
+
+            // BƯỚC TIẾP THEO (QUAN TRỌNG):
+            // Sau khi có list friendIds này, bạn phải gửi list này lên Firebase
+            // để lấy thông tin "TotalStudyMinutes" của từng ID.
+            // fetchFriendsDataFromFirebase(friendIds);
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error parsing friends list", e);
+        }
+    }
 }
