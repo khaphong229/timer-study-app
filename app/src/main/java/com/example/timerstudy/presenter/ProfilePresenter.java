@@ -15,6 +15,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ProfilePresenter implements ProfileContract.Presenter {
 
     private static final String TAG = "ProfilePresenter";
@@ -119,14 +122,19 @@ public class ProfilePresenter implements ProfileContract.Presenter {
                         .optString("url", "");
             }
 
-            // --- TẠO USER MỚI (Sử dụng Constructor hoặc Setters để an toàn) ---
-            // Giả sử bạn có constructor User(id, name, email) hoặc dùng setters
-            User facebookUser = new User(facebookId, name, email);
+            // Tạo User mới
+            User facebookUser = new User();
+
+            // --- FIX LỖI: Đã sửa thành setUserId ---
+            facebookUser.setUserId(facebookId);
+            facebookUser.setName(name);
+            facebookUser.setEmail(email);
             facebookUser.setProfileImageUrl(profileImageUrl);
 
-            // Nếu User không có constructor trên, hãy dùng:
-            // User facebookUser = new User();
-            // facebookUser.setId(facebookId); ...
+            // Cập nhật trạng thái đăng nhập
+            facebookUser.setLoggedIn(true);
+            facebookUser.setLoginProvider("facebook");
+            facebookUser.setLastLoginTime(System.currentTimeMillis());
 
             // --- LOGIC QUAN TRỌNG: BẢO TOÀN DỮ LIỆU CŨ (Merge Data) ---
             if (currentUser != null) {
