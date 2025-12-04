@@ -13,6 +13,7 @@ import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 
 import org.json.JSONObject;
+import org.json.JSONArray;
 
 public class ProfilePresenter implements ProfileContract.Presenter {
 
