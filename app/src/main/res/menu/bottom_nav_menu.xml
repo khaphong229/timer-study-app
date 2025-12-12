@@ -25,6 +25,11 @@
         android:title="Shop" />
 
     <item
+        android:id="@+id/leaderboardFragment"
+        android:icon="@drawable/ic_leaderboard"
+        android:title="Ranking" />
+
+    <item
         android:id="@+id/profileFragment"
         android:icon="@drawable/person_24dp"
         android:title="Profile" />
