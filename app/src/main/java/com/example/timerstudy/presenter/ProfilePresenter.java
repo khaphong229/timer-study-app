@@ -153,13 +153,41 @@ public class ProfilePresenter implements ProfileContract.Presenter {
             // -----------------------------------------------------------
 
             currentUser = facebookUser;
-            userRepository.saveUser(currentUser);
 
-            updateView();
-            view.showMessage("Welcome " + name + "!");
+            // THAY ĐỔI: Gọi sync với backend thay vì chỉ saveUser
+            view.showLoading();
+            view.showMessage("Syncing with server...");
+
+            userRepository.syncFacebookUser(currentUser, new UserRepository.SyncCallback() {
+                @Override
+                public void onSuccess(User syncedUser) {
+                    // Update lại currentUser với thông tin mới nhất (có token)
+                    currentUser = syncedUser;
+
+                    // Chạy trên UI thread để update view
+                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        view.hideLoading();
+                        updateView();
+                        view.showMessage("Welcome " + syncedUser.getName() + "!");
+                    });
+                }
+
+                @Override
+                public void onError(String message) {
+                    // Nếu sync lỗi, vẫn cho user dùng app ở chế độ offline/local
+                    userRepository.saveUser(currentUser);
+
+                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        view.hideLoading();
+                        updateView();
+                        view.showMessage("Login local only. " + message);
+                    });
+                }
+            });
 
         } catch (Exception e) {
             Log.e(TAG, "Error processing data", e);
+            view.hideLoading();
         }
     }
 
