@@ -10,9 +10,15 @@ import androidx.lifecycle.MutableLiveData;
 import com.example.timerstudy.data.local.database.AppDatabase;
 import com.example.timerstudy.data.local.database.dao.UserDao;
 import com.example.timerstudy.data.local.database.entities.UserEntity;
+import com.example.timerstudy.data.remote.ApiService;
+import com.example.timerstudy.data.remote.RetrofitClient;
 import com.example.timerstudy.model.User;
 import com.google.gson.Gson;
 
+import retrofit2.Call;
+import retrofit2.Response;
+
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -25,31 +31,31 @@ import java.util.concurrent.Executors;
  * and error handling for database operations.
  */
 public class UserRepository {
-    
+
     private static final String TAG = "UserRepository";
     private static final String PREF_NAME = "user_profile_prefs";
     private static final String KEY_CURRENT_USER = "current_user";
-    
+
     // Database and DAO
     private final AppDatabase database;
     private final UserDao userDao;
-    
+
     // SharedPreferences for User model
     private final SharedPreferences sharedPreferences;
     private final Gson gson;
-    
+
     // Thread executor for background operations
     private final ExecutorService executorService;
-    
+
     // LiveData for reactive updates
     private final MutableLiveData<List<UserEntity>> allUsersLiveData;
     private final MutableLiveData<UserEntity> currentUserLiveData;
     private final MutableLiveData<Boolean> isLoadingLiveData;
     private final MutableLiveData<String> errorLiveData;
-    
+
     // Singleton instance
     private static volatile UserRepository INSTANCE;
-    
+
     /**
      * Constructor
      * 
@@ -59,22 +65,22 @@ public class UserRepository {
         database = AppDatabase.getDatabase(context);
         userDao = database.userDao();
         executorService = Executors.newFixedThreadPool(4);
-        
+
         // Initialize SharedPreferences and Gson
         sharedPreferences = context.getApplicationContext()
                 .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         gson = new Gson();
-        
+
         // Initialize LiveData
         allUsersLiveData = new MutableLiveData<>();
         currentUserLiveData = new MutableLiveData<>();
         isLoadingLiveData = new MutableLiveData<>();
         errorLiveData = new MutableLiveData<>();
-        
+
         // Load initial data
         loadAllUsers();
     }
-    
+
     /**
      * Get singleton instance
      * 
@@ -91,9 +97,9 @@ public class UserRepository {
         }
         return INSTANCE;
     }
-    
+
     // ==================== LIVE DATA GETTERS ====================
-    
+
     /**
      * Get all users LiveData
      * 
@@ -102,7 +108,7 @@ public class UserRepository {
     public LiveData<List<UserEntity>> getAllUsersLiveData() {
         return allUsersLiveData;
     }
-    
+
     /**
      * Get current user LiveData
      * 
@@ -111,7 +117,7 @@ public class UserRepository {
     public LiveData<UserEntity> getCurrentUserLiveData() {
         return currentUserLiveData;
     }
-    
+
     /**
      * Get loading state LiveData
      * 
@@ -120,7 +126,7 @@ public class UserRepository {
     public LiveData<Boolean> getIsLoadingLiveData() {
         return isLoadingLiveData;
     }
-    
+
     /**
      * Get error LiveData
      * 
@@ -129,9 +135,9 @@ public class UserRepository {
     public LiveData<String> getErrorLiveData() {
         return errorLiveData;
     }
-    
+
     // ==================== USER OPERATIONS ====================
-    
+
     /**
      * Load all users from database
      */
@@ -150,7 +156,7 @@ public class UserRepository {
             }
         });
     }
-    
+
     /**
      * Get user by ID
      * 
@@ -172,7 +178,7 @@ public class UserRepository {
             }
         });
     }
-    
+
     /**
      * Get user by email
      * 
@@ -194,7 +200,7 @@ public class UserRepository {
             }
         });
     }
-    
+
     /**
      * Create a new user
      * 
@@ -218,7 +224,7 @@ public class UserRepository {
             }
         });
     }
-    
+
     /**
      * Create a new anonymous user
      * 
@@ -243,7 +249,7 @@ public class UserRepository {
             }
         });
     }
-    
+
     /**
      * Update user information
      * 
@@ -265,7 +271,7 @@ public class UserRepository {
             }
         });
     }
-    
+
     /**
      * Update user's last login time
      * 
@@ -289,11 +295,11 @@ public class UserRepository {
             }
         });
     }
-    
+
     /**
      * Update user's display name
      * 
-     * @param userId User ID to update
+     * @param userId      User ID to update
      * @param displayName New display name
      */
     public void updateDisplayName(int userId, String displayName) {
@@ -314,11 +320,11 @@ public class UserRepository {
             }
         });
     }
-    
+
     /**
      * Update user's profile picture URL
      * 
-     * @param userId User ID to update
+     * @param userId            User ID to update
      * @param profilePictureUrl New profile picture URL
      */
     public void updateProfilePicture(int userId, String profilePictureUrl) {
@@ -339,12 +345,12 @@ public class UserRepository {
             }
         });
     }
-    
+
     /**
      * Convert anonymous user to registered user
      * 
-     * @param userId User ID to convert
-     * @param email User's email
+     * @param userId      User ID to convert
+     * @param email       User's email
      * @param displayName User's display name
      */
     public void convertToRegisteredUser(int userId, String email, String displayName) {
@@ -370,7 +376,7 @@ public class UserRepository {
             }
         });
     }
-    
+
     /**
      * Delete user by ID
      * 
@@ -396,7 +402,7 @@ public class UserRepository {
             }
         });
     }
-    
+
     /**
      * Check if email exists
      * 
@@ -415,7 +421,7 @@ public class UserRepository {
             }
         });
     }
-    
+
     /**
      * Get user count
      * 
@@ -432,9 +438,9 @@ public class UserRepository {
             }
         });
     }
-    
+
     // ==================== UTILITY METHODS ====================
-    
+
     /**
      * Clear all data
      */
@@ -454,7 +460,7 @@ public class UserRepository {
             }
         });
     }
-    
+
     /**
      * Close repository and cleanup resources
      */
@@ -463,7 +469,7 @@ public class UserRepository {
             executorService.shutdown();
         }
     }
-    
+
     /**
      * Check if repository is closed
      * 
@@ -482,7 +488,7 @@ public class UserRepository {
             try {
                 // Sử dụng user ID cố định
                 int userId = 1;
-                
+
                 // Kiểm tra user đã tồn tại chưa
                 UserEntity existingUser = userDao.getUserById(userId);
                 if (existingUser == null) {
@@ -508,9 +514,9 @@ public class UserRepository {
     public int getCurrentUserId() {
         return 1;
     }
-    
+
     // ==================== USER MODEL METHODS (for Profile) ====================
-    
+
     /**
      * Get current user (User model for profile)
      * 
@@ -527,7 +533,7 @@ public class UserRepository {
         }
         return new User();
     }
-    
+
     /**
      * Save user (User model for profile)
      * 
@@ -544,7 +550,7 @@ public class UserRepository {
             Log.e(TAG, "Error saving user", e);
         }
     }
-    
+
     /**
      * Clear current user
      */
@@ -554,7 +560,7 @@ public class UserRepository {
                 .apply();
         Log.d(TAG, "Current user cleared");
     }
-    
+
     /**
      * Check if user exists
      * 
@@ -562,5 +568,84 @@ public class UserRepository {
      */
     public boolean hasCurrentUser() {
         return sharedPreferences.contains(KEY_CURRENT_USER);
+    }
+
+    /**
+     * Callback interface for sync operations
+     */
+    public interface SyncCallback {
+        void onSuccess(User user);
+
+        void onError(String message);
+    }
+
+    /**
+     * Sync Facebook user with Backend
+     * Logic: Try Register -> If fail/exist -> Try Login -> Save Token
+     */
+    public void syncFacebookUser(User fbUser, SyncCallback callback) {
+        executorService.execute(() -> {
+            try {
+                isLoadingLiveData.postValue(true);
+                ApiService apiService = RetrofitClient.getInstance().getApiService();
+
+                // Sử dụng Facebook ID làm password cho backend
+                String password = fbUser.getUserId();
+                String email = fbUser.getEmail();
+
+                if (email == null || email.isEmpty()) {
+                    // Fallback nếu FB không trả về email
+                    email = fbUser.getUserId() + "@facebook.com";
+                }
+
+                // 1. Thử Register
+                ApiService.RegisterRequest regReq = new ApiService.RegisterRequest(
+                        email, password, fbUser.getName(), fbUser.getProfileImageUrl());
+
+                Call<ApiService.ApiResponse<ApiService.UserResponseData>> regCall = apiService.register(regReq);
+                Response<ApiService.ApiResponse<ApiService.UserResponseData>> regRes = regCall.execute();
+
+                boolean readyToLogin = false;
+                if (regRes.isSuccessful() && regRes.body() != null && regRes.body().success) {
+                    Log.d(TAG, "Backend Register Success");
+                    readyToLogin = true;
+                } else {
+                    Log.d(TAG, "Backend Register Failed/Existed, trying Login...");
+                    readyToLogin = true; // Cứ thử login xem sao
+                }
+
+                // 2. Login để lấy Token
+                if (readyToLogin) {
+                    ApiService.LoginRequest loginReq = new ApiService.LoginRequest(email, password);
+                    Call<ApiService.ApiResponse<ApiService.LoginResponseData>> loginCall = apiService.login(loginReq);
+                    Response<ApiService.ApiResponse<ApiService.LoginResponseData>> loginRes = loginCall.execute();
+
+                    if (loginRes.isSuccessful() && loginRes.body() != null && loginRes.body().success) {
+                        String token = loginRes.body().data.accessToken;
+                        fbUser.setAccessToken(token);
+
+                        // Lưu user đã có token vào local
+                        saveUser(fbUser);
+
+                        // Post lên UI
+                        currentUserLiveData.postValue(null); // Trigger update if needed (mapping UserEntity vs User
+                                                             // model is tricky here)
+
+                        if (callback != null)
+                            callback.onSuccess(fbUser);
+                    } else {
+                        String errorMsg = (loginRes.body() != null) ? loginRes.body().message : "Login failed";
+                        if (callback != null)
+                            callback.onError("Backend Sync Failed: " + errorMsg);
+                    }
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error syncing with backend", e);
+                if (callback != null)
+                    callback.onError("Network Error: " + e.getMessage());
+            } finally {
+                isLoadingLiveData.postValue(false);
+            }
+        });
     }
 }
