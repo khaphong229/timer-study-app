@@ -1,6 +1,5 @@
 package com.example.timerstudy.model;
 
-
 public class User {
     private String userId;
     private String name;
@@ -8,23 +7,26 @@ public class User {
     private String email;
     private String bio;
     private String profileImageUrl;
-    
+
     private boolean isLoggedIn;
     private String loginProvider;
     private long lastLoginTime;
-    
+
     private int totalCoins;
     private int totalStudyMinutes;
     private int totalSessions;
     private int currentStreak;
     private int longestStreak;
     private long lastStudyDate;
-    
+
     private int selectedBackgroundId;
     private int studyDuration;
     private int breakDuration;
     private boolean soundEnabled;
     private boolean vibratorEnabled;
+
+    // Thêm field accessToken
+    private String accessToken;
 
     // Constructor
     public User(String userId, String name, int age, String email, String bio, String profileImageUrl) {
@@ -34,7 +36,7 @@ public class User {
         this.email = email;
         this.bio = bio;
         this.profileImageUrl = profileImageUrl;
-        
+
         this.isLoggedIn = false;
         this.loginProvider = "";
         this.lastLoginTime = 0;
@@ -49,6 +51,7 @@ public class User {
         this.breakDuration = 5;
         this.soundEnabled = true;
         this.vibratorEnabled = true;
+        this.accessToken = "";
     }
 
     public User() {
@@ -65,6 +68,7 @@ public class User {
         this.breakDuration = 5;
         this.soundEnabled = true;
         this.vibratorEnabled = true;
+        this.accessToken = "";
     }
 
     public static User fromFacebookLogin(String facebookId, String name, String email, String profileImageUrl) {
@@ -158,6 +162,14 @@ public class User {
 
     public boolean isVibratorEnabled() {
         return vibratorEnabled;
+    }
+
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
     }
 
     // Setters
@@ -257,10 +269,10 @@ public class User {
     public void updateStudyStats(int studyMinutes) {
         this.totalStudyMinutes += studyMinutes;
         this.totalSessions++;
-        
+
         long today = System.currentTimeMillis() / (1000 * 60 * 60 * 24);
         long lastStudy = this.lastStudyDate / (1000 * 60 * 60 * 24);
-        
+
         if (today - lastStudy == 1) {
             this.currentStreak++;
             if (this.currentStreak > this.longestStreak) {
@@ -269,7 +281,7 @@ public class User {
         } else if (today - lastStudy > 1) {
             this.currentStreak = 1;
         }
-        
+
         this.lastStudyDate = System.currentTimeMillis();
     }
 
