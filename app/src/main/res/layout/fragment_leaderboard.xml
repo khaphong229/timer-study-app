@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.45" />
+
+    <!-- Header (Left Side) -->
+    <TextView
+        android:id="@+id/tvHeaderTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Leaderboard"
+        android:textColor="#000000"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@id/guideline"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Tabs (Left Side) -->
+    <LinearLayout
+        android:id="@+id/layoutTabs"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toStartOf="@id/guideline"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvHeaderTitle">
+
+        <TextView
+            android:id="@+id/tabToday"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_tab_selected"
+            android:paddingStart="16dp"
+            android:paddingTop="6dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="6dp"
+            android:text="Today"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tabWeek"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:padding="6dp"
+            android:text="Week"
+            android:textSize="12sp"
+            android:textColor="#757575" />
+
+        <TextView
+            android:id="@+id/tabAllTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:padding="6dp"
+            android:text="All Time"
+            android:textSize="12sp"
+            android:textColor="#757575" />
+    </LinearLayout>
+
+    <!-- Podium Section (Left Side) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutPodium"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:paddingBottom="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/guideline"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutTabs">
+
+        <!-- Rank 1 (Center) -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cvAvatar1"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            app:cardCornerRadius="25dp"
+            app:cardElevation="4dp"
+            app:layout_constraintBottom_toTopOf="@id/tvName1"
+            app:layout_constraintEnd_toEndOf="@id/podium1"
+            app:layout_constraintStart_toStartOf="@id/podium1"
+            android:layout_marginBottom="4dp">
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/person_24dp"
+                android:scaleType="centerCrop"
+                android:background="#E0E0E0"/>
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:id="@+id/tvName1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="User 1"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            app:layout_constraintBottom_toTopOf="@id/tvScore1"
+            app:layout_constraintEnd_toEndOf="@id/podium1"
+            app:layout_constraintStart_toStartOf="@id/podium1" />
+
+        <TextView
+            android:id="@+id/tvScore1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="135,786"
+            android:textSize="11sp"
+            android:textColor="#2196F3"
+            android:layout_marginBottom="2dp"
+            app:layout_constraintBottom_toTopOf="@id/podium1"
+            app:layout_constraintEnd_toEndOf="@id/podium1"
+            app:layout_constraintStart_toStartOf="@id/podium1" />
+
+        <TextView
+            android:id="@+id/podium1"
+            android:layout_width="80dp"
+            android:layout_height="100dp"
+            android:background="@drawable/bg_podium_rank1"
+            android:gravity="center"
+            android:text="1"
+            android:textColor="#FFFFFF"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- Rank 2 (Left) -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cvAvatar2"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="4dp"
+            app:layout_constraintBottom_toTopOf="@id/tvName2"
+            app:layout_constraintEnd_toEndOf="@id/podium2"
+            app:layout_constraintStart_toStartOf="@id/podium2"
+            android:layout_marginBottom="4dp">
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/person_24dp"
+                android:scaleType="centerCrop"
+                android:background="#E0E0E0"/>
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:id="@+id/tvName2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="User 2"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            app:layout_constraintBottom_toTopOf="@id/tvScore2"
+            app:layout_constraintEnd_toEndOf="@id/podium2"
+            app:layout_constraintStart_toStartOf="@id/podium2" />
+
+        <TextView
+            android:id="@+id/tvScore2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="25,796"
+            android:textSize="10sp"
+            android:textColor="#2196F3"
+            android:layout_marginBottom="2dp"
+            app:layout_constraintBottom_toTopOf="@id/podium2"
+            app:layout_constraintEnd_toEndOf="@id/podium2"
+            app:layout_constraintStart_toStartOf="@id/podium2" />
+
+        <TextView
+            android:id="@+id/podium2"
+            android:layout_width="70dp"
+            android:layout_height="75dp"
+            android:background="@drawable/bg_podium_rank2"
+            android:gravity="center"
+            android:text="2"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginEnd="4dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/podium1" />
+
+        <!-- Rank 3 (Right) -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cvAvatar3"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="4dp"
+            app:layout_constraintBottom_toTopOf="@id/tvName3"
+            app:layout_constraintEnd_toEndOf="@id/podium3"
+            app:layout_constraintStart_toStartOf="@id/podium3"
+            android:layout_marginBottom="4dp">
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/person_24dp"
+                android:scaleType="centerCrop"
+                android:background="#E0E0E0"/>
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:id="@+id/tvName3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="User 3"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            app:layout_constraintBottom_toTopOf="@id/tvScore3"
+            app:layout_constraintEnd_toEndOf="@id/podium3"
+            app:layout_constraintStart_toStartOf="@id/podium3" />
+
+        <TextView
+            android:id="@+id/tvScore3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="22,325"
+            android:textSize="10sp"
+            android:textColor="#2196F3"
+            android:layout_marginBottom="2dp"
+            app:layout_constraintBottom_toTopOf="@id/podium3"
+            app:layout_constraintEnd_toEndOf="@id/podium3"
+            app:layout_constraintStart_toStartOf="@id/podium3" />
+
+        <TextView
+            android:id="@+id/podium3"
+            android:layout_width="70dp"
+            android:layout_height="60dp"
+            android:background="@drawable/bg_podium_rank3"
+            android:gravity="center"
+            android:text="3"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginStart="4dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/podium1" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- List Section (Right Side) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutList"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/bg_list_container"
+        android:paddingTop="16dp"
+        android:layout_marginStart="16dp"
+        app:layout_constraintBottom_toTopOf="@id/layoutBottomRank"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/guideline"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- List Header -->
+        <LinearLayout
+            android:id="@+id/listHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="8dp"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Rank"
+                android:textColor="#757575"
+                android:textSize="12sp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:text="ID &amp; Level"
+                android:textColor="#757575"
+                android:textSize="12sp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:text="Points"
+                android:textColor="#757575"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvLeaderboard"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:clipToPadding="false"
+            android:paddingBottom="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/listHeader"
+            tools:listitem="@layout/item_leaderboard_user" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Bottom User Rank (Right Side) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutBottomRank"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_podium_rank1"
+        android:padding="12dp"
+        android:layout_marginStart="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/guideline">
+
+        <TextView
+            android:id="@+id/tvMyRank"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="253"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvMyName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:text="You"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@id/tvMyLevel"
+            app:layout_constraintStart_toEndOf="@id/tvMyRank"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_chainStyle="packed" />
+
+        <TextView
+            android:id="@+id/tvMyLevel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:text="No Level"
+            android:textColor="#E0E0E0"
+            android:textSize="11sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/tvMyRank"
+            app:layout_constraintTop_toBottomOf="@id/tvMyName" />
+
+        <TextView
+            android:id="@+id/tvMyScore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="5,356"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

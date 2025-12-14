@@ -45,6 +45,12 @@
         android:label="Shop"
         tools:layout="@layout/fragment_shop" />
 
+    <fragment
+        android:id="@+id/leaderboardFragment"
+        android:name="com.example.timerstudy.view.fragments.LeaderboardFragment"
+        android:label="Bảng Xếp Hạng"
+        tools:layout="@layout/fragment_leaderboard" />
+
     <!-- Profile Fragment - Màn hình hiển thị thông tin chi tiết -->
     <fragment
         android:id="@+id/profileFragment"

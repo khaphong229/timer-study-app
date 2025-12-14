@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -14,6 +15,17 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // Load Facebook credentials from local.properties
+        Properties properties = new Properties()
+        if (rootProject.file("local.properties").exists()) {
+            properties.load(rootProject.file("local.properties").newDataInputStream())
+        }
+
+        // Set as build config fields or resources
+        resValue "string", "facebook_app_id", properties.getProperty("facebook.app_id", "")
+        resValue "string", "facebook_client_token", properties.getProperty("facebook.client_token", "")
+        resValue "string", "fb_login_protocol_scheme", "fb" + properties.getProperty("facebook.app_id", "")
     }
 
     buildTypes {
@@ -47,6 +59,7 @@ dependencies {
     implementation libs.room.ktx
     implementation libs.recyclerview
     implementation libs.cardview
+    implementation libs.firebase.auth
     annotationProcessor libs.room.compiler
     
     testImplementation libs.junit
@@ -68,4 +81,9 @@ dependencies {
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01"
 
     implementation 'com.google.code.gson:gson:2.10.1'
+
+    implementation 'com.facebook.android:facebook-android-sdk:latest.release'
+
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
 }

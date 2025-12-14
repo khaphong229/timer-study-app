@@ -17,3 +17,8 @@ tree.txt
 .vscode/
 crash_log.txt
 .idea/
+
+# Sensitive configuration files
+local.properties
+google-services.json
+app/google-services.json

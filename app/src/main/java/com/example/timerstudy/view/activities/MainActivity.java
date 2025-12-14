@@ -14,15 +14,25 @@ import com.google.android.material.navigation.NavigationBarView;
 import com.example.timerstudy.utils.FakeDataSeeder;
 
 public class MainActivity extends AppCompatActivity {
-    
+
     private NavigationRailView navigationRail;
-    
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        
+
         setupNavigation();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        // Forward the result to all fragments
+        // This ensures Facebook LoginButton in ProfileFragment receives the callback
+        for (androidx.fragment.app.Fragment fragment : getSupportFragmentManager().getFragments()) {
+            fragment.onActivityResult(requestCode, resultCode, data);
+        }
     }
     
     private void setupNavigation() {
