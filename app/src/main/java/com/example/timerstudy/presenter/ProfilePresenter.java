@@ -11,6 +11,7 @@ import com.facebook.GraphRequest;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -80,7 +81,25 @@ public class ProfilePresenter implements ProfileContract.Presenter {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         Log.d(TAG, "signInWithCredential:success");
-                        requestFacebookUserData(token);
+
+                        // --- LẤY FIREBASE ID TOKEN ---
+                        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                        if (firebaseUser != null) {
+                            firebaseUser.getIdToken(true)
+                                    .addOnCompleteListener(tokenTask -> {
+                                        if (tokenTask.isSuccessful()) {
+                                            String firebaseIdToken = tokenTask.getResult().getToken();
+                                            Log.d(TAG, "Firebase ID Token: " + firebaseIdToken);
+
+                                            // Tiếp tục xử lý với token này
+                                            requestFacebookUserData(token, firebaseIdToken);
+                                        } else {
+                                            Log.e(TAG, "Error getting Firebase ID Token", tokenTask.getException());
+                                            view.hideLoading();
+                                            view.showMessage("Error getting authentication token");
+                                        }
+                                    });
+                        }
                     } else {
                         view.hideLoading();
                         Log.w(TAG, "signInWithCredential:failure", task.getException());
@@ -90,13 +109,13 @@ public class ProfilePresenter implements ProfileContract.Presenter {
                 });
     }
 
-    private void requestFacebookUserData(AccessToken accessToken) {
+    private void requestFacebookUserData(AccessToken accessToken, String firebaseIdToken) {
         GraphRequest request = GraphRequest.newMeRequest(
                 accessToken,
                 (object, response) -> {
                     view.hideLoading();
                     try {
-                        processFacebookUserData(object);
+                        processFacebookUserData(object, firebaseIdToken);
                     } catch (Exception e) {
                         Log.e(TAG, "Error parsing Facebook user data", e);
                         view.showMessage("Error getting user data");
@@ -104,16 +123,23 @@ public class ProfilePresenter implements ProfileContract.Presenter {
                 });
 
         Bundle parameters = new Bundle();
-        parameters.putString("fields", "id,name,email,picture.type(large)");
+        // Only request public_profile fields (id, name, picture)
+        parameters.putString("fields", "id,name,picture.type(large)");
         request.setParameters(parameters);
         request.executeAsync();
     }
 
-    private void processFacebookUserData(JSONObject object) {
+    private void processFacebookUserData(JSONObject object, String firebaseIdToken) {
         try {
+            // Log Firebase ID Token ở đây
+            Log.d(TAG, "=== FIREBASE ID TOKEN ===");
+            Log.d(TAG, firebaseIdToken);
+            Log.d(TAG, "========================");
+
             String facebookId = object.optString("id", "");
             String name = object.optString("name", "Facebook User");
-            String email = object.optString("email", "");
+            // Email is not available with public_profile permission only
+            String email = facebookId + "@facebook.local"; // Generate fallback email
 
             String profileImageUrl = "";
             if (object.has("picture")) {
@@ -125,13 +151,11 @@ public class ProfilePresenter implements ProfileContract.Presenter {
             // Tạo User mới
             User facebookUser = new User();
 
-            // --- FIX LỖI: Đã sửa thành setUserId ---
             facebookUser.setUserId(facebookId);
             facebookUser.setName(name);
             facebookUser.setEmail(email);
             facebookUser.setProfileImageUrl(profileImageUrl);
 
-            // Cập nhật trạng thái đăng nhập
             facebookUser.setLoggedIn(true);
             facebookUser.setLoginProvider("facebook");
             facebookUser.setLastLoginTime(System.currentTimeMillis());
@@ -150,21 +174,22 @@ public class ProfilePresenter implements ProfileContract.Presenter {
                 facebookUser.setSoundEnabled(currentUser.isSoundEnabled());
                 facebookUser.setVibratorEnabled(currentUser.isVibratorEnabled());
             }
-            // -----------------------------------------------------------
 
             currentUser = facebookUser;
 
-            // THAY ĐỔI: Gọi sync với backend thay vì chỉ saveUser
+            // THAY ĐỔI: Gọi sync với backend, truyền thêm firebaseIdToken
             view.showLoading();
             view.showMessage("Syncing with server...");
 
+            // TODO: Truyền firebaseIdToken vào syncFacebookUser
+            // userRepository.syncFacebookUser(currentUser, firebaseIdToken, callback);
+
+            // Tạm thời giữ nguyên logic cũ
             userRepository.syncFacebookUser(currentUser, new UserRepository.SyncCallback() {
                 @Override
                 public void onSuccess(User syncedUser) {
-                    // Update lại currentUser với thông tin mới nhất (có token)
                     currentUser = syncedUser;
 
-                    // Chạy trên UI thread để update view
                     new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
                         view.hideLoading();
                         updateView();
@@ -174,7 +199,6 @@ public class ProfilePresenter implements ProfileContract.Presenter {
 
                 @Override
                 public void onError(String message) {
-                    // Nếu sync lỗi, vẫn cho user dùng app ở chế độ offline/local
                     userRepository.saveUser(currentUser);
 
                     new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
@@ -191,49 +215,7 @@ public class ProfilePresenter implements ProfileContract.Presenter {
         }
     }
 
-    public void getFacebookFriendsList(AccessToken accessToken) {
-        GraphRequest request = GraphRequest.newMyFriendsRequest(
-                accessToken,
-                (objects, response) -> {
-                    try {
-                        // objects là JSONArray chứa danh sách bạn bè
-                        Log.d(TAG, "Friends List Response: " + response.toString());
-
-                        if (objects != null) {
-                            processFriendsList(objects);
-                        }
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error getting friends", e);
-                    }
-                });
-
-        Bundle parameters = new Bundle();
-        parameters.putString("fields", "id,name,picture");
-        request.setParameters(parameters);
-        request.executeAsync();
-    }
-
-    private void processFriendsList(JSONArray friendsArray) {
-        try {
-            // Danh sách ID của bạn bè dùng app
-            List<String> friendIds = new ArrayList<>();
-
-            for (int i = 0; i < friendsArray.length(); i++) {
-                JSONObject friendObj = friendsArray.getJSONObject(i);
-                String friendId = friendObj.getString("id");
-                String friendName = friendObj.getString("name");
-
-                friendIds.add(friendId);
-                Log.d(TAG, "Found friend using app: " + friendName + " (ID: " + friendId + ")");
-            }
-
-            // BƯỚC TIẾP THEO (QUAN TRỌNG):
-            // Sau khi có list friendIds này, bạn phải gửi list này lên Firebase
-            // để lấy thông tin "TotalStudyMinutes" của từng ID.
-            // fetchFriendsDataFromFirebase(friendIds);
-
-        } catch (Exception e) {
-            Log.e(TAG, "Error parsing friends list", e);
-        }
-    }
+    // Remove friends functionality since user_friends permission is deprecated
+    // public void getFacebookFriendsList(AccessToken accessToken) { ... }
+    // private void processFriendsList(JSONArray friendsArray) { ... }
 }
