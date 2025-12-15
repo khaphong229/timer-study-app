@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.example.timerstudy.data.repository.UserRepository;
 import com.example.timerstudy.model.User;
+import com.example.timerstudy.utils.UserManager;
 import com.example.timerstudy.view.contracts.ProfileContract;
 import com.facebook.AccessToken;
 import com.facebook.GraphRequest;
@@ -23,19 +24,19 @@ public class ProfilePresenter implements ProfileContract.Presenter {
 
     private static final String TAG = "ProfilePresenter";
     private final ProfileContract.View view;
-    private final UserRepository userRepository;
+    private final UserManager userManager;
     private final FirebaseAuth mAuth;
     private User currentUser;
 
-    public ProfilePresenter(ProfileContract.View view, UserRepository userRepository) {
+    public ProfilePresenter(ProfileContract.View view, UserManager userManager) {
         this.view = view;
-        this.userRepository = userRepository;
+        this.userManager = userManager;
         this.mAuth = FirebaseAuth.getInstance();
     }
 
     @Override
     public void loadUserData() {
-        currentUser = userRepository.getCurrentUser();
+        currentUser = userManager.getCurrentUser();
         updateView();
     }
 
@@ -54,7 +55,7 @@ public class ProfilePresenter implements ProfileContract.Presenter {
     public void setVibratorEnabled(boolean enabled) {
         if (currentUser != null) {
             currentUser.setVibratorEnabled(enabled);
-            userRepository.saveUser(currentUser);
+            userManager.saveUser();
             view.showMessage("Vibrator " + (enabled ? "enabled" : "disabled"));
         }
     }
@@ -64,7 +65,7 @@ public class ProfilePresenter implements ProfileContract.Presenter {
         mAuth.signOut();
         if (currentUser != null) {
             currentUser.logout();
-            userRepository.saveUser(currentUser);
+            userManager.saveUser();
         }
         updateView();
         view.showMessage("Logged out successfully");
@@ -182,13 +183,14 @@ public class ProfilePresenter implements ProfileContract.Presenter {
             view.showMessage("Syncing with server...");
 
             // TODO: Truyền firebaseIdToken vào syncFacebookUser
-            // userRepository.syncFacebookUser(currentUser, firebaseIdToken, callback);
+            // userManager.syncFacebookUser(currentUser, firebaseIdToken, callback);
 
             // Tạm thời giữ nguyên logic cũ
-            userRepository.syncFacebookUser(currentUser, new UserRepository.SyncCallback() {
+            userManager.syncFacebookUser(currentUser, new UserRepository.SyncCallback() {
                 @Override
                 public void onSuccess(User syncedUser) {
                     currentUser = syncedUser;
+                    userManager.loadCurrentUser();
 
                     new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
                         view.hideLoading();
@@ -199,7 +201,7 @@ public class ProfilePresenter implements ProfileContract.Presenter {
 
                 @Override
                 public void onError(String message) {
-                    userRepository.saveUser(currentUser);
+                    userManager.saveUser();
 
                     new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
                         view.hideLoading();

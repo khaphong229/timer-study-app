@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.example.timerstudy.data.repository.SessionRepository;
 import com.example.timerstudy.model.TimerModel;
+import com.example.timerstudy.utils.UserManager;
 import com.example.timerstudy.view.contracts.TimerContract;
 
 public class TimerPresenter implements TimerContract.Presenter, TimerModel.TimerListener {
@@ -13,7 +14,7 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
     public static TimerPresenter instance;
 
     private Context context;
-    private int userId = 1;
+    private UserManager userManager;
     private SessionRepository sessionRepository;
     private int completedSessionsFromDb = 0;
 
@@ -31,7 +32,11 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
 
     public void initialize(Context context) {
         this.context = context;
+        this.userManager = UserManager.getInstance(context);
         this.sessionRepository = SessionRepository.getInstance(context);
+
+        int duration = userManager.getTimerDuration();
+        model.setStudyDuration(duration * 60 * 1000L);
 
         loadCompletedSessionsCount();
     }
@@ -88,6 +93,7 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
     @Override
     public void onStudyDurationChanged(int minutes) {
         model.setStudyDuration(minutes * 60 * 1000L);
+        userManager.setTimerDuration(minutes);
     }
 
     @Override
@@ -155,7 +161,7 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
 
     @Override
     public int getStudyDurationMinutes() {
-        return (int) (model.getStudyDuration() / 1000 / 60);
+        return userManager.getTimerDuration();
     }
 
     @Override
@@ -167,7 +173,7 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
     public void saveSessionCompleted() {
         if (sessionRepository != null) {
             int studyDuration = getStudyDurationMinutes();
-            sessionRepository.saveCompletedStudySession(userId, studyDuration);
+            sessionRepository.saveCompletedStudySession(userManager.getCurrentUserId(), studyDuration);
             view.updateCompletedSessions(++completedSessionsFromDb);
         }
     }
@@ -175,7 +181,7 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
 
     private void loadCompletedSessionsCount() {
         if (sessionRepository != null) {
-            sessionRepository.loadCompletedSessionsCountToday(userId);
+            sessionRepository.loadCompletedSessionsCountToday(userManager.getCurrentUserId());
         }
     }
 
@@ -195,8 +201,5 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
         }
     }
 
-    public void setUserId(int userId) {
-        this.userId = userId;
-        loadCompletedSessionsCount(); 
-    }
+
 }

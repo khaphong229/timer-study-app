@@ -19,6 +19,7 @@ import com.example.timerstudy.R;
 import com.example.timerstudy.data.repository.UserRepository;
 import com.example.timerstudy.model.User;
 import com.example.timerstudy.presenter.ProfilePresenter;
+import com.example.timerstudy.utils.UserManager;
 import com.example.timerstudy.view.contracts.ProfileContract;
 
 import com.facebook.CallbackManager;
@@ -73,8 +74,8 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
     }
 
     private void initPresenter() {
-        UserRepository repository = UserRepository.getInstance(requireContext());
-        presenter = new ProfilePresenter(this, repository);
+        UserManager userManager = UserManager.getInstance(requireContext());
+        presenter = new ProfilePresenter(this, userManager);
     }
 
     private void initFacebookLogin() {

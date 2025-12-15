@@ -6,6 +6,7 @@ import com.example.timerstudy.R;
 import com.example.timerstudy.data.repository.SessionRepository;
 import com.example.timerstudy.model.ShopItem;
 import com.example.timerstudy.model.ShopModel;
+import com.example.timerstudy.utils.UserManager;
 import com.example.timerstudy.view.contracts.ShopContract;
 
 public class ShopPresenter implements ShopContract.Presenter {
@@ -15,9 +16,7 @@ public class ShopPresenter implements ShopContract.Presenter {
     public static ShopPresenter instance;
 
     private Context context;
-    private int userId = 1;
-    private SessionRepository sessionRepository;
-    private int completedSessionsFromDb = 0;
+    private UserManager userManager;
 
     public static ShopPresenter getInstance() {
         if (instance == null) {
@@ -32,18 +31,16 @@ public class ShopPresenter implements ShopContract.Presenter {
 
     public void initialize(Context context) {
         this.context = context;
+        this.userManager = UserManager.getInstance(context);
 
         model.initialize(context);
         model.loadShopItems();
-        this.sessionRepository = SessionRepository.getInstance(context);
-        loadCompletedSessionsCount();
     }
 
     @Override
     public void attachView(ShopContract.View view) {
         this.view = view;
         initializeView();
-        observeCompletedSessionsCount();
     }
 
     @Override
@@ -55,9 +52,7 @@ public class ShopPresenter implements ShopContract.Presenter {
         if (view != null) {
             view.showLoading();
             view.updateShopItems(model.getShopItems());
-
-            model.calculateUserCoins(completedSessionsFromDb);
-            view.updateCoins(model.getUserCoins());
+            view.updateCoins(userManager.getTotalCoins());
             view.hideLoading();
         }
     }
@@ -68,8 +63,7 @@ public class ShopPresenter implements ShopContract.Presenter {
             if (item.isPurchased()) {
                 onBackgroundSelected(item);
             } else {
-
-                if (model.getUserCoins() >= item.getPrice()) {
+                if (userManager.getTotalCoins() >= item.getPrice()) {
                     onPurchaseConfirmed(item);
                 } else {
                     view.showAdForItem(item);
@@ -108,17 +102,19 @@ public class ShopPresenter implements ShopContract.Presenter {
 
     @Override
     public void onPurchaseConfirmed(ShopItem item) {
-        if (model.purchaseItem(item)) {
-            if (view != null) {
-                view.showPurchaseSuccess("Purchased " + item.getName() + " successfully!");
-                view.updateItemPurchased(item.getId());
-                view.updateCoins(model.getUserCoins());
+        if (userManager.subtractCoins(item.getPrice())) {
+            if (model.purchaseItem(item)) {
+                if (view != null) {
+                    view.showPurchaseSuccess("Purchased " + item.getName() + " successfully!");
+                    view.updateItemPurchased(item.getId());
+                    view.updateCoins(userManager.getTotalCoins());
 
-                if (item.getType() == ShopItem.ItemType.BACKGROUND) {
-                    onBackgroundSelected(item);
+                    if (item.getType() == ShopItem.ItemType.BACKGROUND) {
+                        onBackgroundSelected(item);
+                    }
+
+                    savePurchasedItem(item);
                 }
-
-                savePurchasedItem(item);
             }
         } else {
             if (view != null) {
@@ -131,14 +127,14 @@ public class ShopPresenter implements ShopContract.Presenter {
     public void onAdWatchedForItem(ShopItem item) {
         // User đã xem quảng cáo đầy đủ - thêm coins thưởng
         int rewardCoins = 50000; // Coins nhận từ xem ad
-        model.setUserCoins(model.getUserCoins() + rewardCoins);
+        userManager.addCoins(rewardCoins);
         
         if (view != null) {
             view.showPurchaseSuccess("Earned " + rewardCoins + " coins from watching ad!");
-            view.updateCoins(model.getUserCoins());
+            view.updateCoins(userManager.getTotalCoins());
             
             // Sau khi có coins, tự động thử mua item
-            if (model.getUserCoins() >= item.getPrice()) {
+            if (userManager.getTotalCoins() >= item.getPrice()) {
                 onPurchaseConfirmed(item);
             }
         }
@@ -146,37 +142,12 @@ public class ShopPresenter implements ShopContract.Presenter {
 
     @Override
     public int getUserCoins() {
-        return model.getUserCoins();
+        return userManager.getTotalCoins();
     }
 
     @Override
     public void setUserId(int userId) {
-        this.userId = userId;
-        loadCompletedSessionsCount();
-    }
-
-    private void loadCompletedSessionsCount() {
-        if (sessionRepository != null) {
-            // Load ALL completed sessions (not just today) for total coins calculation
-            sessionRepository.loadTotalCompletedSessionsCount(userId);
-        }
-    }
-
-    private void observeCompletedSessionsCount() {
-        if (sessionRepository != null && view != null) {
-            sessionRepository.getCompletedSessionsCountLiveData().observe(
-                    ((androidx.lifecycle.LifecycleOwner) view),
-                    count -> {
-                        if (count != null) {
-                            completedSessionsFromDb = count;
-
-                            model.calculateUserCoins(count);
-                            if (view != null) {
-                                view.updateCoins(model.getUserCoins());
-                            }
-                        }
-                    });
-        }
+        // No longer needed
     }
 
     private void savePurchasedItem(ShopItem item) {
