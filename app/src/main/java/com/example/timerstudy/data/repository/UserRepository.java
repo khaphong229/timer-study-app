@@ -593,9 +593,9 @@ public class UserRepository {
                 String password = fbUser.getUserId();
                 String email = fbUser.getEmail();
 
+                // Ensure email is valid for backend (fallback was already set in presenter)
                 if (email == null || email.isEmpty()) {
-                    // Fallback nếu FB không trả về email
-                    email = fbUser.getUserId() + "@facebook.com";
+                    email = fbUser.getUserId() + "@facebook.local";
                 }
 
                 // 1. Thử Register
