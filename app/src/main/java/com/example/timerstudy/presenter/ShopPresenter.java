@@ -68,7 +68,12 @@ public class ShopPresenter implements ShopContract.Presenter {
             if (item.isPurchased()) {
                 onBackgroundSelected(item);
             } else {
-                onPurchaseConfirmed(item);
+
+                if (model.getUserCoins() >= item.getPrice()) {
+                    onPurchaseConfirmed(item);
+                } else {
+                    view.showAdForItem(item);
+                }
             }
         }
     }
@@ -121,6 +126,23 @@ public class ShopPresenter implements ShopContract.Presenter {
             }
         }
     }
+    
+    @Override
+    public void onAdWatchedForItem(ShopItem item) {
+        // User đã xem quảng cáo đầy đủ - thêm coins thưởng
+        int rewardCoins = 50000; // Coins nhận từ xem ad
+        model.setUserCoins(model.getUserCoins() + rewardCoins);
+        
+        if (view != null) {
+            view.showPurchaseSuccess("Earned " + rewardCoins + " coins from watching ad!");
+            view.updateCoins(model.getUserCoins());
+            
+            // Sau khi có coins, tự động thử mua item
+            if (model.getUserCoins() >= item.getPrice()) {
+                onPurchaseConfirmed(item);
+            }
+        }
+    }
 
     @Override
     public int getUserCoins() {
@@ -135,7 +157,8 @@ public class ShopPresenter implements ShopContract.Presenter {
 
     private void loadCompletedSessionsCount() {
         if (sessionRepository != null) {
-            sessionRepository.loadCompletedSessionsCountToday(userId);
+            // Load ALL completed sessions (not just today) for total coins calculation
+            sessionRepository.loadTotalCompletedSessionsCount(userId);
         }
     }
 

@@ -648,6 +648,34 @@ public class SessionRepository {
     }
     
     /**
+     * Load ALL completed sessions count (not just today)
+     * For calculating total coins in Shop
+     * 
+     * @param userId User ID to filter by
+     */
+    public void loadTotalCompletedSessionsCount(int userId) {
+        executorService.execute(() -> {
+            try {
+                List<SessionEntity> sessions = sessionDao.getCompletedSessionsByUser(userId);
+                
+                int count = 0;
+                for (SessionEntity session : sessions) {
+                    if (SessionEntity.TYPE_FOCUS_SESSION.equals(session.getSessionType())) {
+                        count++;
+                    }
+                }
+                
+                completedSessionsCountLiveData.postValue(count);
+                Log.d(TAG, "Total completed sessions count: " + count);
+                errorLiveData.postValue(null);
+            } catch (Exception e) {
+                Log.e(TAG, "Error loading total completed sessions count", e);
+                errorLiveData.postValue("Failed to load count: " + e.getMessage());
+            }
+        });
+    }
+    
+    /**
      * Save completed study session
      * 
      * @param userId User ID

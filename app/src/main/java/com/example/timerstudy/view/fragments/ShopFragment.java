@@ -18,6 +18,7 @@ import com.example.timerstudy.view.adapters.ShopAdapter;
 import com.example.timerstudy.model.ShopItem;
 import com.example.timerstudy.presenter.ShopPresenter;
 import com.example.timerstudy.view.contracts.ShopContract;
+import com.example.timerstudy.utils.AdManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +30,8 @@ public class ShopFragment extends Fragment implements ShopContract.View {
     private TextView tvCoins;
     private ProgressBar progressBar;
     private ShopAdapter adapter;
+    private AdManager adManager;
+    private ShopItem pendingAdItem;
 
     @Nullable
     @Override
@@ -62,6 +65,13 @@ public class ShopFragment extends Fragment implements ShopContract.View {
         presenter = ShopPresenter.getInstance();
         presenter.initialize(requireContext());
         presenter.attachView(this);
+        
+        initializeAdManager();
+    }
+    
+    private void initializeAdManager() {
+        adManager = new AdManager(requireContext());
+        adManager.preloadAd();
     }
 
     @Override
@@ -72,11 +82,90 @@ public class ShopFragment extends Fragment implements ShopContract.View {
     @Override
     public void updateCoins(int coins) {
         tvCoins.setText(String.valueOf(coins));
+
+        adapter.setUserCoins(coins);
     }
 
     @Override
     public void showPurchaseDialog(ShopItem item) {
+        // Not used - using showAdForItem instead
+    }
+    
+    @Override
+    public void showAdForItem(ShopItem item) {
+        pendingAdItem = item;
         
+        if (adManager.isAdReady()) {
+            showRewardedAdForItem();
+        } else {
+            showLoading();
+            Toast.makeText(requireContext(), "Loading ad, please wait...", Toast.LENGTH_SHORT).show();
+            
+            adManager.loadRewardedAd(new AdManager.RewardListener() {
+                @Override
+                public void onAdLoaded() {
+                    hideLoading();
+                    showRewardedAdForItem();
+                }
+                
+                @Override
+                public void onAdFailedToLoad(String error) {
+                    hideLoading();
+                    Toast.makeText(requireContext(), 
+                        "Ad not available. Please try again later.", 
+                        Toast.LENGTH_SHORT).show();
+                    pendingAdItem = null;
+                }
+                
+                @Override
+                public void onUserEarnedReward(int coins) {
+                    // Handled in showRewardedAdForItem
+                }
+                
+                @Override
+                public void onAdDismissed() {
+                    // Handled in showRewardedAdForItem
+                }
+            });
+        }
+    }
+    
+    private void showRewardedAdForItem() {
+        if (pendingAdItem == null || !isAdded()) return;
+        
+        adManager.loadRewardedAd(new AdManager.RewardListener() {
+            @Override
+            public void onAdLoaded() {
+                // Ad loaded
+            }
+            
+            @Override
+            public void onAdFailedToLoad(String error) {
+                Toast.makeText(requireContext(), "Ad failed to load", Toast.LENGTH_SHORT).show();
+            }
+            
+            @Override
+            public void onUserEarnedReward(int coins) {
+                // User watched ad successfully - unlock item
+                if (pendingAdItem != null && presenter != null) {
+                    presenter.onAdWatchedForItem(pendingAdItem);
+                    pendingAdItem = null;
+                }
+            }
+            
+            @Override
+            public void onAdDismissed() {
+                // User closed ad without watching completely
+                if (pendingAdItem != null) {
+                    Toast.makeText(requireContext(), 
+                        "Watch the full ad to unlock this item", 
+                        Toast.LENGTH_SHORT).show();
+                    pendingAdItem = null;
+                }
+            }
+        });
+        
+        adManager.showRewardedAd(requireActivity(), 0); // 0 coins vì chỉ unlock item
     }
 
     @Override

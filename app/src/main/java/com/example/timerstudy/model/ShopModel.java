@@ -40,16 +40,20 @@ public class ShopModel {
                 String name = field.getName();
                 if (name.startsWith("sbg_")) {
                     int resourceId = field.getInt(null);
+                    
+                    // Xác định giá cho từng background
+                    int price = getPriceForBackground(name, id);
+                    
                     ShopItem item = new ShopItem(
                             id,
-                            name,
-                            "",
-                            0,
+                            formatBackgroundName(name),
+                            getBackgroundDescription(price),
+                            price,
                             resourceId,
                             ShopItem.ItemType.BACKGROUND
                     );
 
-                    if (name == "sbg_default") {
+                    if (name.equals("sbg_default")) {
                         item.setPurchased(true);
                         savePurchasedItem(item.getId());
                     }
@@ -71,6 +75,61 @@ public class ShopModel {
         }
 
         return shopItems;
+    }
+    
+    /**
+     * Xác định giá cho background:
+     * Tất cả items đều có giá, không có items FREE
+     * Nếu user không đủ coins, họ xem ad để kiếm thêm
+     */
+    private int getPriceForBackground(String name, int id) {
+        // Default background miễn phí và đã unlock
+        if (name.equals("sbg_default")) {
+            return 0; // Đã unlock sẵn
+        }
+        
+        // Phân loại giá dựa theo vị trí
+        int position = id % 3;
+        
+        if (position == 0) {
+            // Giá rẻ - 30,000 coins
+            return 30000;
+        } else if (position == 1) {
+            // Giá vừa - 50,000 coins (bằng 1 lần xem ad)
+            return 50000;
+        } else {
+            // Giá cao - 100,000 coins
+            return 100000;
+        }
+    }
+    
+    private String formatBackgroundName(String name) {
+        // Chuyển "sbg_rain_girl_frog" thành "Rain Girl Frog"
+        String formatted = name.replace("sbg_", "")
+                               .replace("_", " ");
+        // Capitalize first letter of each word
+        String[] words = formatted.split(" ");
+        StringBuilder result = new StringBuilder();
+        for (String word : words) {
+            if (word.length() > 0) {
+                result.append(Character.toUpperCase(word.charAt(0)))
+                      .append(word.substring(1))
+                      .append(" ");
+            }
+        }
+        return result.toString().trim();
+    }
+    
+    private String getBackgroundDescription(int price) {
+        if (price == 0) {
+            return "Default unlocked";
+        } else if (price <= 30000) {
+            return "Basic background";
+        } else if (price <= 50000) {
+            return "Premium background";
+        } else {
+            return "Exclusive background";
+        }
     }
 
     public void calculateUserCoins(int completedSessions) {

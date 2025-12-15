@@ -9,6 +9,7 @@ public interface ShopContract {
         void updateShopItems(List<ShopItem> items);
         void updateCoins(int coins);
         void showPurchaseDialog(ShopItem item);
+        void showAdForItem(ShopItem item); // Show ad for free items
         void showPurchaseSuccess(String message);
         void showPurchaseError(String message);
         void updateItemPurchased(int itemId);
@@ -22,6 +23,7 @@ public interface ShopContract {
         void detachView();
         void onItemClicked(ShopItem item);
         void onPurchaseConfirmed(ShopItem item);
+        void onAdWatchedForItem(ShopItem item); // Called when user watched ad for item
         int getUserCoins();
         void setUserId(int userId);
         void onBackgroundSelected(ShopItem item);

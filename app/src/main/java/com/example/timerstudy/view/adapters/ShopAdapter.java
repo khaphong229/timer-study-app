@@ -17,6 +17,7 @@ public class ShopAdapter extends BaseAdapter {
     private Context context;
     private List<ShopItem> items;
     private OnItemClickListener listener;
+    private int userCoins = 0;
 
     public interface OnItemClickListener {
         void onItemClick(ShopItem item);
@@ -29,6 +30,11 @@ public class ShopAdapter extends BaseAdapter {
 
     public void setItems(List<ShopItem> items) {
         this.items = items;
+        notifyDataSetChanged();
+    }
+    
+    public void setUserCoins(int coins) {
+        this.userCoins = coins;
         notifyDataSetChanged();
     }
 
@@ -88,7 +94,14 @@ public class ShopAdapter extends BaseAdapter {
             }
             convertView.setAlpha(1.0f);
         } else {
-            holder.btnAction.setText(item.getPrice() + " coins");
+            // Kiểm tra user có đủ coins không
+            if (userCoins >= item.getPrice()) {
+                // Đủ coins - hiển thị giá để mua
+                holder.btnAction.setText(item.getPrice() + " coins");
+            } else {
+                // Không đủ coins - hiển thị "Watch Ad" để kiếm thêm
+                holder.btnAction.setText("📺 Watch Ad");
+            }
             holder.btnAction.setEnabled(true);
             convertView.setAlpha(0.8f);
         }
