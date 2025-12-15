@@ -16,6 +16,9 @@ import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
 import com.example.timerstudy.R;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CircleCrop;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.timerstudy.data.repository.UserRepository;
 import com.example.timerstudy.model.User;
 import com.example.timerstudy.presenter.ProfilePresenter;
@@ -130,14 +133,21 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
     public void showUserProfile(User user) {
         tvUserName.setText(user.getName());
         btnLoginFacebook.setVisibility(View.GONE);
-        // TODO: Load avatar image using Glide/Picasso if user.getProfileImageUrl() is
-        // not empty
+
+        // Load avatar if available
+        if (user.getProfileImageUrl() != null && !user.getProfileImageUrl().isEmpty()) {
+            loadUserAvatar(user.getProfileImageUrl());
+            Log.d(TAG, "Loading Facebook avatar: " + user.getProfileImageUrl());
+        } else {
+            showDefaultAvatar();
+        }
     }
 
     @Override
     public void showGuestMode() {
         tvUserName.setText("Guest User");
         btnLoginFacebook.setVisibility(View.VISIBLE);
+        showDefaultAvatar();
     }
 
     @Override
@@ -178,5 +188,29 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         mCallbackManager.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    public void loadUserAvatar(String imageUrl) {
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            RequestOptions requestOptions = new RequestOptions()
+                    .transform(new CircleCrop())
+                    .placeholder(R.drawable.sbg_rain_girl_frog)
+                    .error(R.drawable.sbg_rain_girl_frog);
+
+            Glide.with(this)
+                    .load(imageUrl)
+                    .apply(requestOptions)
+                    .into(ivAvatar);
+
+            Log.d(TAG, "Avatar loaded successfully from: " + imageUrl);
+        } else {
+            showDefaultAvatar();
+        }
+    }
+
+    @Override
+    public void showDefaultAvatar() {
+        ivAvatar.setImageResource(R.drawable.sbg_rain_girl_frog);
     }
 }

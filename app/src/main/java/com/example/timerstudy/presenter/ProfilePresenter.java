@@ -152,6 +152,11 @@ public class ProfilePresenter implements ProfileContract.Presenter {
                 profileImageUrl = object.getJSONObject("picture")
                         .getJSONObject("data")
                         .optString("url", "");
+
+                // Log avatar URL để kiểm tra
+                Log.d(TAG, "=== FACEBOOK AVATAR URL ===");
+                Log.d(TAG, "Profile Image URL: " + profileImageUrl);
+                Log.d(TAG, "============================");
             }
 
             // Tạo User mới
@@ -161,6 +166,14 @@ public class ProfilePresenter implements ProfileContract.Presenter {
             facebookUser.setName(name);
             facebookUser.setEmail(email);
             facebookUser.setProfileImageUrl(profileImageUrl);
+
+            // Log toàn bộ thông tin user để debug
+            Log.d(TAG, "=== USER INFO ===");
+            Log.d(TAG, "User ID: " + facebookUser.getUserId());
+            Log.d(TAG, "Name: " + facebookUser.getName());
+            Log.d(TAG, "Email: " + facebookUser.getEmail());
+            Log.d(TAG, "Profile Image URL: " + facebookUser.getProfileImageUrl());
+            Log.d(TAG, "==================");
 
             facebookUser.setLoggedIn(true);
             facebookUser.setLoginProvider("facebook");

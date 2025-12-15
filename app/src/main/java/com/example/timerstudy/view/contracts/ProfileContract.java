@@ -20,6 +20,10 @@ public interface ProfileContract {
         void showLogoutButton();
 
         void hideLogoutButton();
+
+        void loadUserAvatar(String imageUrl);
+
+        void showDefaultAvatar();
     }
 
     interface Presenter {
