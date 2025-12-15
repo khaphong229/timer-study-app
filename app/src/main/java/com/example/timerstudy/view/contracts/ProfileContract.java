@@ -16,6 +16,10 @@ public interface ProfileContract {
         void showLoading();
 
         void hideLoading();
+
+        void showLogoutButton();
+
+        void hideLogoutButton();
     }
 
     interface Presenter {

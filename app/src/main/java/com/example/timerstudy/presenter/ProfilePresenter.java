@@ -44,10 +44,15 @@ public class ProfilePresenter implements ProfileContract.Presenter {
         if (currentUser != null) {
             if (currentUser.isLoggedIn()) {
                 view.showUserProfile(currentUser);
+                view.showLogoutButton();
             } else {
                 view.showGuestMode();
+                view.hideLogoutButton();
             }
             view.updateVibratorSwitch(currentUser.isVibratorEnabled());
+        } else {
+            view.showGuestMode();
+            view.hideLogoutButton();
         }
     }
 

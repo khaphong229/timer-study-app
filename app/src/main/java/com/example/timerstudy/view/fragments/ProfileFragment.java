@@ -71,6 +71,9 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
         btnNotifications = view.findViewById(R.id.btnNotifications);
         btnPrivacy = view.findViewById(R.id.btnPrivacy);
         btnLogout = view.findViewById(R.id.btnLogout);
+
+        // Hide logout button initially
+        btnLogout.setVisibility(View.GONE);
     }
 
     private void initPresenter() {
@@ -99,7 +102,14 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
             @Override
             public void onError(FacebookException error) {
                 Log.d(TAG, "facebook:onError", error);
-                showMessage("Facebook login error: " + error.getMessage());
+                String errorMessage = error.getMessage();
+                if (errorMessage != null && errorMessage.contains("key hash")) {
+                    showMessage("Facebook configuration error. Please check app settings.");
+                    Log.e(TAG,
+                            "Key hash error - add the following to Facebook app settings: dtXwpvkdPGYCQI9CIWE3eQPPrFI=");
+                } else {
+                    showMessage("Facebook login error: " + errorMessage);
+                }
             }
         });
     }
@@ -152,6 +162,16 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
     @Override
     public void hideLoading() {
         // Optional: Hide progress dialog
+    }
+
+    @Override
+    public void showLogoutButton() {
+        btnLogout.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void hideLogoutButton() {
+        btnLogout.setVisibility(View.GONE);
     }
 
     @Override
