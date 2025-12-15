@@ -13,7 +13,6 @@ import java.util.Set;
 
 public class ShopModel {
     private List<ShopItem> shopItems;
-    private int userCoins;
     private SharedPreferences prefs;
     private static final String PREF_NAME = "shop_prefs";
     private static final String KEY_PURCHASED_ITEMS = "purchased_items";
@@ -21,7 +20,6 @@ public class ShopModel {
 
     public ShopModel() {
         shopItems = new ArrayList<>();
-        userCoins = 0;
     }
 
     public void initialize(Context context) {
@@ -132,27 +130,11 @@ public class ShopModel {
         }
     }
 
-    public void calculateUserCoins(int completedSessions) {
-        this.userCoins = completedSessions * 10000;
-    }
-
-    public int getUserCoins() {
-        return userCoins;
-    }
-
-    public void setUserCoins(int coins) {
-        this.userCoins = coins;
-    }
-
+   
     public boolean purchaseItem(ShopItem item) {
-        if (userCoins >= item.getPrice()) {
-            userCoins -= item.getPrice();
-            item.setPurchased(true);
-
-            savePurchasedItem(item.getId());
-            return true;
-        }
-        return false;
+        item.setPurchased(true);
+        savePurchasedItem(item.getId());
+        return true;
     }
 
     public void selectBackground(int itemId) {

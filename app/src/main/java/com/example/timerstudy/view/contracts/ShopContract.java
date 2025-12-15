@@ -9,6 +9,7 @@ public interface ShopContract {
         void updateShopItems(List<ShopItem> items);
         void updateCoins(int coins);
         void showPurchaseDialog(ShopItem item);
+        void showInsufficientFundsDialog(ShopItem item); // New method
         void showAdForItem(ShopItem item); // Show ad for free items
         void showPurchaseSuccess(String message);
         void showPurchaseError(String message);

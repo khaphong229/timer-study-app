@@ -65,10 +65,10 @@ public class ShopFragment extends Fragment implements ShopContract.View {
         presenter = ShopPresenter.getInstance();
         presenter.initialize(requireContext());
         presenter.attachView(this);
-        
+
         initializeAdManager();
     }
-    
+
     private void initializeAdManager() {
         adManager = new AdManager(requireContext());
         adManager.preloadAd();
@@ -90,38 +90,50 @@ public class ShopFragment extends Fragment implements ShopContract.View {
     public void showPurchaseDialog(ShopItem item) {
         // Not used - using showAdForItem instead
     }
-    
+
     @Override
-    public void showAdForItem(ShopItem item) {
+    public void showInsufficientFundsDialog(ShopItem item) {
+        new android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Not enough coins")
+                .setMessage("You don't have enough coins to buy this item. Watch an ad to earn coins?")
+                .setPositiveButton("Watch Ad", (dialog, which) -> {
+                    showAdForItem(item);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    @Override
+    public void showAdForItem(ShopItem item){
         pendingAdItem = item;
-        
+
         if (adManager.isAdReady()) {
             showRewardedAdForItem();
         } else {
             showLoading();
             Toast.makeText(requireContext(), "Loading ad, please wait...", Toast.LENGTH_SHORT).show();
-            
+
             adManager.loadRewardedAd(new AdManager.RewardListener() {
                 @Override
                 public void onAdLoaded() {
                     hideLoading();
                     showRewardedAdForItem();
                 }
-                
+
                 @Override
                 public void onAdFailedToLoad(String error) {
                     hideLoading();
-                    Toast.makeText(requireContext(), 
-                        "Ad not available. Please try again later.", 
+                    Toast.makeText(requireContext(),
+                        "Ad not available. Please try again later.",
                         Toast.LENGTH_SHORT).show();
                     pendingAdItem = null;
                 }
-                
+
                 @Override
-                public void onUserEarnedReward(int coins) {
+                public void onUserEarnedReward() {
                     // Handled in showRewardedAdForItem
                 }
-                
+
                 @Override
                 public void onAdDismissed() {
                     // Handled in showRewardedAdForItem
@@ -129,43 +141,43 @@ public class ShopFragment extends Fragment implements ShopContract.View {
             });
         }
     }
-    
+
     private void showRewardedAdForItem() {
         if (pendingAdItem == null || !isAdded()) return;
-        
-        adManager.loadRewardedAd(new AdManager.RewardListener() {
+
+        adManager.showRewardedAd(requireActivity(), new AdManager.RewardListener() {
             @Override
             public void onAdLoaded() {
                 // Ad loaded
             }
-            
+
             @Override
             public void onAdFailedToLoad(String error) {
                 Toast.makeText(requireContext(), "Ad failed to load", Toast.LENGTH_SHORT).show();
             }
-            
+
             @Override
-            public void onUserEarnedReward(int coins) {
-                // User watched ad successfully - unlock item
+            public void onUserEarnedReward() {
+                android.util.Log.d("ShopFragment", "onUserEarnedReward called");
                 if (pendingAdItem != null && presenter != null) {
                     presenter.onAdWatchedForItem(pendingAdItem);
                     pendingAdItem = null;
+                } else {
+                    android.util.Log.e("ShopFragment", "pendingAdItem or presenter is null");
                 }
             }
-            
+
             @Override
             public void onAdDismissed() {
                 // User closed ad without watching completely
                 if (pendingAdItem != null) {
-                    Toast.makeText(requireContext(), 
-                        "Watch the full ad to unlock this item", 
+                    Toast.makeText(requireContext(),
+                        "Watch the full ad to unlock this item",
                         Toast.LENGTH_SHORT).show();
                     pendingAdItem = null;
                 }
             }
         });
-        
-        adManager.showRewardedAd(requireActivity(), 0); // 0 coins vì chỉ unlock item
     }
 
     @Override

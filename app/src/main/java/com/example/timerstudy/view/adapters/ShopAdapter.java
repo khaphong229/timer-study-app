@@ -94,14 +94,9 @@ public class ShopAdapter extends BaseAdapter {
             }
             convertView.setAlpha(1.0f);
         } else {
-            // Kiểm tra user có đủ coins không
-            if (userCoins >= item.getPrice()) {
-                // Đủ coins - hiển thị giá để mua
-                holder.btnAction.setText(item.getPrice() + " coins");
-            } else {
-                // Không đủ coins - hiển thị "Watch Ad" để kiếm thêm
-                holder.btnAction.setText("📺 Watch Ad");
-            }
+            // Luôn hiển thị giá tiền, kể cả khi không đủ coin
+            holder.btnAction.setText(item.getPrice() + " coins");
+            
             holder.btnAction.setEnabled(true);
             convertView.setAlpha(0.8f);
         }

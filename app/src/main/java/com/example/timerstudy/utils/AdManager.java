@@ -27,7 +27,7 @@ public class AdManager {
     public interface RewardListener {
         void onAdLoaded();
         void onAdFailedToLoad(String error);
-        void onUserEarnedReward(int coins);
+        void onUserEarnedReward();
         void onAdDismissed();
     }
     
@@ -127,7 +127,9 @@ public class AdManager {
     /**
      * Show rewarded ad
      */
-    public void showRewardedAd(Activity activity, int rewardCoins) {
+    public void showRewardedAd(Activity activity, RewardListener listener) {
+        this.listener = listener;
+        
         if (rewardedAd == null) {
             Log.w(TAG, "Rewarded ad is not ready");
             if (listener != null) {
@@ -139,13 +141,7 @@ public class AdManager {
         rewardedAd.show(activity, new OnUserEarnedRewardListener() {
             @Override
             public void onUserEarnedReward(@NonNull RewardItem rewardItem) {
-                // User watched the ad completely
-                int amount = rewardCoins; // Use custom reward amount
-                Log.d(TAG, "User earned reward: " + amount + " coins");
-                
-                if (listener != null) {
-                    listener.onUserEarnedReward(amount);
-                }
+                listener.onUserEarnedReward();
             }
         });
     }
@@ -173,7 +169,7 @@ public class AdManager {
             }
             
             @Override
-            public void onUserEarnedReward(int coins) {
+            public void onUserEarnedReward() {
                 // Not used in preload
             }
             

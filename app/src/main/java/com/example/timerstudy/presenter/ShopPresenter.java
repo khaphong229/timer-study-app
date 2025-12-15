@@ -66,7 +66,7 @@ public class ShopPresenter implements ShopContract.Presenter {
                 if (userManager.getTotalCoins() >= item.getPrice()) {
                     onPurchaseConfirmed(item);
                 } else {
-                    view.showAdForItem(item);
+                    view.showInsufficientFundsDialog(item);
                 }
             }
         }
@@ -125,15 +125,14 @@ public class ShopPresenter implements ShopContract.Presenter {
     
     @Override
     public void onAdWatchedForItem(ShopItem item) {
-        // User đã xem quảng cáo đầy đủ - thêm coins thưởng
-        int rewardCoins = 50000; // Coins nhận từ xem ad
+
+        int rewardCoins = item.getPrice();
         userManager.addCoins(rewardCoins);
         
         if (view != null) {
             view.showPurchaseSuccess("Earned " + rewardCoins + " coins from watching ad!");
             view.updateCoins(userManager.getTotalCoins());
-            
-            // Sau khi có coins, tự động thử mua item
+
             if (userManager.getTotalCoins() >= item.getPrice()) {
                 onPurchaseConfirmed(item);
             }
