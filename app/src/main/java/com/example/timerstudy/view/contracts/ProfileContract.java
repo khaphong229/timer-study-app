@@ -16,6 +16,16 @@ public interface ProfileContract {
         void showLoading();
 
         void hideLoading();
+
+        void showLogoutButton();
+
+        void hideLogoutButton();
+
+        void loadUserAvatar(String imageUrl);
+
+        void showDefaultAvatar();
+
+        void updateLoadingMessage(String message);
     }
 
     interface Presenter {

@@ -9,16 +9,13 @@ import com.example.timerstudy.utils.UserManager;
 import com.example.timerstudy.view.contracts.ProfileContract;
 import com.facebook.AccessToken;
 import com.facebook.GraphRequest;
+import com.facebook.login.LoginManager;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import org.json.JSONObject;
-import org.json.JSONArray;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ProfilePresenter implements ProfileContract.Presenter {
 
@@ -37,17 +34,43 @@ public class ProfilePresenter implements ProfileContract.Presenter {
     @Override
     public void loadUserData() {
         currentUser = userManager.getCurrentUser();
+
+        // Log để debug
+        Log.d(TAG, "=== LOADING USER DATA ===");
+        if (currentUser != null) {
+            Log.d(TAG, "User found:");
+            Log.d(TAG, "Name: " + currentUser.getName());
+            Log.d(TAG, "IsLoggedIn: " + currentUser.isLoggedIn());
+            Log.d(TAG, "Profile Image URL: " + currentUser.getProfileImageUrl());
+            Log.d(TAG, "Login Provider: " + currentUser.getLoginProvider());
+        } else {
+            Log.d(TAG, "No user found");
+        }
+        Log.d(TAG, "==========================");
+
         updateView();
     }
 
     private void updateView() {
         if (currentUser != null) {
             if (currentUser.isLoggedIn()) {
+                // Log để debug updateView
+                Log.d(TAG, "=== UPDATE VIEW - LOGGED IN USER ===");
+                Log.d(TAG, "Showing profile for: " + currentUser.getName());
+                Log.d(TAG, "Profile Image URL: " + currentUser.getProfileImageUrl());
+
                 view.showUserProfile(currentUser);
+                view.showLogoutButton();
             } else {
+                Log.d(TAG, "=== UPDATE VIEW - GUEST USER ===");
                 view.showGuestMode();
+                view.hideLogoutButton();
             }
             view.updateVibratorSwitch(currentUser.isVibratorEnabled());
+        } else {
+            Log.d(TAG, "=== UPDATE VIEW - NO USER ===");
+            view.showGuestMode();
+            view.hideLogoutButton();
         }
     }
 
@@ -62,11 +85,26 @@ public class ProfilePresenter implements ProfileContract.Presenter {
 
     @Override
     public void logout() {
+        Log.d(TAG, "=== LOGOUT PROCESS STARTED ===");
+
+        // Logout from Firebase
         mAuth.signOut();
+        Log.d(TAG, "Firebase signed out");
+
+        // Logout from Facebook SDK (đảm bảo logout hoàn toàn)
+        LoginManager.getInstance().logOut();
+        Log.d(TAG, "Facebook SDK logged out");
+
+        // Clear local user data
         if (currentUser != null) {
+            Log.d(TAG, "Clearing user: " + currentUser.getName());
             currentUser.logout();
+            userManager.setCurrentUser(currentUser);
             userManager.saveUser();
         }
+
+        Log.d(TAG, "=== LOGOUT COMPLETED ===");
+
         updateView();
         view.showMessage("Logged out successfully");
     }
@@ -114,11 +152,12 @@ public class ProfilePresenter implements ProfileContract.Presenter {
         GraphRequest request = GraphRequest.newMeRequest(
                 accessToken,
                 (object, response) -> {
-                    view.hideLoading();
+                    // Không hide loading ở đây nữa vì còn phải sync backend
                     try {
                         processFacebookUserData(object, firebaseIdToken);
                     } catch (Exception e) {
                         Log.e(TAG, "Error parsing Facebook user data", e);
+                        view.hideLoading();
                         view.showMessage("Error getting user data");
                     }
                 });
@@ -147,6 +186,11 @@ public class ProfilePresenter implements ProfileContract.Presenter {
                 profileImageUrl = object.getJSONObject("picture")
                         .getJSONObject("data")
                         .optString("url", "");
+
+                // Log avatar URL để kiểm tra
+                Log.d(TAG, "=== FACEBOOK AVATAR URL ===");
+                Log.d(TAG, "Profile Image URL: " + profileImageUrl);
+                Log.d(TAG, "============================");
             }
 
             // Tạo User mới
@@ -156,6 +200,14 @@ public class ProfilePresenter implements ProfileContract.Presenter {
             facebookUser.setName(name);
             facebookUser.setEmail(email);
             facebookUser.setProfileImageUrl(profileImageUrl);
+
+            // Log toàn bộ thông tin user để debug
+            Log.d(TAG, "=== USER INFO ===");
+            Log.d(TAG, "User ID: " + facebookUser.getUserId());
+            Log.d(TAG, "Name: " + facebookUser.getName());
+            Log.d(TAG, "Email: " + facebookUser.getEmail());
+            Log.d(TAG, "Profile Image URL: " + facebookUser.getProfileImageUrl());
+            Log.d(TAG, "==================");
 
             facebookUser.setLoggedIn(true);
             facebookUser.setLoginProvider("facebook");
@@ -178,19 +230,30 @@ public class ProfilePresenter implements ProfileContract.Presenter {
 
             currentUser = facebookUser;
 
-            // THAY ĐỔI: Gọi sync với backend, truyền thêm firebaseIdToken
-            view.showLoading();
-            view.showMessage("Syncing with server...");
+            // QUAN TRỌNG: Lưu user ngay lập tức để đảm bảo dữ liệu được persist
+            userManager.setCurrentUser(currentUser);
+            userManager.saveUser();
 
-            // TODO: Truyền firebaseIdToken vào syncFacebookUser
-            // userManager.syncFacebookUser(currentUser, firebaseIdToken, callback);
+            Log.d(TAG, "=== USER SAVED LOCALLY ===");
+            Log.d(TAG, "Saved user: " + currentUser.getName());
+            Log.d(TAG, "Profile Image URL: " + currentUser.getProfileImageUrl());
+            Log.d(TAG, "============================");
+
+            // Giữ loading hiển thị và chỉ update message
+            view.showMessage("Syncing with server...");
 
             // Tạm thời giữ nguyên logic cũ
             userManager.syncFacebookUser(currentUser, new UserRepository.SyncCallback() {
                 @Override
                 public void onSuccess(User syncedUser) {
                     currentUser = syncedUser;
-                    userManager.loadCurrentUser();
+                    userManager.setCurrentUser(currentUser);
+                    userManager.saveUser();
+
+                    Log.d(TAG, "=== SYNC SUCCESS ===");
+                    Log.d(TAG, "Synced user: " + syncedUser.getName());
+                    Log.d(TAG, "Profile Image URL: " + syncedUser.getProfileImageUrl());
+                    Log.d(TAG, "===================");
 
                     new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
                         view.hideLoading();
@@ -201,12 +264,26 @@ public class ProfilePresenter implements ProfileContract.Presenter {
 
                 @Override
                 public void onError(String message) {
+                    // Đảm bảo user được lưu ngay cả khi sync thất bại
+                    userManager.setCurrentUser(currentUser);
                     userManager.saveUser();
+
+                    Log.d(TAG, "=== SYNC ERROR - SAVED LOCALLY ===");
+                    Log.d(TAG, "Local user: " + currentUser.getName());
+                    Log.d(TAG, "Profile Image URL: " + currentUser.getProfileImageUrl());
+                    Log.d(TAG, "Error message: " + message);
+                    Log.d(TAG, "==================================");
 
                     new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
                         view.hideLoading();
                         updateView();
-                        view.showMessage("Login local only. " + message);
+
+                        // Hiển thị message phù hợp với lỗi
+                        if (message.contains("CLEARTEXT")) {
+                            view.showMessage("Login successful (offline mode)");
+                        } else {
+                            view.showMessage("Login local only. " + message);
+                        }
                     });
                 }
             });
@@ -216,8 +293,4 @@ public class ProfilePresenter implements ProfileContract.Presenter {
             view.hideLoading();
         }
     }
-
-    // Remove friends functionality since user_friends permission is deprecated
-    // public void getFacebookFriendsList(AccessToken accessToken) { ... }
-    // private void processFriendsList(JSONArray friendsArray) { ... }
 }
