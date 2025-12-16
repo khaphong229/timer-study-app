@@ -2,11 +2,16 @@ package com.example.timerstudy.utils;
 
 import android.content.Context;
 import com.example.timerstudy.data.repository.UserRepository;
+import com.example.timerstudy.data.repository.SessionRepository;
 import com.example.timerstudy.model.User;
+import com.example.timerstudy.model.Session;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class UserManager {
     private static UserManager instance;
     private UserRepository userRepository;
+
     private User currentUser;
 
     private UserManager(Context context) {
@@ -77,7 +82,31 @@ public class UserManager {
         return userRepository.getCurrentUserId();
     }
 
-    public void syncFacebookUser(User fbUser, UserRepository.SyncCallback callback) {
-        userRepository.syncFacebookUser(fbUser, callback);
+    public void syncFacebookUser(User fbUser, String firebaseToken, UserRepository.SyncCallback callback) {
+        userRepository.syncFacebookUser(fbUser, firebaseToken, callback);
+    }
+
+    // Hàm mới để sync session
+    public void syncSession(Session session) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            user.getIdToken(true).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    String token = task.getResult().getToken();
+//                    sessionRepository.syncSession(session, token, new SessionRepository.SyncCallback() {
+//                        @Override
+//                        public void onSuccess() {
+//                            android.util.Log.d("UserManager", "Session synced successfully");
+//                        }
+//
+//                        @Override
+//                        public void onError(String message) {
+//                            android.util.Log.e("UserManager", "Session sync failed: " + message);
+//                            // Có thể lưu vào hàng đợi để sync sau bằng WorkManager nếu muốn
+//                        }
+//                    });
+                }
+            });
+        }
     }
 }

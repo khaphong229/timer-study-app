@@ -9,10 +9,17 @@ import androidx.lifecycle.MutableLiveData;
 import com.example.timerstudy.data.local.database.AppDatabase;
 import com.example.timerstudy.data.local.database.dao.SessionDao;
 import com.example.timerstudy.data.local.database.entities.SessionEntity;
+import com.example.timerstudy.data.remote.ApiClient;
+import com.example.timerstudy.data.remote.ApiService;
+import com.example.timerstudy.model.Session;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * Repository for Session data operations
@@ -715,5 +722,50 @@ public class SessionRepository {
                 isLoadingLiveData.postValue(false);
             }
         });
+    }
+
+    // Hàm đồng bộ session lên server
+    public void syncSession(SessionEntity sessionEntity, String firebaseToken, SyncCallback callback) {
+        ApiService apiService = ApiClient.getService();
+        String authHeader = "Bearer " + firebaseToken;
+
+        // Convert Entity to Model
+        com.example.timerstudy.model.Session session = new com.example.timerstudy.model.Session();
+        session.setSession_id(sessionEntity.getSessionId());
+        session.setUser_id(sessionEntity.getUserId());
+        session.setSession_date(sessionEntity.getSessionDate());
+        session.setStart_time(sessionEntity.getStartTime());
+        session.setEnd_time(sessionEntity.getEndTime());
+        session.setDuration_minutes(sessionEntity.getDurationMinutes());
+        session.setSession_type(sessionEntity.getSessionType());
+        session.setStatus(sessionEntity.getStatus());
+        session.setCreated_at(sessionEntity.getCreatedAt());
+
+        apiService.createSession(authHeader, session).enqueue(new Callback<com.example.timerstudy.model.Session>() {
+            @Override
+            public void onResponse(Call<com.example.timerstudy.model.Session> call, Response<com.example.timerstudy.model.Session> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    // Server trả về session đã tạo (có thể có ID từ server)
+                    // Bạn có thể update lại ID local nếu cần, hoặc chỉ cần log thành công
+                    callback.onSuccess();
+                } else {
+                    callback.onError("Server error: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Session> call, Throwable t) {
+                callback.onError("Network error: " + t.getMessage());
+            }
+        });
+    }
+
+    public List<SessionEntity> getAllSessionsSync() {
+        return sessionDao.getAllSessions();
+    }
+
+    public interface SyncCallback {
+        void onSuccess();
+        void onError(String message);
     }
 }
