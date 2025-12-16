@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -19,7 +20,6 @@ import com.example.timerstudy.R;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CircleCrop;
 import com.bumptech.glide.request.RequestOptions;
-import com.example.timerstudy.data.repository.UserRepository;
 import com.example.timerstudy.model.User;
 import com.example.timerstudy.presenter.ProfilePresenter;
 import com.example.timerstudy.utils.UserManager;
@@ -42,6 +42,10 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
     private LinearLayout btnNotifications;
     private LinearLayout btnPrivacy;
     private LinearLayout btnLogout;
+
+    // Loading UI
+    private FrameLayout loadingOverlay;
+    private TextView tvLoadingMessage;
 
     private ProfilePresenter presenter;
     private CallbackManager mCallbackManager;
@@ -73,6 +77,10 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
         btnNotifications = view.findViewById(R.id.btnNotifications);
         btnPrivacy = view.findViewById(R.id.btnPrivacy);
         btnLogout = view.findViewById(R.id.btnLogout);
+
+        // Loading UI
+        loadingOverlay = view.findViewById(R.id.loadingOverlay);
+        tvLoadingMessage = view.findViewById(R.id.tvLoadingMessage);
 
         btnLogout.setVisibility(View.GONE);
     }
@@ -166,10 +174,18 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
 
     @Override
     public void showLoading() {
+        if (loadingOverlay != null) {
+            loadingOverlay.setVisibility(View.VISIBLE);
+            Log.d(TAG, "Loading overlay shown");
+        }
     }
 
     @Override
     public void hideLoading() {
+        if (loadingOverlay != null) {
+            loadingOverlay.setVisibility(View.GONE);
+            Log.d(TAG, "Loading overlay hidden");
+        }
     }
 
     @Override
@@ -215,5 +231,13 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
     public void showDefaultAvatar() {
         Log.d(TAG, "=== SHOW DEFAULT AVATAR ===");
         ivAvatar.setImageResource(R.drawable.sbg_rain_girl_frog);
+    }
+
+    @Override
+    public void updateLoadingMessage(String message) {
+        if (tvLoadingMessage != null) {
+            tvLoadingMessage.setText(message);
+            Log.d(TAG, "Loading message updated: " + message);
+        }
     }
 }

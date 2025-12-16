@@ -136,11 +136,12 @@ public class ProfilePresenter implements ProfileContract.Presenter {
         GraphRequest request = GraphRequest.newMeRequest(
                 accessToken,
                 (object, response) -> {
-                    view.hideLoading();
+                    // Không hide loading ở đây nữa vì còn phải sync backend
                     try {
                         processFacebookUserData(object, firebaseIdToken);
                     } catch (Exception e) {
                         Log.e(TAG, "Error parsing Facebook user data", e);
+                        view.hideLoading();
                         view.showMessage("Error getting user data");
                     }
                 });
@@ -222,12 +223,8 @@ public class ProfilePresenter implements ProfileContract.Presenter {
             Log.d(TAG, "Profile Image URL: " + currentUser.getProfileImageUrl());
             Log.d(TAG, "============================");
 
-            // THAY ĐỔI: Gọi sync với backend, truyền thêm firebaseIdToken
-            view.showLoading();
+            // Giữ loading hiển thị và chỉ update message
             view.showMessage("Syncing with server...");
-
-            // TODO: Truyền firebaseIdToken vào syncFacebookUser
-            // userManager.syncFacebookUser(currentUser, firebaseIdToken, callback);
 
             // Tạm thời giữ nguyên logic cũ
             userManager.syncFacebookUser(currentUser, new UserRepository.SyncCallback() {

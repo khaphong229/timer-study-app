@@ -24,6 +24,8 @@ public interface ProfileContract {
         void loadUserAvatar(String imageUrl);
 
         void showDefaultAvatar();
+
+        void updateLoadingMessage(String message);
     }
 
     interface Presenter {
