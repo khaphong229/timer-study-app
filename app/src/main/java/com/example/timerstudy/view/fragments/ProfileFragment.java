@@ -32,6 +32,7 @@ import com.facebook.FacebookException;
 import com.facebook.login.LoginResult;
 import com.facebook.login.LoginManager;
 import com.facebook.login.widget.LoginButton;
+import com.facebook.AccessToken;
 
 public class ProfileFragment extends Fragment implements ProfileContract.View {
 
@@ -101,7 +102,17 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
             @Override
             public void onSuccess(LoginResult loginResult) {
                 Log.d(TAG, "facebook:onSuccess:" + loginResult);
-                presenter.handleFacebookToken(loginResult.getAccessToken());
+
+                // Log Facebook Access Token từ LoginResult
+                AccessToken accessToken = loginResult.getAccessToken();
+                Log.d(TAG, "=== FACEBOOK LOGIN SUCCESS ===");
+                Log.d(TAG, "Access Token: " + accessToken.getToken());
+                Log.d(TAG, "User ID: " + accessToken.getUserId());
+                Log.d(TAG, "Token Source: " + accessToken.getSource());
+                Log.d(TAG, "Permissions: " + accessToken.getPermissions());
+                Log.d(TAG, "==============================");
+
+                presenter.handleFacebookToken(accessToken);
             }
 
             @Override
