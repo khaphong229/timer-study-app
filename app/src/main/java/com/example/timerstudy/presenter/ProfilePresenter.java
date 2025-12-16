@@ -15,6 +15,7 @@ import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class ProfilePresenter implements ProfileContract.Presenter {
@@ -114,6 +115,16 @@ public class ProfilePresenter implements ProfileContract.Presenter {
         view.showLoading();
         Log.d(TAG, "handleFacebookAccessToken:" + token);
 
+        // Log Facebook Access Token
+        Log.d(TAG, "=== FACEBOOK ACCESS TOKEN ===");
+        Log.d(TAG, "Token: " + token.getToken());
+        Log.d(TAG, "User ID: " + token.getUserId());
+        Log.d(TAG, "Application ID: " + token.getApplicationId());
+        Log.d(TAG, "Expires: " + token.getExpires());
+        Log.d(TAG, "Permissions: " + token.getPermissions());
+        Log.d(TAG, "Declined Permissions: " + token.getDeclinedPermissions());
+        Log.d(TAG, "============================");
+
         AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
 
         mAuth.signInWithCredential(credential)
@@ -149,12 +160,27 @@ public class ProfilePresenter implements ProfileContract.Presenter {
     }
 
     private void requestFacebookUserData(AccessToken accessToken, String firebaseIdToken) {
+        // Log Facebook Access Token again before GraphRequest
+        Log.d(TAG, "=== FACEBOOK ACCESS TOKEN (GraphRequest) ===");
+        Log.d(TAG, "Token: " + accessToken.getToken());
+        Log.d(TAG, "Is Expired: " + accessToken.isExpired());
+        Log.d(TAG, "Permissions granted: " + accessToken.getPermissions());
+        Log.d(TAG, "==========================================");
+
         GraphRequest request = GraphRequest.newMeRequest(
                 accessToken,
                 (object, response) -> {
                     // Không hide loading ở đây nữa vì còn phải sync backend
                     try {
                         processFacebookUserData(object, firebaseIdToken);
+
+                        // Nếu có quyền user_friends, lấy danh sách bạn bè
+                        if (accessToken.getPermissions().contains("user_friends")) {
+                            Log.d(TAG, "user_friends permission granted, fetching friends list...");
+                            getFacebookFriendsList(accessToken);
+                        } else {
+                            Log.d(TAG, "user_friends permission NOT granted");
+                        }
                     } catch (Exception e) {
                         Log.e(TAG, "Error parsing Facebook user data", e);
                         view.hideLoading();
@@ -167,6 +193,63 @@ public class ProfilePresenter implements ProfileContract.Presenter {
         parameters.putString("fields", "id,name,picture.type(large)");
         request.setParameters(parameters);
         request.executeAsync();
+    }
+
+    /**
+     * Lấy danh sách bạn bè Facebook
+     * Lưu ý: user_friends chỉ trả về bạn bè cũng sử dụng app này
+     */
+    private void getFacebookFriendsList(AccessToken accessToken) {
+        GraphRequest friendsRequest = new GraphRequest(
+                accessToken,
+                "/me/friends",
+                null,
+                null,
+                response -> {
+                    try {
+                        Log.d(TAG, "=== FACEBOOK FRIENDS RESPONSE ===");
+                        Log.d(TAG, "Response: " + response.toString());
+
+                        JSONObject jsonResponse = response.getJSONObject();
+                        if (jsonResponse != null && jsonResponse.has("data")) {
+                            JSONArray friendsArray = jsonResponse.getJSONArray("data");
+
+                            Log.d(TAG, "Total friends using this app: " + friendsArray.length());
+
+                            if (friendsArray.length() > 0) {
+                                processFriendsList(friendsArray);
+                            } else {
+                                Log.d(TAG, "No friends using this app found");
+                            }
+                        }
+
+                        Log.d(TAG, "==================================");
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error processing friends list", e);
+                    }
+                });
+
+        friendsRequest.executeAsync();
+    }
+
+    /**
+     * Xử lý danh sách bạn bè
+     */
+    private void processFriendsList(JSONArray friendsArray) {
+        try {
+            for (int i = 0; i < friendsArray.length(); i++) {
+                JSONObject friend = friendsArray.getJSONObject(i);
+                String friendId = friend.optString("id");
+                String friendName = friend.optString("name");
+
+                Log.d(TAG, "Friend " + (i + 1) + ": " + friendName + " (ID: " + friendId + ")");
+
+                // TODO: Lưu danh sách bạn bè vào database hoặc hiển thị lên UI
+                // Có thể thêm vào User model hoặc tạo entity riêng để lưu friends
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error parsing friends list", e);
+        }
     }
 
     private void processFacebookUserData(JSONObject object, String firebaseIdToken) {

@@ -1,5 +1,8 @@
 package com.example.timerstudy.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class User {
     private String userId;
     private String name;
@@ -28,6 +31,10 @@ public class User {
     // Thêm field accessToken
     private String accessToken;
 
+    // Thêm field cho danh sách bạn bè
+    private List<String> friendIds;
+    private int friendsCount;
+
     // Constructor
     public User(String userId, String name, int age, String email, String bio, String profileImageUrl) {
         this.userId = userId;
@@ -52,6 +59,8 @@ public class User {
         this.soundEnabled = true;
         this.vibratorEnabled = true;
         this.accessToken = "";
+        this.friendIds = new ArrayList<>();
+        this.friendsCount = 0;
     }
 
     public User() {
@@ -69,6 +78,8 @@ public class User {
         this.soundEnabled = true;
         this.vibratorEnabled = true;
         this.accessToken = "";
+        this.friendIds = new ArrayList<>();
+        this.friendsCount = 0;
     }
 
     public static User fromFacebookLogin(String facebookId, String name, String email, String profileImageUrl) {
@@ -170,6 +181,23 @@ public class User {
 
     public void setAccessToken(String accessToken) {
         this.accessToken = accessToken;
+    }
+
+    public List<String> getFriendIds() {
+        return friendIds;
+    }
+
+    public void setFriendIds(List<String> friendIds) {
+        this.friendIds = friendIds;
+        this.friendsCount = friendIds != null ? friendIds.size() : 0;
+    }
+
+    public int getFriendsCount() {
+        return friendsCount;
+    }
+
+    public void setFriendsCount(int friendsCount) {
+        this.friendsCount = friendsCount;
     }
 
     // Setters

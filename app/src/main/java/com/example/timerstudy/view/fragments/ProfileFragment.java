@@ -96,7 +96,8 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
     private void initFacebookLogin() {
         mCallbackManager = CallbackManager.Factory.create();
         btnLoginFacebook.setFragment(this);
-        btnLoginFacebook.setReadPermissions("public_profile");
+        // Thêm quyền user_friends
+        btnLoginFacebook.setReadPermissions("public_profile", "user_friends");
 
         btnLoginFacebook.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
             @Override
@@ -110,6 +111,7 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
                 Log.d(TAG, "User ID: " + accessToken.getUserId());
                 Log.d(TAG, "Token Source: " + accessToken.getSource());
                 Log.d(TAG, "Permissions: " + accessToken.getPermissions());
+                Log.d(TAG, "Declined Permissions: " + accessToken.getDeclinedPermissions());
                 Log.d(TAG, "==============================");
 
                 presenter.handleFacebookToken(accessToken);
