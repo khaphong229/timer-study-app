@@ -326,7 +326,7 @@
         android:id="@+id/layoutBottomRank"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_podium_rank1"
+        android:background="@drawable/bg_rank_now"
         android:padding="12dp"
         android:layout_marginStart="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
