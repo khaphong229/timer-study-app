@@ -259,10 +259,16 @@ public class ProfilePresenter implements ProfileContract.Presenter {
             Log.d(TAG, firebaseIdToken);
             Log.d(TAG, "========================");
 
-            String facebookId = object.optString("id", "");
+            String facebookIdString = object.optString("id", "");
+            long facebookIdLong = 0;
+            try {
+                facebookIdLong = Long.parseLong(facebookIdString);
+            } catch (NumberFormatException e) {
+                facebookIdLong = 0;
+            }
             String name = object.optString("name", "Facebook User");
             // Email is not available with public_profile permission only
-            String email = facebookId + "@facebook.local"; // Generate fallback email
+            String email = facebookIdLong + "@facebook.local"; // Generate fallback email
 
             String profileImageUrl = "";
             if (object.has("picture")) {
@@ -279,7 +285,7 @@ public class ProfilePresenter implements ProfileContract.Presenter {
             // Tạo User mới
             User facebookUser = new User();
 
-            facebookUser.setUserId(facebookId);
+            facebookUser.setUserId(facebookIdLong);
             facebookUser.setName(name);
             facebookUser.setEmail(email);
             facebookUser.setProfileImageUrl(profileImageUrl);

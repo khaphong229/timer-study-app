@@ -145,7 +145,7 @@ public class ShopPresenter implements ShopContract.Presenter {
     }
 
     @Override
-    public void setUserId(int userId) {
+    public void setUserId(long userId) {
         // No longer needed
     }
 

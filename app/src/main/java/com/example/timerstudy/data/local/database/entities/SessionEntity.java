@@ -33,7 +33,7 @@ public class SessionEntity {
     private int sessionId;
 
     @ColumnInfo(name = "user_id")
-    private int userId;
+    private long userId;
 
     @ColumnInfo(name = "session_date")
     @TypeConverters(DateConverter.class)
@@ -100,8 +100,8 @@ public class SessionEntity {
     public int getSessionId() { return sessionId; }
     public void setSessionId(int sessionId) { this.sessionId = sessionId; }
 
-    public int getUserId() { return userId; }
-    public void setUserId(int userId) { this.userId = userId; }
+    public long getUserId() { return userId; }
+    public void setUserId(long userId) { this.userId = userId; }
 
     public Date getSessionDate() { return sessionDate; }
     public void setSessionDate(Date sessionDate) { this.sessionDate = sessionDate; }

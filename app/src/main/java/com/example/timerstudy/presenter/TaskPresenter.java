@@ -74,7 +74,7 @@ public class TaskPresenter implements TaskContract.Presenter {
     public void loadTasks() {
         if (view != null) view.showLoading();
 
-        int userId = userRepository.getCurrentUserId();
+        long userId = userRepository.getCurrentUserId();
         Date date = selectedDate != null ? selectedDate : new Date();
         long dayMillis = normalizeDate(date).getTime();
 

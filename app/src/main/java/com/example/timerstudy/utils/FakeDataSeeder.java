@@ -29,7 +29,7 @@ public class FakeDataSeeder {
             GoalDao goalDao = db.goalDao();
 
             // Ensure a user exists
-            int userId = ensureUser(userDao);
+            long userId = ensureUser(userDao);
 
             // Seed random non-overlapping sessions per day for the current month
             seedRandomNonOverlappingForCurrentMonth(sessionDao, userId);
@@ -43,7 +43,7 @@ public class FakeDataSeeder {
     }
 
 
-    private static int ensureUser(UserDao userDao) {
+    private static long ensureUser(UserDao userDao) {
         List<UserEntity> users = userDao.getAllUsers();
         if (users != null && !users.isEmpty()) {
             return users.get(0).getUserId();
@@ -55,7 +55,7 @@ public class FakeDataSeeder {
         return (int) id;
     }
 
-    private static void seedRandomNonOverlappingForCurrentMonth(SessionDao sessionDao, int userId) {
+    private static void seedRandomNonOverlappingForCurrentMonth(SessionDao sessionDao, long userId) {
         // Clear old demo sessions
         sessionDao.deleteAllSessions();
 
@@ -139,7 +139,7 @@ public class FakeDataSeeder {
 
     // Task generation removed - only real tasks will be saved
     @Deprecated
-    private static void generateTasks(TaskDao taskDao, int userId, int daysBack) {
+    private static void generateTasks(TaskDao taskDao, long userId, int daysBack) {
         // Method removed to ensure only real user tasks are stored
     }
 

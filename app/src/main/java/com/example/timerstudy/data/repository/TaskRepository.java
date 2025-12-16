@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 
 public class TaskRepository {
     // Khớp với Presenter: lấy task theo userId và ngày
-    public void getTasksByUserIdAndDate(int userId, long taskDate, DataCallback<List<TaskEntity>> callback) {
+    public void getTasksByUserIdAndDate(long userId, long taskDate, DataCallback<List<TaskEntity>> callback) {
         getTasksByUserAndDate(userId, taskDate, callback);
     }
     private final TaskDao taskDao;
@@ -36,7 +36,7 @@ public class TaskRepository {
         });
     }
 
-    public void getTasksByUserId(int userId, DataCallback<List<TaskEntity>> callback){
+    public void getTasksByUserId(long userId, DataCallback<List<TaskEntity>> callback){
         executor.execute(() -> {
             try {
                 callback.onSuccess(taskDao.getTasksByUserId(userId));
@@ -46,7 +46,7 @@ public class TaskRepository {
         });
     }
 
-    public void getTasksByUserAndDate(int userId, long taskDate, DataCallback<List<TaskEntity>> callback) {
+    public void getTasksByUserAndDate(long userId, long taskDate, DataCallback<List<TaskEntity>> callback) {
         executor.execute(() -> {
             try {
                 callback.onSuccess(taskDao.getTasksByUserAndDate(userId, taskDate));

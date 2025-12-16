@@ -163,7 +163,7 @@ public class UserRepository {
      * @param userId User ID to search for
      * @return UserEntity or null if not found
      */
-    public void getUserById(int userId) {
+    public void getUserById(long userId) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -277,7 +277,7 @@ public class UserRepository {
      * 
      * @param userId User ID to update
      */
-    public void updateLastLogin(int userId) {
+    public void updateLastLogin(long userId) {
         executorService.execute(() -> {
             try {
                 long currentTime = System.currentTimeMillis();
@@ -302,7 +302,7 @@ public class UserRepository {
      * @param userId      User ID to update
      * @param displayName New display name
      */
-    public void updateDisplayName(int userId, String displayName) {
+    public void updateDisplayName(long userId, String displayName) {
         executorService.execute(() -> {
             try {
                 userDao.updateDisplayName(userId, displayName);
@@ -327,7 +327,7 @@ public class UserRepository {
      * @param userId            User ID to update
      * @param profilePictureUrl New profile picture URL
      */
-    public void updateProfilePicture(int userId, String profilePictureUrl) {
+    public void updateProfilePicture(long userId, String profilePictureUrl) {
         executorService.execute(() -> {
             try {
                 userDao.updateProfilePicture(userId, profilePictureUrl);
@@ -353,7 +353,7 @@ public class UserRepository {
      * @param email       User's email
      * @param displayName User's display name
      */
-    public void convertToRegisteredUser(int userId, String email, String displayName) {
+    public void convertToRegisteredUser(long userId, String email, String displayName) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -382,7 +382,7 @@ public class UserRepository {
      * 
      * @param userId User ID to delete
      */
-    public void deleteUser(int userId) {
+    public void deleteUser(long userId) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -487,7 +487,7 @@ public class UserRepository {
         executorService.execute(() -> {
             try {
                 // Sử dụng user ID cố định
-                int userId = 1;
+                long userId = 1;
 
                 // Kiểm tra user đã tồn tại chưa
                 UserEntity existingUser = userDao.getUserById(userId);

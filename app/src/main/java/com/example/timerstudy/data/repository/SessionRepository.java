@@ -168,7 +168,7 @@ public class SessionRepository {
      * 
      * @param userId User ID to filter by
      */
-    public void loadSessionsByUserId(int userId) {
+    public void loadSessionsByUserId(long userId) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -191,7 +191,7 @@ public class SessionRepository {
      * @param startDate Start date timestamp
      * @param endDate End date timestamp
      */
-    public void loadSessionsByUserAndDateRange(int userId, long startDate, long endDate) {
+    public void loadSessionsByUserAndDateRange(long userId, long startDate, long endDate) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -257,7 +257,7 @@ public class SessionRepository {
      * @param userId User ID
      * @param durationMinutes Session duration in minutes
      */
-    public void startFocusSession(int userId, int durationMinutes) {
+    public void startFocusSession(long userId, int durationMinutes) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -290,7 +290,7 @@ public class SessionRepository {
      * @param durationMinutes Break duration in minutes
      * @param isLongBreak True for long break, false for short break
      */
-    public void startBreakSession(int userId, int durationMinutes, boolean isLongBreak) {
+    public void startBreakSession(long userId, int durationMinutes, boolean isLongBreak) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -467,7 +467,7 @@ public class SessionRepository {
      * 
      * @param userId User ID to filter by
      */
-    public void getSessionsInProgressByUser(int userId) {
+    public void getSessionsInProgressByUser(long userId) {
         executorService.execute(() -> {
             try {
                 List<SessionEntity> sessions = sessionDao.getSessionsInProgressByUser(userId);
@@ -485,7 +485,7 @@ public class SessionRepository {
      * 
      * @param userId User ID to filter by
      */
-    public void getCompletedSessionsByUser(int userId) {
+    public void getCompletedSessionsByUser(long userId) {
         executorService.execute(() -> {
             try {
                 List<SessionEntity> sessions = sessionDao.getCompletedSessionsByUser(userId);
@@ -503,7 +503,7 @@ public class SessionRepository {
      * 
      * @param userId User ID to filter by
      */
-    public void getTodaySessions(int userId) {
+    public void getTodaySessions(long userId) {
         executorService.execute(() -> {
             try {
                 // Calculate today's start and end timestamps
@@ -532,7 +532,7 @@ public class SessionRepository {
      * 
      * @param userId User ID to filter by
      */
-    public void getTotalFocusTimeByUser(int userId) {
+    public void getTotalFocusTimeByUser(long userId) {
         executorService.execute(() -> {
             try {
                 int totalFocusTime = sessionDao.getTotalFocusTimeByUser(userId);
@@ -623,7 +623,7 @@ public class SessionRepository {
      * 
      * @param userId User ID to filter by
      */
-    public void loadCompletedSessionsCountToday(int userId) {
+    public void loadCompletedSessionsCountToday(long userId) {
         executorService.execute(() -> {
             try {
                 List<SessionEntity> sessions = sessionDao.getCompletedSessionsByUser(userId);
@@ -660,7 +660,7 @@ public class SessionRepository {
      * 
      * @param userId User ID to filter by
      */
-    public void loadTotalCompletedSessionsCount(int userId) {
+    public void loadTotalCompletedSessionsCount(long userId) {
         executorService.execute(() -> {
             try {
                 List<SessionEntity> sessions = sessionDao.getCompletedSessionsByUser(userId);
@@ -688,7 +688,7 @@ public class SessionRepository {
      * @param userId User ID
      * @param durationMinutes Duration in minutes
      */
-    public void saveCompletedStudySession(int userId, int durationMinutes) {
+    public void saveCompletedStudySession(long userId, int durationMinutes) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);

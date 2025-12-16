@@ -87,7 +87,7 @@ public class GoalRepository {
         });
     }
 
-    public void loadGoalsByUserId(int userId) {
+    public void loadGoalsByUserId(long userId) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);

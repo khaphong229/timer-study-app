@@ -58,7 +58,7 @@ public interface GoalDao {
      * @return List of goals for the user
      */
     @Query("SELECT * FROM goals WHERE user_id = :userId ORDER BY goal_date DESC")
-    List<GoalEntity> getGoalsByUserId(int userId);
+    List<GoalEntity> getGoalsByUserId(long userId);
     
     /**
      * Get goal by user ID and date
@@ -67,7 +67,7 @@ public interface GoalDao {
      * @return GoalEntity for the user on the specified date
      */
     @Query("SELECT * FROM goals WHERE user_id = :userId AND goal_date = :goalDate")
-    GoalEntity getGoalByUserAndDate(int userId, long goalDate);
+    GoalEntity getGoalByUserAndDate(long userId, long goalDate);
     
     /**
      * Get goals by user ID and date range
@@ -77,7 +77,7 @@ public interface GoalDao {
      * @return List of goals in date range
      */
     @Query("SELECT * FROM goals WHERE user_id = :userId AND goal_date BETWEEN :startDate AND :endDate ORDER BY goal_date DESC")
-    List<GoalEntity> getGoalsByUserAndDateRange(int userId, long startDate, long endDate);
+    List<GoalEntity> getGoalsByUserAndDateRange(long userId, long startDate, long endDate);
     
     /**
      * Get achieved goals
@@ -92,7 +92,7 @@ public interface GoalDao {
      * @return List of achieved goals for the user
      */
     @Query("SELECT * FROM goals WHERE user_id = :userId AND is_achieved = 1 ORDER BY achieved_at DESC")
-    List<GoalEntity> getAchievedGoalsByUser(int userId);
+    List<GoalEntity> getAchievedGoalsByUser(long userId);
     
     /**
      * Get pending goals (not achieved)
@@ -107,7 +107,7 @@ public interface GoalDao {
      * @return List of pending goals for the user
      */
     @Query("SELECT * FROM goals WHERE user_id = :userId AND is_achieved = 0 ORDER BY goal_date ASC")
-    List<GoalEntity> getPendingGoalsByUser(int userId);
+    List<GoalEntity> getPendingGoalsByUser(long userId);
     
     /**
      * Get goals for today
@@ -117,7 +117,7 @@ public interface GoalDao {
      * @return List of goals for today
      */
     @Query("SELECT * FROM goals WHERE user_id = :userId AND goal_date BETWEEN :todayStart AND :todayEnd")
-    List<GoalEntity> getTodayGoals(int userId, long todayStart, long todayEnd);
+    List<GoalEntity> getTodayGoals(long userId, long todayStart, long todayEnd);
     
     /**
      * Get goals for current week
@@ -127,7 +127,7 @@ public interface GoalDao {
      * @return List of goals for current week
      */
     @Query("SELECT * FROM goals WHERE user_id = :userId AND goal_date BETWEEN :weekStart AND :weekEnd ORDER BY goal_date ASC")
-    List<GoalEntity> getWeekGoals(int userId, long weekStart, long weekEnd);
+    List<GoalEntity> getWeekGoals(long userId, long weekStart, long weekEnd);
     
     /**
      * Get goals for current month
@@ -137,7 +137,7 @@ public interface GoalDao {
      * @return List of goals for current month
      */
     @Query("SELECT * FROM goals WHERE user_id = :userId AND goal_date BETWEEN :monthStart AND :monthEnd ORDER BY goal_date ASC")
-    List<GoalEntity> getMonthGoals(int userId, long monthStart, long monthEnd);
+    List<GoalEntity> getMonthGoals(long userId, long monthStart, long monthEnd);
     
     /**
      * Get goals with high completion percentage
@@ -154,7 +154,7 @@ public interface GoalDao {
      * @return List of goals with high completion percentage for the user
      */
     @Query("SELECT * FROM goals WHERE user_id = :userId AND completion_percentage >= :minPercentage ORDER BY completion_percentage DESC")
-    List<GoalEntity> getGoalsWithHighCompletionByUser(int userId, int minPercentage);
+    List<GoalEntity> getGoalsWithHighCompletionByUser(long userId, int minPercentage);
     
     /**
      * Get goals with low completion percentage
@@ -171,7 +171,7 @@ public interface GoalDao {
      * @return List of goals with low completion percentage for the user
      */
     @Query("SELECT * FROM goals WHERE user_id = :userId AND completion_percentage <= :maxPercentage AND is_achieved = 0 ORDER BY completion_percentage ASC")
-    List<GoalEntity> getGoalsWithLowCompletionByUser(int userId, int maxPercentage);
+    List<GoalEntity> getGoalsWithLowCompletionByUser(long userId, int maxPercentage);
     
     /**
      * Get goal count by user
@@ -179,7 +179,7 @@ public interface GoalDao {
      * @return Number of goals for the user
      */
     @Query("SELECT COUNT(*) FROM goals WHERE user_id = :userId")
-    int getGoalCountByUser(int userId);
+    int getGoalCountByUser(long userId);
     
     /**
      * Get achieved goal count by user
@@ -187,7 +187,7 @@ public interface GoalDao {
      * @return Number of achieved goals for the user
      */
     @Query("SELECT COUNT(*) FROM goals WHERE user_id = :userId AND is_achieved = 1")
-    int getAchievedGoalCountByUser(int userId);
+    int getAchievedGoalCountByUser(long userId);
     
     /**
      * Get pending goal count by user
@@ -195,7 +195,7 @@ public interface GoalDao {
      * @return Number of pending goals for the user
      */
     @Query("SELECT COUNT(*) FROM goals WHERE user_id = :userId AND is_achieved = 0")
-    int getPendingGoalCountByUser(int userId);
+    int getPendingGoalCountByUser(long userId);
     
     /**
      * Get average completion percentage by user
@@ -203,7 +203,7 @@ public interface GoalDao {
      * @return Average completion percentage
      */
     @Query("SELECT COALESCE(AVG(completion_percentage), 0) FROM goals WHERE user_id = :userId")
-    double getAverageCompletionPercentageByUser(int userId);
+    double getAverageCompletionPercentageByUser(long userId);
     
     /**
      * Get total target sessions by user
@@ -211,7 +211,7 @@ public interface GoalDao {
      * @return Total target sessions
      */
     @Query("SELECT COALESCE(SUM(target_sessions), 0) FROM goals WHERE user_id = :userId")
-    int getTotalTargetSessionsByUser(int userId);
+    int getTotalTargetSessionsByUser(long userId);
     
     /**
      * Get total completed sessions by user
@@ -219,7 +219,7 @@ public interface GoalDao {
      * @return Total completed sessions
      */
     @Query("SELECT COALESCE(SUM(completed_sessions), 0) FROM goals WHERE user_id = :userId")
-    int getTotalCompletedSessionsByUser(int userId);
+    int getTotalCompletedSessionsByUser(long userId);
     
     /**
      * Get total target sessions by user for date range
@@ -229,7 +229,7 @@ public interface GoalDao {
      * @return Total target sessions for the date range
      */
     @Query("SELECT COALESCE(SUM(target_sessions), 0) FROM goals WHERE user_id = :userId AND goal_date BETWEEN :startDate AND :endDate")
-    int getTotalTargetSessionsByUserAndDateRange(int userId, long startDate, long endDate);
+    int getTotalTargetSessionsByUserAndDateRange(long userId, long startDate, long endDate);
     
     /**
      * Get total completed sessions by user for date range
@@ -239,7 +239,7 @@ public interface GoalDao {
      * @return Total completed sessions for the date range
      */
     @Query("SELECT COALESCE(SUM(completed_sessions), 0) FROM goals WHERE user_id = :userId AND goal_date BETWEEN :startDate AND :endDate")
-    int getTotalCompletedSessionsByUserAndDateRange(int userId, long startDate, long endDate);
+    int getTotalCompletedSessionsByUserAndDateRange(long userId, long startDate, long endDate);
     
     /**
      * Get best completion percentage by user
@@ -247,7 +247,7 @@ public interface GoalDao {
      * @return Best completion percentage achieved
      */
     @Query("SELECT COALESCE(MAX(completion_percentage), 0) FROM goals WHERE user_id = :userId")
-    int getBestCompletionPercentageByUser(int userId);
+    int getBestCompletionPercentageByUser(long userId);
     
     /**
      * Get current streak of achieved goals by user
@@ -256,7 +256,7 @@ public interface GoalDao {
      * @return Current streak of achieved goals
      */
     @Query("SELECT COUNT(*) FROM goals WHERE user_id = :userId AND is_achieved = 1 AND goal_date <= :currentDate ORDER BY goal_date DESC")
-    int getCurrentAchievementStreakByUser(int userId, long currentDate);
+    int getCurrentAchievementStreakByUser(long userId, long currentDate);
     
     // ==================== UPDATE OPERATIONS ====================
     
@@ -357,7 +357,7 @@ public interface GoalDao {
      * @param userId User ID to filter by
      */
     @Query("DELETE FROM goals WHERE user_id = :userId")
-    void deleteGoalsByUser(int userId);
+    void deleteGoalsByUser(long userId);
     
     /**
      * Delete achieved goals
@@ -370,7 +370,7 @@ public interface GoalDao {
      * @param userId User ID to filter by
      */
     @Query("DELETE FROM goals WHERE user_id = :userId AND is_achieved = 1")
-    void deleteAchievedGoalsByUser(int userId);
+    void deleteAchievedGoalsByUser(long userId);
     
     /**
      * Delete goals older than specified date

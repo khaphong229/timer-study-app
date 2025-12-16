@@ -59,7 +59,7 @@ public interface StatisticsDao {
      * @return List of cache entries for the user
      */
     @Query("SELECT * FROM statistics_cache WHERE user_id = :userId ORDER BY cached_at DESC")
-    List<StatisticsCacheEntity> getStatisticsCacheByUserId(int userId);
+    List<StatisticsCacheEntity> getStatisticsCacheByUserId(long userId);
     
     /**
      * Get statistics cache by user ID and cache type
@@ -68,7 +68,7 @@ public interface StatisticsDao {
      * @return List of cache entries for the user and type
      */
     @Query("SELECT * FROM statistics_cache WHERE user_id = :userId AND cache_type = :cacheType ORDER BY cached_at DESC")
-    List<StatisticsCacheEntity> getStatisticsCacheByUserAndType(int userId, String cacheType);
+    List<StatisticsCacheEntity> getStatisticsCacheByUserAndType(long userId, String cacheType);
     
     /**
      * Get statistics cache by user ID, cache type, and date
@@ -78,7 +78,7 @@ public interface StatisticsDao {
      * @return StatisticsCacheEntity or null if not found
      */
     @Query("SELECT * FROM statistics_cache WHERE user_id = :userId AND cache_type = :cacheType AND cache_date = :cacheDate")
-    StatisticsCacheEntity getStatisticsCacheByUserTypeAndDate(int userId, String cacheType, long cacheDate);
+    StatisticsCacheEntity getStatisticsCacheByUserTypeAndDate(long userId, String cacheType, long cacheDate);
     
     /**
      * Get daily statistics cache by user ID
@@ -86,7 +86,7 @@ public interface StatisticsDao {
      * @return List of daily cache entries for the user
      */
     @Query("SELECT * FROM statistics_cache WHERE user_id = :userId AND cache_type = 'DAILY' ORDER BY cache_date DESC")
-    List<StatisticsCacheEntity> getDailyStatisticsCacheByUser(int userId);
+    List<StatisticsCacheEntity> getDailyStatisticsCacheByUser(long userId);
     
     /**
      * Get monthly statistics cache by user ID
@@ -94,7 +94,7 @@ public interface StatisticsDao {
      * @return List of monthly cache entries for the user
      */
     @Query("SELECT * FROM statistics_cache WHERE user_id = :userId AND cache_type = 'MONTHLY' ORDER BY cache_date DESC")
-    List<StatisticsCacheEntity> getMonthlyStatisticsCacheByUser(int userId);
+    List<StatisticsCacheEntity> getMonthlyStatisticsCacheByUser(long userId);
     
     /**
      * Get yearly statistics cache by user ID
@@ -102,7 +102,7 @@ public interface StatisticsDao {
      * @return List of yearly cache entries for the user
      */
     @Query("SELECT * FROM statistics_cache WHERE user_id = :userId AND cache_type = 'YEARLY' ORDER BY cache_date DESC")
-    List<StatisticsCacheEntity> getYearlyStatisticsCacheByUser(int userId);
+    List<StatisticsCacheEntity> getYearlyStatisticsCacheByUser(long userId);
     
     /**
      * Get latest statistics cache by user ID and type
@@ -111,7 +111,7 @@ public interface StatisticsDao {
      * @return Latest cache entry for the user and type
      */
     @Query("SELECT * FROM statistics_cache WHERE user_id = :userId AND cache_type = :cacheType ORDER BY cached_at DESC LIMIT 1")
-    StatisticsCacheEntity getLatestStatisticsCacheByUserAndType(int userId, String cacheType);
+    StatisticsCacheEntity getLatestStatisticsCacheByUserAndType(long userId, String cacheType);
     
     /**
      * Get statistics cache by date range
@@ -121,7 +121,7 @@ public interface StatisticsDao {
      * @return List of cache entries in date range
      */
     @Query("SELECT * FROM statistics_cache WHERE user_id = :userId AND cache_date BETWEEN :startDate AND :endDate ORDER BY cache_date DESC")
-    List<StatisticsCacheEntity> getStatisticsCacheByDateRange(int userId, long startDate, long endDate);
+    List<StatisticsCacheEntity> getStatisticsCacheByDateRange(long userId, long startDate, long endDate);
     
     /**
      * Get cache count by user
@@ -129,7 +129,7 @@ public interface StatisticsDao {
      * @return Number of cache entries for the user
      */
     @Query("SELECT COUNT(*) FROM statistics_cache WHERE user_id = :userId")
-    int getCacheCountByUser(int userId);
+    int getCacheCountByUser(long userId);
     
     // UPDATE OPERATIONS
     /**
@@ -176,7 +176,7 @@ public interface StatisticsDao {
      * @param userId User ID to filter by
      */
     @Query("DELETE FROM statistics_cache WHERE user_id = :userId")
-    void deleteStatisticsCacheByUser(int userId);
+    void deleteStatisticsCacheByUser(long userId);
     
     /**
      * Delete old statistics cache entries
@@ -232,7 +232,7 @@ public interface StatisticsDao {
      * @return List of streak records for the user
      */
     @Query("SELECT * FROM streak_records WHERE user_id = :userId ORDER BY streak_date DESC")
-    List<StreakRecordEntity> getStreakRecordsByUserId(int userId);
+    List<StreakRecordEntity> getStreakRecordsByUserId(long userId);
     
     /**
      * Get streak record by user ID and date
@@ -241,7 +241,7 @@ public interface StatisticsDao {
      * @return StreakRecordEntity or null if not found
      */
     @Query("SELECT * FROM streak_records WHERE user_id = :userId AND streak_date = :streakDate")
-    StreakRecordEntity getStreakRecordByUserAndDate(int userId, long streakDate);
+    StreakRecordEntity getStreakRecordByUserAndDate(long userId, long streakDate);
     
     /**
      * Get streak records by user ID and date range
@@ -251,7 +251,7 @@ public interface StatisticsDao {
      * @return List of streak records in date range
      */
     @Query("SELECT * FROM streak_records WHERE user_id = :userId AND streak_date BETWEEN :startDate AND :endDate ORDER BY streak_date DESC")
-    List<StreakRecordEntity> getStreakRecordsByUserAndDateRange(int userId, long startDate, long endDate);
+    List<StreakRecordEntity> getStreakRecordsByUserAndDateRange(long userId, long startDate, long endDate);
     
     /**
      * Get active streak days by user ID
@@ -259,7 +259,7 @@ public interface StatisticsDao {
      * @return List of days with activity
      */
     @Query("SELECT * FROM streak_records WHERE user_id = :userId AND has_activity = 1 ORDER BY streak_date DESC")
-    List<StreakRecordEntity> getActiveStreakDaysByUser(int userId);
+    List<StreakRecordEntity> getActiveStreakDaysByUser(long userId);
     
     /**
      * Get inactive streak days by user ID
@@ -267,7 +267,7 @@ public interface StatisticsDao {
      * @return List of days without activity
      */
     @Query("SELECT * FROM streak_records WHERE user_id = :userId AND has_activity = 0 ORDER BY streak_date DESC")
-    List<StreakRecordEntity> getInactiveStreakDaysByUser(int userId);
+    List<StreakRecordEntity> getInactiveStreakDaysByUser(long userId);
     
     /**
      * Get current streak by user ID
@@ -276,7 +276,7 @@ public interface StatisticsDao {
      * @return Current streak count
      */
     @Query("SELECT COUNT(*) FROM streak_records WHERE user_id = :userId AND has_activity = 1 AND streak_date <= :currentDate ORDER BY streak_date DESC")
-    int getCurrentStreakByUser(int userId, long currentDate);
+    int getCurrentStreakByUser(long userId, long currentDate);
     
     /**
      * Get longest streak by user ID
@@ -284,7 +284,7 @@ public interface StatisticsDao {
      * @return Longest streak count
      */
     @Query("SELECT MAX(session_count) FROM streak_records WHERE user_id = :userId AND has_activity = 1")
-    int getLongestStreakByUser(int userId);
+    int getLongestStreakByUser(long userId);
     
     /**
      * Get total focus time by user ID
@@ -292,7 +292,7 @@ public interface StatisticsDao {
      * @return Total focus time in minutes
      */
     @Query("SELECT COALESCE(SUM(focus_time), 0) FROM streak_records WHERE user_id = :userId")
-    int getTotalFocusTimeByUser(int userId);
+    int getTotalFocusTimeByUser(long userId);
     
     /**
      * Get total focus time by user ID and date range
@@ -302,7 +302,7 @@ public interface StatisticsDao {
      * @return Total focus time in minutes for the date range
      */
     @Query("SELECT COALESCE(SUM(focus_time), 0) FROM streak_records WHERE user_id = :userId AND streak_date BETWEEN :startDate AND :endDate")
-    int getTotalFocusTimeByUserAndDateRange(int userId, long startDate, long endDate);
+    int getTotalFocusTimeByUserAndDateRange(long userId, long startDate, long endDate);
     
     /**
      * Get total sessions by user ID
@@ -310,7 +310,7 @@ public interface StatisticsDao {
      * @return Total session count
      */
     @Query("SELECT COALESCE(SUM(session_count), 0) FROM streak_records WHERE user_id = :userId")
-    int getTotalSessionsByUser(int userId);
+    int getTotalSessionsByUser(long userId);
     
     /**
      * Get total sessions by user ID and date range
@@ -320,7 +320,7 @@ public interface StatisticsDao {
      * @return Total session count for the date range
      */
     @Query("SELECT COALESCE(SUM(session_count), 0) FROM streak_records WHERE user_id = :userId AND streak_date BETWEEN :startDate AND :endDate")
-    int getTotalSessionsByUserAndDateRange(int userId, long startDate, long endDate);
+    int getTotalSessionsByUserAndDateRange(long userId, long startDate, long endDate);
     
     /**
      * Get streak record count by user
@@ -328,7 +328,7 @@ public interface StatisticsDao {
      * @return Number of streak records for the user
      */
     @Query("SELECT COUNT(*) FROM streak_records WHERE user_id = :userId")
-    int getStreakRecordCountByUser(int userId);
+    int getStreakRecordCountByUser(long userId);
     
     /**
      * Get active streak days count by user
@@ -336,7 +336,7 @@ public interface StatisticsDao {
      * @return Number of active streak days for the user
      */
     @Query("SELECT COUNT(*) FROM streak_records WHERE user_id = :userId AND has_activity = 1")
-    int getActiveStreakDaysCountByUser(int userId);
+    int getActiveStreakDaysCountByUser(long userId);
     
     // UPDATE OPERATIONS
     /**
@@ -355,7 +355,7 @@ public interface StatisticsDao {
      * @param focusTime New focus time
      */
     @Query("UPDATE streak_records SET has_activity = :hasActivity, session_count = :sessionCount, focus_time = :focusTime WHERE user_id = :userId AND streak_date = :streakDate")
-    void updateStreakRecordActivity(int userId, long streakDate, boolean hasActivity, int sessionCount, int focusTime);
+    void updateStreakRecordActivity(long userId, long streakDate, boolean hasActivity, int sessionCount, int focusTime);
     
     /**
      * Mark day as active
@@ -365,7 +365,7 @@ public interface StatisticsDao {
      * @param focusTime Focus time for the day
      */
     @Query("UPDATE streak_records SET has_activity = 1, session_count = :sessionCount, focus_time = :focusTime WHERE user_id = :userId AND streak_date = :streakDate")
-    void markDayAsActive(int userId, long streakDate, int sessionCount, int focusTime);
+    void markDayAsActive(long userId, long streakDate, int sessionCount, int focusTime);
     
     /**
      * Mark day as inactive
@@ -373,7 +373,7 @@ public interface StatisticsDao {
      * @param streakDate Streak date timestamp
      */
     @Query("UPDATE streak_records SET has_activity = 0, session_count = 0, focus_time = 0 WHERE user_id = :userId AND streak_date = :streakDate")
-    void markDayAsInactive(int userId, long streakDate);
+    void markDayAsInactive(long userId, long streakDate);
     
     // DELETE OPERATIONS
     /**
@@ -395,7 +395,7 @@ public interface StatisticsDao {
      * @param userId User ID to filter by
      */
     @Query("DELETE FROM streak_records WHERE user_id = :userId")
-    void deleteStreakRecordsByUser(int userId);
+    void deleteStreakRecordsByUser(long userId);
     
     /**
      * Delete old streak records

@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class Session {
     private int session_id;
-    private int user_id;
+    private long user_id;
     private Date session_date;
     private Date start_time;
     private Date end_time;
@@ -17,7 +17,7 @@ public class Session {
     public Session() {
     }
 
-    public Session(int session_id, int user_id, Date session_date, Date start_time, Date end_time, int duration_minutes, String session_type, String status, String notes, Date created_at) {
+    public Session(int session_id, long user_id, Date session_date, Date start_time, Date end_time, int duration_minutes, String session_type, String status, String notes, Date created_at) {
         this.session_id = session_id;
         this.user_id = user_id;
         this.session_date = session_date;
@@ -38,11 +38,11 @@ public class Session {
         this.session_id = session_id;
     }
 
-    public int getUser_id() {
+    public long getUser_id() {
         return user_id;
     }
 
-    public void setUser_id(int user_id) {
+    public void setUser_id(long user_id) {
         this.user_id = user_id;
     }
 

@@ -20,7 +20,7 @@ import java.util.Date;
 public class UserEntity {
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "user_id")
-    private int userId;
+    private long userId;
 
     @ColumnInfo(name = "email")
     private String email;
@@ -49,8 +49,8 @@ public class UserEntity {
     }
 
     // Getters and Setters
-    public int getUserId() { return userId; }
-    public void setUserId(int userId) { this.userId = userId; }
+    public long getUserId() { return userId; }
+    public void setUserId(long userId) { this.userId = userId; }
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }

@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class Task {
     private int task_id;
-    private int user_id;
+    private long user_id;
     private String title, description, priority;
     private Date task_date;
     private Boolean is_completed;
@@ -12,7 +12,7 @@ public class Task {
     private Integer total_time_spent, estimated_sessions, actual_sessions, order_index;
     private Date created_at, updated_at;
 
-    public Task(int task_id, int user_id, String title, String description, String priority, Date task_date, Boolean is_completed, Date completed_at, Integer total_time_spent, Integer estimated_sessions, Integer actual_sessions, Integer order_index, Date created_at, Date updated_at) {
+    public Task(int task_id, long user_id, String title, String description, String priority, Date task_date, Boolean is_completed, Date completed_at, Integer total_time_spent, Integer estimated_sessions, Integer actual_sessions, Integer order_index, Date created_at, Date updated_at) {
         this.task_id = task_id;
         this.user_id = user_id;
         this.title = title;
@@ -37,11 +37,11 @@ public class Task {
         this.task_id = task_id;
     }
 
-    public int getUser_id() {
+    public long getUser_id() {
         return user_id;
     }
 
-    public void setUser_id(int user_id) {
+    public void setUser_id(long user_id) {
         this.user_id = user_id;
     }
 
