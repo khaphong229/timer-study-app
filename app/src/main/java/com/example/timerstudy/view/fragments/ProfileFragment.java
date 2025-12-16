@@ -6,17 +6,21 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
 import com.example.timerstudy.R;
 
-import com.example.timerstudy.data.repository.UserRepository;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CircleCrop;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.timerstudy.model.User;
 import com.example.timerstudy.presenter.ProfilePresenter;
 import com.example.timerstudy.utils.UserManager;
@@ -26,7 +30,9 @@ import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.login.LoginResult;
+import com.facebook.login.LoginManager;
 import com.facebook.login.widget.LoginButton;
+import com.facebook.AccessToken;
 
 public class ProfileFragment extends Fragment implements ProfileContract.View {
 
@@ -39,6 +45,10 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
     private LinearLayout btnNotifications;
     private LinearLayout btnPrivacy;
     private LinearLayout btnLogout;
+
+    // Loading UI
+    private FrameLayout loadingOverlay;
+    private TextView tvLoadingMessage;
 
     private ProfilePresenter presenter;
     private CallbackManager mCallbackManager;
@@ -59,7 +69,6 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
         initFacebookLogin();
         setupListeners();
 
-        // Load data
         presenter.loadUserData();
     }
 
@@ -71,6 +80,12 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
         btnNotifications = view.findViewById(R.id.btnNotifications);
         btnPrivacy = view.findViewById(R.id.btnPrivacy);
         btnLogout = view.findViewById(R.id.btnLogout);
+
+        // Loading UI
+        loadingOverlay = view.findViewById(R.id.loadingOverlay);
+        tvLoadingMessage = view.findViewById(R.id.tvLoadingMessage);
+
+        btnLogout.setVisibility(View.GONE);
     }
 
     private void initPresenter() {
@@ -87,7 +102,17 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
             @Override
             public void onSuccess(LoginResult loginResult) {
                 Log.d(TAG, "facebook:onSuccess:" + loginResult);
-                presenter.handleFacebookToken(loginResult.getAccessToken());
+
+                // Log Facebook Access Token từ LoginResult
+                AccessToken accessToken = loginResult.getAccessToken();
+                Log.d(TAG, "=== FACEBOOK LOGIN SUCCESS ===");
+                Log.d(TAG, "Access Token: " + accessToken.getToken());
+                Log.d(TAG, "User ID: " + accessToken.getUserId());
+                Log.d(TAG, "Token Source: " + accessToken.getSource());
+                Log.d(TAG, "Permissions: " + accessToken.getPermissions());
+                Log.d(TAG, "==============================");
+
+                presenter.handleFacebookToken(accessToken);
             }
 
             @Override
@@ -99,13 +124,20 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
             @Override
             public void onError(FacebookException error) {
                 Log.d(TAG, "facebook:onError", error);
-                showMessage("Facebook login error: " + error.getMessage());
+                String errorMessage = error.getMessage();
+                if (errorMessage != null && errorMessage.contains("key hash")) {
+                    showMessage("Facebook configuration error. Please check app settings.");
+                    Log.e(TAG,
+                            "Key hash error - add the following to Facebook app settings: dtXwpvkdPGYCQI9CIWE3eQPPrFI=");
+                } else {
+                    showMessage("Facebook login error: " + errorMessage);
+                }
             }
         });
     }
 
     private void setupListeners() {
-        btnLogout.setOnClickListener(v -> presenter.logout());
+        btnLogout.setOnClickListener(v -> showLogoutConfirmationDialog());
 
         btnNotifications.setOnClickListener(v -> showMessage("Notifications Settings (Coming soon)"));
 
@@ -114,20 +146,50 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
         switchVibrator.setOnCheckedChangeListener((buttonView, isChecked) -> presenter.setVibratorEnabled(isChecked));
     }
 
-    // --- View Interface Implementation ---
+    private void showLogoutConfirmationDialog() {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Logout")
+                .setMessage("Are you sure you want to logout?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    // Logout from Facebook SDK first
+                    LoginManager.getInstance().logOut();
+                    Log.d(TAG, "Facebook SDK logged out");
+
+                    // Then logout from our app
+                    presenter.logout();
+                })
+                .setNegativeButton("No", (dialog, which) -> {
+                    dialog.dismiss();
+                })
+                .setCancelable(true)
+                .show();
+    }
 
     @Override
     public void showUserProfile(User user) {
+        Log.d(TAG, "=== SHOW USER PROFILE ===");
+        Log.d(TAG, "User name: " + user.getName());
+        Log.d(TAG, "Profile Image URL: " + user.getProfileImageUrl());
+        Log.d(TAG, "=========================");
+
         tvUserName.setText(user.getName());
         btnLoginFacebook.setVisibility(View.GONE);
-        // TODO: Load avatar image using Glide/Picasso if user.getProfileImageUrl() is
-        // not empty
+
+        if (user.getProfileImageUrl() != null && !user.getProfileImageUrl().isEmpty()) {
+            loadUserAvatar(user.getProfileImageUrl());
+            Log.d(TAG, "Loading Facebook avatar: " + user.getProfileImageUrl());
+        } else {
+            Log.d(TAG, "No profile image URL, showing default avatar");
+            showDefaultAvatar();
+        }
     }
 
     @Override
     public void showGuestMode() {
+        Log.d(TAG, "=== SHOW GUEST MODE ===");
         tvUserName.setText("Guest User");
         btnLoginFacebook.setVisibility(View.VISIBLE);
+        showDefaultAvatar();
     }
 
     @Override
@@ -137,8 +199,6 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
 
     @Override
     public void updateVibratorSwitch(boolean isEnabled) {
-        // Avoid triggering listener loop if needed, though simple setChecked is usually
-        // fine
         if (switchVibrator.isChecked() != isEnabled) {
             switchVibrator.setChecked(isEnabled);
         }
@@ -146,17 +206,70 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
 
     @Override
     public void showLoading() {
-        // Optional: Show a progress dialog or loading indicator
+        if (loadingOverlay != null) {
+            loadingOverlay.setVisibility(View.VISIBLE);
+            Log.d(TAG, "Loading overlay shown");
+        }
     }
 
     @Override
     public void hideLoading() {
-        // Optional: Hide progress dialog
+        if (loadingOverlay != null) {
+            loadingOverlay.setVisibility(View.GONE);
+            Log.d(TAG, "Loading overlay hidden");
+        }
+    }
+
+    @Override
+    public void showLogoutButton() {
+        btnLogout.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void hideLogoutButton() {
+        btnLogout.setVisibility(View.GONE);
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         mCallbackManager.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    public void loadUserAvatar(String imageUrl) {
+        Log.d(TAG, "=== LOAD USER AVATAR ===");
+        Log.d(TAG, "Image URL: " + imageUrl);
+
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            RequestOptions requestOptions = new RequestOptions()
+                    .transform(new CircleCrop())
+                    .placeholder(R.drawable.sbg_rain_girl_frog)
+                    .error(R.drawable.sbg_rain_girl_frog);
+
+            Glide.with(this)
+                    .load(imageUrl)
+                    .apply(requestOptions)
+                    .into(ivAvatar);
+
+            Log.d(TAG, "Avatar loaded successfully from: " + imageUrl);
+        } else {
+            Log.d(TAG, "Empty image URL, showing default avatar");
+            showDefaultAvatar();
+        }
+    }
+
+    @Override
+    public void showDefaultAvatar() {
+        Log.d(TAG, "=== SHOW DEFAULT AVATAR ===");
+        ivAvatar.setImageResource(R.drawable.sbg_rain_girl_frog);
+    }
+
+    @Override
+    public void updateLoadingMessage(String message) {
+        if (tvLoadingMessage != null) {
+            tvLoadingMessage.setText(message);
+            Log.d(TAG, "Loading message updated: " + message);
+        }
     }
 }

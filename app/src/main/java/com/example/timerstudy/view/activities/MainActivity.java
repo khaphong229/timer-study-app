@@ -1,7 +1,12 @@
 package com.example.timerstudy.view.activities;
 
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.os.Bundle;
+import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
@@ -13,6 +18,8 @@ import com.google.android.material.navigationrail.NavigationRailView;
 import com.google.android.material.navigation.NavigationBarView;
 import com.example.timerstudy.utils.FakeDataSeeder;
 
+import java.security.MessageDigest;
+
 public class MainActivity extends AppCompatActivity {
 
     private NavigationRailView navigationRail;
@@ -20,14 +27,17 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
+
+        // Generate Facebook key hash for debugging
+        generateKeyHash();
+
         // Hide system UI for full screen
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
         decorView.setSystemUiVisibility(uiOptions);
-        
+
         setContentView(R.layout.activity_main);
 
         setupNavigation();
@@ -46,32 +56,56 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void generateKeyHash() {
+        try {
+            PackageInfo info = getPackageManager().getPackageInfo(
+                    getPackageName(),
+                    PackageManager.GET_SIGNATURES);
+            for (Signature signature : info.signatures) {
+                MessageDigest md = MessageDigest.getInstance("SHA");
+                md.update(signature.toByteArray());
+                String keyHash = Base64.encodeToString(md.digest(), Base64.DEFAULT);
+                Log.d("Facebook KeyHash:", keyHash);
+                Log.d("Facebook KeyHash:", "Add this key hash to Facebook app settings: " + keyHash.trim());
+            }
+        } catch (Exception e) {
+            Log.e("Facebook KeyHash", "Error generating key hash", e);
+        }
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        // Forward the result to all fragments
-        // This ensures Facebook LoginButton in ProfileFragment receives the callback
+
+        // Get the current fragment from NavHostFragment
+        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.nav_host_fragment);
+        if (navHostFragment != null) {
+            androidx.fragment.app.Fragment currentFragment = navHostFragment.getChildFragmentManager()
+                    .getPrimaryNavigationFragment();
+            if (currentFragment != null) {
+                currentFragment.onActivityResult(requestCode, resultCode, data);
+            }
+        }
+
+        // Also forward to all fragments as fallback
         for (androidx.fragment.app.Fragment fragment : getSupportFragmentManager().getFragments()) {
             fragment.onActivityResult(requestCode, resultCode, data);
         }
     }
-    
+
     private void setupNavigation() {
-        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
+        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.nav_host_fragment);
         NavController navController = navHostFragment.getNavController();
         navigationRail = findViewById(R.id.navigation_rail);
         NavigationUI.setupWithNavController(navigationRail, navController);
 
         navigationRail.setOnItemSelectedListener(item -> {
-//           if (item.getItemId() == R.id.menu_seed_data) {
-//               FakeDataSeeder.seed(this);
-//               android.widget.Toast.makeText(this, "Seeding demo data...", android.widget.Toast.LENGTH_SHORT).show();
-//               return true;
-//           }
             return NavigationUI.onNavDestinationSelected(item, navController);
         });
     }
-    
+
     /**
      * Toggle visibility của Navigation Rail
      */
@@ -84,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-    
+
     /**
      * Ẩn Navigation Rail
      */
@@ -93,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
             navigationRail.setVisibility(View.GONE);
         }
     }
-    
+
     /**
      * Hiện Navigation Rail
      */

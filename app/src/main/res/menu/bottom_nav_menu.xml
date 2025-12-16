@@ -15,10 +15,10 @@
         android:icon="@drawable/todo"
         android:title="Todo" />
 
-    <item
+    <!-- <item
         android:id="@+id/menu_statistics"
         android:icon="@drawable/statistic"
-        android:title="Statistic" />
+        android:title="Statistic" /> -->
     <item
         android:id="@+id/nav_shop"
         android:icon="@drawable/photo"
