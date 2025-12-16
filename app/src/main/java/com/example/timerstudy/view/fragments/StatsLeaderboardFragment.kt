@@ -30,8 +30,8 @@ class StatsLeaderboardFragment : Fragment() {
 
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = when (position) {
-                0 -> "LeaderBoard"
-                1 -> "Statistics"
+                0 -> "Ranking"
+                1 -> "Statistic"
                 else -> ""
             }
         }.attach()
