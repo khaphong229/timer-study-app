@@ -28,8 +28,10 @@ public class User {
     private boolean soundEnabled;
     private boolean vibratorEnabled;
 
-    // Thêm field accessToken
+    // Thêm field accessToken và refreshToken
     private String accessToken;
+    private String refreshToken;
+    private long tokenExpiresAt; // Timestamp khi token hết hạn
 
     // Thêm field cho danh sách bạn bè
     private List<String> friendIds;
@@ -59,6 +61,8 @@ public class User {
         this.soundEnabled = true;
         this.vibratorEnabled = true;
         this.accessToken = "";
+        this.refreshToken = "";
+        this.tokenExpiresAt = 0;
         this.friendIds = new ArrayList<>();
         this.friendsCount = 0;
     }
@@ -78,6 +82,8 @@ public class User {
         this.soundEnabled = true;
         this.vibratorEnabled = true;
         this.accessToken = "";
+        this.refreshToken = "";
+        this.tokenExpiresAt = 0;
         this.friendIds = new ArrayList<>();
         this.friendsCount = 0;
     }
@@ -181,6 +187,39 @@ public class User {
 
     public void setAccessToken(String accessToken) {
         this.accessToken = accessToken;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
+    public long getTokenExpiresAt() {
+        return tokenExpiresAt;
+    }
+
+    public void setTokenExpiresAt(long tokenExpiresAt) {
+        this.tokenExpiresAt = tokenExpiresAt;
+    }
+
+    /**
+     * Set tokens với thông tin đầy đủ
+     */
+    public void setTokens(String accessToken, String refreshToken, long expiresIn) {
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
+        // expiresIn là số giây, convert sang milliseconds và cộng với thời gian hiện tại
+        this.tokenExpiresAt = System.currentTimeMillis() + (expiresIn * 1000);
+    }
+
+    /**
+     * Kiểm tra token có hết hạn không
+     */
+    public boolean isTokenExpired() {
+        return System.currentTimeMillis() >= tokenExpiresAt;
     }
 
     public List<String> getFriendIds() {

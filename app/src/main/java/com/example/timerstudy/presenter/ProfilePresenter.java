@@ -3,6 +3,10 @@ package com.example.timerstudy.presenter;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.example.timerstudy.data.api.ApiClient;
+import com.example.timerstudy.data.api.request.LoginFirebaseRequest;
+import com.example.timerstudy.data.api.response.LoginResponse;
+import com.example.timerstudy.data.api.service.AuthApiService;
 import com.example.timerstudy.data.repository.UserRepository;
 import com.example.timerstudy.model.User;
 import com.example.timerstudy.utils.UserManager;
@@ -17,6 +21,10 @@ import com.google.firebase.auth.FirebaseUser;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ProfilePresenter implements ProfileContract.Presenter {
 
@@ -88,6 +96,10 @@ public class ProfilePresenter implements ProfileContract.Presenter {
     public void logout() {
         Log.d(TAG, "=== LOGOUT PROCESS STARTED ===");
 
+        // Clear backend access token
+        ApiClient.clearAccessToken();
+        Log.d(TAG, "Backend access token cleared");
+
         // Logout from Firebase
         mAuth.signOut();
         Log.d(TAG, "Firebase signed out");
@@ -100,6 +112,9 @@ public class ProfilePresenter implements ProfileContract.Presenter {
         if (currentUser != null) {
             Log.d(TAG, "Clearing user: " + currentUser.getName());
             currentUser.logout();
+            currentUser.setAccessToken("");
+            currentUser.setRefreshToken("");
+            currentUser.setTokenExpiresAt(0);
             userManager.setCurrentUser(currentUser);
             userManager.saveUser();
         }
@@ -141,8 +156,8 @@ public class ProfilePresenter implements ProfileContract.Presenter {
                                             String firebaseIdToken = tokenTask.getResult().getToken();
                                             Log.d(TAG, "Firebase ID Token: " + firebaseIdToken);
 
-                                            // Tiếp tục xử lý với token này
-                                            requestFacebookUserData(token, firebaseIdToken);
+                                            // Gọi API login-firebase để lấy access_token
+                                            loginWithFirebaseToken(firebaseIdToken, token);
                                         } else {
                                             Log.e(TAG, "Error getting Firebase ID Token", tokenTask.getException());
                                             view.hideLoading();
@@ -159,7 +174,82 @@ public class ProfilePresenter implements ProfileContract.Presenter {
                 });
     }
 
-    private void requestFacebookUserData(AccessToken accessToken, String firebaseIdToken) {
+    /**
+     * Gọi API backend để login với Firebase ID Token
+     * Lấy access_token và refresh_token từ backend
+     */
+    private void loginWithFirebaseToken(String firebaseIdToken, AccessToken facebookAccessToken) {
+        Log.d(TAG, "=== CALLING LOGIN-FIREBASE API ===");
+        Log.d(TAG, "Firebase ID Token: " + firebaseIdToken.substring(0, Math.min(50, firebaseIdToken.length())) + "...");
+
+        // Tạo request body
+        LoginFirebaseRequest request = new LoginFirebaseRequest(firebaseIdToken);
+
+        // Tạo API service
+        AuthApiService authService = ApiClient.getClient().create(AuthApiService.class);
+
+        // Gọi API
+        Call<LoginResponse> call = authService.loginWithFirebase(request);
+        call.enqueue(new Callback<LoginResponse>() {
+            @Override
+            public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
+                Log.d(TAG, "=== LOGIN-FIREBASE API RESPONSE ===");
+                Log.d(TAG, "Response Code: " + response.code());
+
+                if (response.isSuccessful() && response.body() != null) {
+                    LoginResponse loginResponse = response.body();
+                    Log.d(TAG, "Success: " + loginResponse.isSuccess());
+                    Log.d(TAG, "Message: " + loginResponse.getMessage());
+
+                    if (loginResponse.isSuccess() && loginResponse.getData() != null) {
+                        LoginResponse.LoginData data = loginResponse.getData();
+                        
+                        // Lưu tokens
+                        String accessToken = data.getAccessToken();
+                        String refreshToken = data.getRefreshToken();
+                        long expiresIn = data.getExpiresIn();
+
+                        Log.d(TAG, "Access Token: " + (accessToken != null ? accessToken.substring(0, Math.min(50, accessToken.length())) + "..." : "null"));
+                        Log.d(TAG, "Refresh Token: " + (refreshToken != null ? refreshToken.substring(0, Math.min(50, refreshToken.length())) + "..." : "null"));
+                        Log.d(TAG, "Expires In: " + expiresIn + " seconds");
+
+                        // Set access token vào ApiClient
+                        ApiClient.setAccessToken(accessToken);
+
+                        // Tiếp tục lấy thông tin user từ Facebook
+                        requestFacebookUserData(facebookAccessToken, firebaseIdToken, accessToken, refreshToken, expiresIn);
+                    } else {
+                        Log.e(TAG, "Login failed: " + loginResponse.getMessage());
+                        view.hideLoading();
+                        view.showMessage("Login failed: " + loginResponse.getMessage());
+                    }
+                } else {
+                    Log.e(TAG, "Response not successful: " + response.code());
+                    try {
+                        String errorBody = response.errorBody() != null ? response.errorBody().string() : "Unknown error";
+                        Log.e(TAG, "Error body: " + errorBody);
+                        view.hideLoading();
+                        view.showMessage("Login failed: " + errorBody);
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error parsing error body", e);
+                        view.hideLoading();
+                        view.showMessage("Login failed with code: " + response.code());
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<LoginResponse> call, Throwable t) {
+                Log.e(TAG, "=== LOGIN-FIREBASE API FAILURE ===");
+                Log.e(TAG, "Error: " + t.getMessage(), t);
+                view.hideLoading();
+                view.showMessage("Network error: " + t.getMessage());
+            }
+        });
+    }
+
+    private void requestFacebookUserData(AccessToken accessToken, String firebaseIdToken, 
+                                         String backendAccessToken, String backendRefreshToken, long expiresIn) {
         // Log Facebook Access Token again before GraphRequest
         Log.d(TAG, "=== FACEBOOK ACCESS TOKEN (GraphRequest) ===");
         Log.d(TAG, "Token: " + accessToken.getToken());
@@ -172,7 +262,7 @@ public class ProfilePresenter implements ProfileContract.Presenter {
                 (object, response) -> {
                     // Không hide loading ở đây nữa vì còn phải sync backend
                     try {
-                        processFacebookUserData(object, firebaseIdToken);
+                        processFacebookUserData(object, firebaseIdToken, backendAccessToken, backendRefreshToken, expiresIn);
 
                         // Nếu có quyền user_friends, lấy danh sách bạn bè
                         if (accessToken.getPermissions().contains("user_friends")) {
@@ -252,12 +342,20 @@ public class ProfilePresenter implements ProfileContract.Presenter {
         }
     }
 
-    private void processFacebookUserData(JSONObject object, String firebaseIdToken) {
+    private void processFacebookUserData(JSONObject object, String firebaseIdToken,
+                                         String backendAccessToken, String backendRefreshToken, long expiresIn) {
         try {
             // Log Firebase ID Token ở đây
             Log.d(TAG, "=== FIREBASE ID TOKEN ===");
             Log.d(TAG, firebaseIdToken);
             Log.d(TAG, "========================");
+
+            // Log Backend Tokens
+            Log.d(TAG, "=== BACKEND TOKENS ===");
+            Log.d(TAG, "Access Token: " + (backendAccessToken != null ? backendAccessToken.substring(0, Math.min(50, backendAccessToken.length())) + "..." : "null"));
+            Log.d(TAG, "Refresh Token: " + (backendRefreshToken != null ? backendRefreshToken.substring(0, Math.min(50, backendRefreshToken.length())) + "..." : "null"));
+            Log.d(TAG, "Expires In: " + expiresIn + " seconds");
+            Log.d(TAG, "=====================");
 
             String facebookId = object.optString("id", "");
             String name = object.optString("name", "Facebook User");
@@ -284,12 +382,18 @@ public class ProfilePresenter implements ProfileContract.Presenter {
             facebookUser.setEmail(email);
             facebookUser.setProfileImageUrl(profileImageUrl);
 
+            // Lưu tokens vào User
+            facebookUser.setTokens(backendAccessToken, backendRefreshToken, expiresIn);
+
             // Log toàn bộ thông tin user để debug
             Log.d(TAG, "=== USER INFO ===");
             Log.d(TAG, "User ID: " + facebookUser.getUserId());
             Log.d(TAG, "Name: " + facebookUser.getName());
             Log.d(TAG, "Email: " + facebookUser.getEmail());
             Log.d(TAG, "Profile Image URL: " + facebookUser.getProfileImageUrl());
+            Log.d(TAG, "Access Token: " + (facebookUser.getAccessToken() != null ? "Saved" : "null"));
+            Log.d(TAG, "Refresh Token: " + (facebookUser.getRefreshToken() != null ? "Saved" : "null"));
+            Log.d(TAG, "Token Expires At: " + facebookUser.getTokenExpiresAt());
             Log.d(TAG, "==================");
 
             facebookUser.setLoggedIn(true);

@@ -43,11 +43,13 @@ public class TimerFragment extends Fragment implements TimerContract.View {
     private ImageButton btnPlayPause;
     private ImageButton btnReset;
     private ImageButton btnTimerSettings;
+    private ImageButton btnTodoList;
     private SeekBar seekBarStudy;
     private SeekBar seekBarBreak;
     private TextView tvStudyDuration;
     private TextView tvBreakDuration;
     private MaterialCardView cardSeekbarPanel;
+    private MaterialCardView cardTodoPanel;
     private MaterialCardView cardTime;
     private View timerBlurBackground;
     private GifImageView gifImageView;
@@ -55,6 +57,7 @@ public class TimerFragment extends Fragment implements TimerContract.View {
     private TimerPresenter presenter;
     private boolean isRunning = false;
     private boolean isSeekbarVisible = false;
+    private boolean isTodoVisible = false;
 
     private MediaPlayer mediaPlayer;
     private Vibrator vibrator;
@@ -116,7 +119,9 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         btnPlayPause = view.findViewById(R.id.btn_play_pause);
         btnReset = view.findViewById(R.id.btn_reset);
         btnTimerSettings = view.findViewById(R.id.btn_timer_settings);
+        btnTodoList = view.findViewById(R.id.btn_todo_list);
         cardSeekbarPanel = view.findViewById(R.id.card_seekbar_panel);
+        cardTodoPanel = view.findViewById(R.id.card_todo_panel);
         cardTime = view.findViewById(R.id.card_time);
         timerBlurBackground = view.findViewById(R.id.timer_blur_background);
 
@@ -189,9 +194,16 @@ public class TimerFragment extends Fragment implements TimerContract.View {
             toggleSeekbarPanel();
         });
 
+        // Toggle todo list panel when clicking todo button
+        btnTodoList.setOnClickListener(v -> {
+            ViewAnimator.animateButtonClick(btnTodoList);
+            toggleTodoPanel();
+        });
+
         gifImageView.setOnClickListener(v -> {
             toggleNavigationRail();
             hideSeekbarPanel();
+            hideTodoPanel();
 
         });
 
@@ -268,6 +280,43 @@ public class TimerFragment extends Fragment implements TimerContract.View {
                 .alpha(1f)
                 .setDuration(300)
                 .setListener(null);
+    }
+
+    private void toggleTodoPanel() {
+        isTodoVisible = !isTodoVisible;
+
+        if (isTodoVisible) {
+            showTodoPanel();
+        } else {
+            hideTodoPanel();
+        }
+    }
+
+    private void hideTodoPanel() {
+        isTodoVisible = false;
+        if (cardTodoPanel != null) {
+            cardTodoPanel.animate()
+                    .alpha(0f)
+                    .setDuration(300)
+                    .setListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            cardTodoPanel.setVisibility(View.GONE);
+                        }
+                    });
+        }
+    }
+
+    private void showTodoPanel() {
+        isTodoVisible = true;
+        if (cardTodoPanel != null) {
+            cardTodoPanel.setVisibility(View.VISIBLE);
+            cardTodoPanel.setAlpha(0f);
+            cardTodoPanel.animate()
+                    .alpha(1f)
+                    .setDuration(300)
+                    .setListener(null);
+        }
     }
 
     /**
