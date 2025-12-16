@@ -13,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
 import com.example.timerstudy.R;
@@ -29,6 +30,7 @@ import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.login.LoginResult;
+import com.facebook.login.LoginManager;
 import com.facebook.login.widget.LoginButton;
 
 public class ProfileFragment extends Fragment implements ProfileContract.View {
@@ -124,13 +126,32 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
     }
 
     private void setupListeners() {
-        btnLogout.setOnClickListener(v -> presenter.logout());
+        btnLogout.setOnClickListener(v -> showLogoutConfirmationDialog());
 
         btnNotifications.setOnClickListener(v -> showMessage("Notifications Settings (Coming soon)"));
 
         btnPrivacy.setOnClickListener(v -> showMessage("Privacy Settings (Coming soon)"));
 
         switchVibrator.setOnCheckedChangeListener((buttonView, isChecked) -> presenter.setVibratorEnabled(isChecked));
+    }
+
+    private void showLogoutConfirmationDialog() {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Logout")
+                .setMessage("Are you sure you want to logout?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    // Logout from Facebook SDK first
+                    LoginManager.getInstance().logOut();
+                    Log.d(TAG, "Facebook SDK logged out");
+
+                    // Then logout from our app
+                    presenter.logout();
+                })
+                .setNegativeButton("No", (dialog, which) -> {
+                    dialog.dismiss();
+                })
+                .setCancelable(true)
+                .show();
     }
 
     @Override

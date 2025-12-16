@@ -9,6 +9,7 @@ import com.example.timerstudy.utils.UserManager;
 import com.example.timerstudy.view.contracts.ProfileContract;
 import com.facebook.AccessToken;
 import com.facebook.GraphRequest;
+import com.facebook.login.LoginManager;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
@@ -84,11 +85,26 @@ public class ProfilePresenter implements ProfileContract.Presenter {
 
     @Override
     public void logout() {
+        Log.d(TAG, "=== LOGOUT PROCESS STARTED ===");
+
+        // Logout from Firebase
         mAuth.signOut();
+        Log.d(TAG, "Firebase signed out");
+
+        // Logout from Facebook SDK (đảm bảo logout hoàn toàn)
+        LoginManager.getInstance().logOut();
+        Log.d(TAG, "Facebook SDK logged out");
+
+        // Clear local user data
         if (currentUser != null) {
+            Log.d(TAG, "Clearing user: " + currentUser.getName());
             currentUser.logout();
+            userManager.setCurrentUser(currentUser);
             userManager.saveUser();
         }
+
+        Log.d(TAG, "=== LOGOUT COMPLETED ===");
+
         updateView();
         view.showMessage("Logged out successfully");
     }
