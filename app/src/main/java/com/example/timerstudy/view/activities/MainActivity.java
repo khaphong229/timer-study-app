@@ -41,6 +41,19 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         setupNavigation();
+        try {
+            android.content.pm.PackageInfo info = getPackageManager().getPackageInfo(
+                    "com.example.timerstudy", // Đã điền sẵn package của bạn
+                    android.content.pm.PackageManager.GET_SIGNATURES);
+
+            for (android.content.pm.Signature signature : info.signatures) {
+                java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA");
+                md.update(signature.toByteArray());
+                android.util.Log.d("KeyHash", android.util.Base64.encodeToString(md.digest(), android.util.Base64.DEFAULT));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void generateKeyHash() {
