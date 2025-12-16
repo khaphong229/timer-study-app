@@ -258,12 +258,19 @@ public class ProfilePresenter implements ProfileContract.Presenter {
                     Log.d(TAG, "=== SYNC ERROR - SAVED LOCALLY ===");
                     Log.d(TAG, "Local user: " + currentUser.getName());
                     Log.d(TAG, "Profile Image URL: " + currentUser.getProfileImageUrl());
+                    Log.d(TAG, "Error message: " + message);
                     Log.d(TAG, "==================================");
 
                     new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
                         view.hideLoading();
                         updateView();
-                        view.showMessage("Login local only. " + message);
+
+                        // Hiển thị message phù hợp với lỗi
+                        if (message.contains("CLEARTEXT")) {
+                            view.showMessage("Login successful (offline mode)");
+                        } else {
+                            view.showMessage("Login local only. " + message);
+                        }
                     });
                 }
             });

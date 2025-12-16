@@ -587,6 +587,12 @@ public class UserRepository {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
+
+                Log.d(TAG, "=== STARTING FACEBOOK SYNC ===");
+                Log.d(TAG, "User: " + fbUser.getName());
+                Log.d(TAG, "Email: " + fbUser.getEmail());
+                Log.d(TAG, "Profile Image: " + fbUser.getProfileImageUrl());
+
                 ApiService apiService = RetrofitClient.getInstance().getApiService();
 
                 // Sử dụng Facebook ID làm password cho backend
@@ -597,6 +603,8 @@ public class UserRepository {
                 if (email == null || email.isEmpty()) {
                     email = fbUser.getUserId() + "@facebook.local";
                 }
+
+                Log.d(TAG, "Attempting backend sync with email: " + email);
 
                 // 1. Thử Register
                 ApiService.RegisterRequest regReq = new ApiService.RegisterRequest(
@@ -611,6 +619,9 @@ public class UserRepository {
                     readyToLogin = true;
                 } else {
                     Log.d(TAG, "Backend Register Failed/Existed, trying Login...");
+                    if (regRes.errorBody() != null) {
+                        Log.d(TAG, "Register error: " + regRes.errorBody().string());
+                    }
                     readyToLogin = true; // Cứ thử login xem sao
                 }
 
@@ -627,22 +638,51 @@ public class UserRepository {
                         // Lưu user đã có token vào local
                         saveUser(fbUser);
 
+                        Log.d(TAG, "=== BACKEND SYNC SUCCESS ===");
+                        Log.d(TAG, "Access Token received");
+
                         // Post lên UI
-                        currentUserLiveData.postValue(null); // Trigger update if needed (mapping UserEntity vs User
-                                                             // model is tricky here)
+                        currentUserLiveData.postValue(null); // Trigger update if needed
 
                         if (callback != null)
                             callback.onSuccess(fbUser);
                     } else {
                         String errorMsg = (loginRes.body() != null) ? loginRes.body().message : "Login failed";
+                        Log.e(TAG, "Login failed: " + errorMsg);
+                        if (loginRes.errorBody() != null) {
+                            Log.e(TAG, "Login error body: " + loginRes.errorBody().string());
+                        }
+
+                        // Lưu user local ngay cả khi backend fail
+                        saveUser(fbUser);
+
                         if (callback != null)
                             callback.onError("Backend Sync Failed: " + errorMsg);
                     }
                 }
+            } catch (IOException e) {
+                Log.e(TAG, "Network Error during sync", e);
+
+                // Lưu user local khi có network error
+                saveUser(fbUser);
+
+                String errorMessage;
+                if (e.getMessage() != null && e.getMessage().contains("CLEARTEXT")) {
+                    errorMessage = "CLEARTEXT communication to 10.0.2.2 not permitted by network security policy";
+                } else {
+                    errorMessage = "Network Error: " + e.getMessage();
+                }
+
+                if (callback != null)
+                    callback.onError(errorMessage);
             } catch (Exception e) {
                 Log.e(TAG, "Error syncing with backend", e);
+
+                // Lưu user local khi có lỗi khác
+                saveUser(fbUser);
+
                 if (callback != null)
-                    callback.onError("Network Error: " + e.getMessage());
+                    callback.onError("Sync Error: " + e.getMessage());
             } finally {
                 isLoadingLiveData.postValue(false);
             }
