@@ -62,7 +62,6 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
         initFacebookLogin();
         setupListeners();
 
-        // Load data
         presenter.loadUserData();
     }
 
@@ -75,7 +74,6 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
         btnPrivacy = view.findViewById(R.id.btnPrivacy);
         btnLogout = view.findViewById(R.id.btnLogout);
 
-        // Hide logout button initially
         btnLogout.setVisibility(View.GONE);
     }
 
@@ -127,24 +125,28 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
         switchVibrator.setOnCheckedChangeListener((buttonView, isChecked) -> presenter.setVibratorEnabled(isChecked));
     }
 
-    // --- View Interface Implementation ---
-
     @Override
     public void showUserProfile(User user) {
+        Log.d(TAG, "=== SHOW USER PROFILE ===");
+        Log.d(TAG, "User name: " + user.getName());
+        Log.d(TAG, "Profile Image URL: " + user.getProfileImageUrl());
+        Log.d(TAG, "=========================");
+
         tvUserName.setText(user.getName());
         btnLoginFacebook.setVisibility(View.GONE);
 
-        // Load avatar if available
         if (user.getProfileImageUrl() != null && !user.getProfileImageUrl().isEmpty()) {
             loadUserAvatar(user.getProfileImageUrl());
             Log.d(TAG, "Loading Facebook avatar: " + user.getProfileImageUrl());
         } else {
+            Log.d(TAG, "No profile image URL, showing default avatar");
             showDefaultAvatar();
         }
     }
 
     @Override
     public void showGuestMode() {
+        Log.d(TAG, "=== SHOW GUEST MODE ===");
         tvUserName.setText("Guest User");
         btnLoginFacebook.setVisibility(View.VISIBLE);
         showDefaultAvatar();
@@ -157,8 +159,6 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
 
     @Override
     public void updateVibratorSwitch(boolean isEnabled) {
-        // Avoid triggering listener loop if needed, though simple setChecked is usually
-        // fine
         if (switchVibrator.isChecked() != isEnabled) {
             switchVibrator.setChecked(isEnabled);
         }
@@ -166,12 +166,10 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
 
     @Override
     public void showLoading() {
-        // Optional: Show a progress dialog or loading indicator
     }
 
     @Override
     public void hideLoading() {
-        // Optional: Hide progress dialog
     }
 
     @Override
@@ -192,6 +190,9 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
 
     @Override
     public void loadUserAvatar(String imageUrl) {
+        Log.d(TAG, "=== LOAD USER AVATAR ===");
+        Log.d(TAG, "Image URL: " + imageUrl);
+
         if (imageUrl != null && !imageUrl.isEmpty()) {
             RequestOptions requestOptions = new RequestOptions()
                     .transform(new CircleCrop())
@@ -205,12 +206,14 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
 
             Log.d(TAG, "Avatar loaded successfully from: " + imageUrl);
         } else {
+            Log.d(TAG, "Empty image URL, showing default avatar");
             showDefaultAvatar();
         }
     }
 
     @Override
     public void showDefaultAvatar() {
+        Log.d(TAG, "=== SHOW DEFAULT AVATAR ===");
         ivAvatar.setImageResource(R.drawable.sbg_rain_girl_frog);
     }
 }

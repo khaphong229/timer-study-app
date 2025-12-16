@@ -27,7 +27,7 @@
                     android:id="@+id/ivAvatar"
                     android:layout_width="80dp"
                     android:layout_height="80dp"
-                    android:background="@drawable/sbg_rain_girl_frog"
+                    android:src="@drawable/sbg_rain_girl_frog"
                     android:clickable="true"
                     android:contentDescription="Profile Avatar"
                     android:focusable="true"

@@ -32,6 +32,10 @@ public class UserManager {
         return currentUser;
     }
 
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
+    }
+
     public void saveUser() {
         if (currentUser != null) {
             userRepository.saveUser(currentUser);
