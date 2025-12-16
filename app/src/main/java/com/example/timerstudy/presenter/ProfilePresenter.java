@@ -326,7 +326,7 @@ public class ProfilePresenter implements ProfileContract.Presenter {
             view.showMessage("Syncing with server...");
 
             // Tạm thời giữ nguyên logic cũ
-            userManager.syncFacebookUser(currentUser, new UserRepository.SyncCallback() {
+            userManager.syncFacebookUser(currentUser, firebaseIdToken, new UserRepository.SyncCallback() {
                 @Override
                 public void onSuccess(User syncedUser) {
                     currentUser = syncedUser;

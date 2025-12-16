@@ -581,84 +581,51 @@ public class UserRepository {
 
     /**
      * Sync Facebook user with Backend
-     * Logic: Try Register -> If fail/exist -> Try Login -> Save Token
+     * Logic: Login with Firebase Token -> Save Token
      */
-    public void syncFacebookUser(User fbUser, SyncCallback callback) {
+    public void syncFacebookUser(User fbUser, String firebaseToken, SyncCallback callback) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
 
                 Log.d(TAG, "=== STARTING FACEBOOK SYNC ===");
                 Log.d(TAG, "User: " + fbUser.getName());
-                Log.d(TAG, "Email: " + fbUser.getEmail());
-                Log.d(TAG, "Profile Image: " + fbUser.getProfileImageUrl());
+                Log.d(TAG, "Firebase Token: " + firebaseToken);
 
                 ApiService apiService = RetrofitClient.getInstance().getApiService();
 
-                // Sử dụng Facebook ID làm password cho backend
-                String password = fbUser.getUserId();
-                String email = fbUser.getEmail();
+                // Login with Firebase Token
+                ApiService.LoginFirebaseRequest loginReq = new ApiService.LoginFirebaseRequest(firebaseToken);
+                Call<ApiService.ApiResponse<ApiService.LoginResponseData>> loginCall = apiService.loginFirebase(loginReq);
+                Response<ApiService.ApiResponse<ApiService.LoginResponseData>> loginRes = loginCall.execute();
 
-                // Ensure email is valid for backend (fallback was already set in presenter)
-                if (email == null || email.isEmpty()) {
-                    email = fbUser.getUserId() + "@facebook.local";
-                }
+                if (loginRes.isSuccessful() && loginRes.body() != null && loginRes.body().success) {
+                    String token = loginRes.body().data.accessToken;
+                    fbUser.setAccessToken(token);
 
-                Log.d(TAG, "Attempting backend sync with email: " + email);
+                    // Lưu user đã có token vào local
+                    saveUser(fbUser);
 
-                // 1. Thử Register
-                ApiService.RegisterRequest regReq = new ApiService.RegisterRequest(
-                        email, password, fbUser.getName(), fbUser.getProfileImageUrl());
+                    Log.d(TAG, "=== BACKEND SYNC SUCCESS ===");
+                    Log.d(TAG, "Access Token received");
 
-                Call<ApiService.ApiResponse<ApiService.UserResponseData>> regCall = apiService.register(regReq);
-                Response<ApiService.ApiResponse<ApiService.UserResponseData>> regRes = regCall.execute();
+                    // Post lên UI
+                    currentUserLiveData.postValue(null); // Trigger update if needed
 
-                boolean readyToLogin = false;
-                if (regRes.isSuccessful() && regRes.body() != null && regRes.body().success) {
-                    Log.d(TAG, "Backend Register Success");
-                    readyToLogin = true;
+                    if (callback != null)
+                        callback.onSuccess(fbUser);
                 } else {
-                    Log.d(TAG, "Backend Register Failed/Existed, trying Login...");
-                    if (regRes.errorBody() != null) {
-                        Log.d(TAG, "Register error: " + regRes.errorBody().string());
+                    String errorMsg = (loginRes.body() != null) ? loginRes.body().message : "Login failed";
+                    Log.e(TAG, "Login failed: " + errorMsg);
+                    if (loginRes.errorBody() != null) {
+                        Log.e(TAG, "Login error body: " + loginRes.errorBody().string());
                     }
-                    readyToLogin = true; // Cứ thử login xem sao
-                }
 
-                // 2. Login để lấy Token
-                if (readyToLogin) {
-                    ApiService.LoginRequest loginReq = new ApiService.LoginRequest(email, password);
-                    Call<ApiService.ApiResponse<ApiService.LoginResponseData>> loginCall = apiService.login(loginReq);
-                    Response<ApiService.ApiResponse<ApiService.LoginResponseData>> loginRes = loginCall.execute();
+                    // Lưu user local ngay cả khi backend fail
+                    saveUser(fbUser);
 
-                    if (loginRes.isSuccessful() && loginRes.body() != null && loginRes.body().success) {
-                        String token = loginRes.body().data.accessToken;
-                        fbUser.setAccessToken(token);
-
-                        // Lưu user đã có token vào local
-                        saveUser(fbUser);
-
-                        Log.d(TAG, "=== BACKEND SYNC SUCCESS ===");
-                        Log.d(TAG, "Access Token received");
-
-                        // Post lên UI
-                        currentUserLiveData.postValue(null); // Trigger update if needed
-
-                        if (callback != null)
-                            callback.onSuccess(fbUser);
-                    } else {
-                        String errorMsg = (loginRes.body() != null) ? loginRes.body().message : "Login failed";
-                        Log.e(TAG, "Login failed: " + errorMsg);
-                        if (loginRes.errorBody() != null) {
-                            Log.e(TAG, "Login error body: " + loginRes.errorBody().string());
-                        }
-
-                        // Lưu user local ngay cả khi backend fail
-                        saveUser(fbUser);
-
-                        if (callback != null)
-                            callback.onError("Backend Sync Failed: " + errorMsg);
-                    }
+                    if (callback != null)
+                        callback.onError("Backend Sync Failed: " + errorMsg);
                 }
             } catch (IOException e) {
                 Log.e(TAG, "Network Error during sync", e);
