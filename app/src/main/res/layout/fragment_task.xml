@@ -38,6 +38,18 @@
         app:layout_constraintEnd_toEndOf="parent"
         tools:listitem="@layout/item_task" />
 
+    <!-- Loading Indicator -->
+    <ProgressBar
+        android:id="@+id/progressBarLoading"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:indeterminateTint="#2196F3"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/layout_filter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <!-- Empty state shown when there are no tasks -->
     <TextView
         android:id="@+id/tvEmptyState"

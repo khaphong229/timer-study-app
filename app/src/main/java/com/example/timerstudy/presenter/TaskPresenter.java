@@ -208,15 +208,37 @@ public class TaskPresenter implements TaskContract.Presenter {
     @Override
     public void toggleTaskCompletion(TaskEntity task, boolean isChecked) {
         if (task == null) return;
+        
+        // Lưu trạng thái cũ để revert nếu API fail
+        boolean oldCompletedState = task.isCompleted();
+        Date oldCompletedAt = task.getCompletedAt();
+        
+        // Cập nhật trạng thái mới
         task.setCompleted(isChecked);
+        
+        // Nếu đánh dấu hoàn thành, set completed_at = now
+        // Nếu bỏ đánh dấu, set completed_at = null
+        if (isChecked) {
+            task.setCompletedAt(new Date());
+            Log.d(TAG, "Marking task as COMPLETED: " + task.getTitle() + " (ID: " + task.getTaskId() + ")");
+        } else {
+            task.setCompletedAt(null);
+            Log.d(TAG, "Marking task as PENDING: " + task.getTitle() + " (ID: " + task.getTaskId() + ")");
+        }
+        
         String token = null;
         try { token = userRepository.getCurrentUser().getAccessToken(); } catch (Exception ignored) {}
-        if (token == null || token.isEmpty()) { if (view != null) view.showError("Missing access token"); return; }
+        if (token == null || token.isEmpty()) { 
+            if (view != null) view.showError("Missing access token"); 
+            return; 
+        }
+        
         String bearer = token.startsWith("Bearer ") ? token : ("Bearer " + token);
         taskRepository.updateTaskViaApi(task, bearer, new DataCallback<TaskEntity>() {
             @Override
             public void onSuccess(TaskEntity result) {
                 mainHandler.post(() -> {
+                    Log.d(TAG, "Task completion status updated successfully");
                     updateTaskCount();
                     applyFilter();
                 });
@@ -224,7 +246,18 @@ public class TaskPresenter implements TaskContract.Presenter {
 
             @Override
             public void onError(String errorMessage) {
-                mainHandler.post(() -> { if (view != null) view.showError(errorMessage); });
+                mainHandler.post(() -> { 
+                    // Revert lại trạng thái cũ nếu API fail
+                    task.setCompleted(oldCompletedState);
+                    task.setCompletedAt(oldCompletedAt);
+                    
+                    Log.e(TAG, "Failed to update task completion: " + errorMessage);
+                    if (view != null) {
+                        view.showError("Failed to update task: " + errorMessage);
+                        // Cập nhật lại UI với trạng thái cũ
+                        applyFilter();
+                    }
+                });
             }
         });
     }

@@ -43,6 +43,10 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         this.originalTasks = new ArrayList<>(tasks);
         notifyDataSetChanged();
     }
+    public void updateTasks(List<TaskEntity> newTasks){
+        this.tasks = new ArrayList<>(newTasks);
+        notifyDataSetChanged();
+    }
     public List<TaskEntity> getOriginalTasks(){ return originalTasks; }
     public List<TaskEntity> getTasks(){ return new ArrayList<>(tasks); }
 
@@ -80,10 +84,20 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             color = Color.GRAY;
         }
         holder.priorityIndicator.setBackgroundColor(color);
-        // Sự kiện
-        holder.cbCompleted.setOnCheckedChangeListener((buttonView, isChecked) -> listener.onCheckedChange(task, isChecked));
-        holder.ivEdit.setOnClickListener(v -> { if (editListener != null) editListener.onEditTask(task); });
-        holder.ivDelete.setOnClickListener(v -> { if (deleteListener != null) deleteListener.onDeleteTask(task); });
+        
+        // Show/hide action buttons based on listeners
+        if (editListener != null && deleteListener != null) {
+            holder.actionButtons.setVisibility(View.VISIBLE);
+            holder.ivEdit.setOnClickListener(v -> editListener.onEditTask(task));
+            holder.ivDelete.setOnClickListener(v -> deleteListener.onDeleteTask(task));
+        } else {
+            holder.actionButtons.setVisibility(View.GONE);
+        }
+        
+        // Sự kiện checkbox
+        holder.cbCompleted.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (listener != null) listener.onCheckedChange(task, isChecked);
+        });
     }
     public int getItemCount(){ return tasks == null ? 0 : tasks.size(); }
 
@@ -93,6 +107,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         TextView tvTitle, tvDescription;
         View priorityIndicator;
         android.widget.ImageView ivEdit, ivDelete;
+        ViewGroup actionButtons;
         TaskViewHolder(View itemView) {
             super(itemView);
             cbCompleted = itemView.findViewById(R.id.cbCompleted);
@@ -101,6 +116,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             priorityIndicator = itemView.findViewById(R.id.viewPriority);
             ivEdit = itemView.findViewById(R.id.ivEdit);
             ivDelete = itemView.findViewById(R.id.ivDelete);
+            actionButtons = itemView.findViewById(R.id.actionButtons);
         }
     }
 }

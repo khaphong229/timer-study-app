@@ -41,7 +41,7 @@ public class TaskFragment extends Fragment implements TaskContract.View {
     private RecyclerView rvTasks, rvMonth;
     private TextView tvEmptyState, tvMonthYear, tvTaskCount, tvProgressPercentage;
     private FloatingActionButton fabAddTask;
-    private ProgressBar progressBarDaily;
+    private ProgressBar progressBarDaily, progressBarLoading;
     private Spinner spinnerFilterPriority;
     private CheckBox cbShowCompleted;
     private View btnPrevMonth, btnNextMonth, filterLayout;
@@ -80,6 +80,7 @@ public class TaskFragment extends Fragment implements TaskContract.View {
         // Ánh xạ view
         rvTasks = view.findViewById(R.id.rvTasks);
         tvEmptyState = view.findViewById(R.id.tvEmptyState);
+        progressBarLoading = view.findViewById(R.id.progressBarLoading);
         fabAddTask = view.findViewById(R.id.fabAddTask);
         View monthHeader = view.findViewById(R.id.layout_month_header);
         rvMonth = monthHeader.findViewById(R.id.rvMonth);
@@ -289,9 +290,29 @@ public class TaskFragment extends Fragment implements TaskContract.View {
     }
 
     @Override
-    public void showLoading() {  }
+    public void showLoading() {
+        if (isAdded()) {
+            requireActivity().runOnUiThread(() -> {
+                if (progressBarLoading != null) {
+                    progressBarLoading.setVisibility(View.VISIBLE);
+                    rvTasks.setVisibility(View.GONE);
+                    tvEmptyState.setVisibility(View.GONE);
+                }
+            });
+        }
+    }
+    
     @Override
-    public void hideLoading() {  }
+    public void hideLoading() {
+        if (isAdded()) {
+            requireActivity().runOnUiThread(() -> {
+                if (progressBarLoading != null) {
+                    progressBarLoading.setVisibility(View.GONE);
+                    rvTasks.setVisibility(View.VISIBLE);
+                }
+            });
+        }
+    }
     @Override
     public void showError(String message) {
         Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();

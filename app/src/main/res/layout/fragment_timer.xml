@@ -234,23 +234,23 @@
                 <!-- Background với blur effect -->
                 <View
                         android:id="@+id/timer_blur_background"
-                        android:layout_width="251dp"
-                        android:layout_height="324dp"
+                        android:layout_width="260dp"
+                        android:layout_height="340dp"
                         android:background="#AE404040" />
 
                 <!-- Content container -->
                 <LinearLayout
-                        android:layout_width="252dp"
-                        android:layout_height="323dp"
+                        android:layout_width="260dp"
+                        android:layout_height="340dp"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="32dp">
+                        android:padding="24dp">
 
                     <!-- Session Type với dấu đỏ -->
                     <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="24dp"
+                            android:layout_marginBottom="16dp"
                             android:background="@drawable/session_chip_inline"
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
@@ -275,7 +275,7 @@
                                 android:text="Study Session"
                                 android:textAllCaps="true"
                                 android:textColor="#FFFFFF"
-                                android:textSize="12sp"
+                                android:textSize="11sp"
                                 android:textStyle="bold"
                                 android:textColorHighlight="@android:color/transparent"
                                 android:textColorHint="#FFFFFF"
@@ -297,24 +297,23 @@
                         android:id="@+id/tv_current_task"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
+                        android:layout_marginBottom="8dp"
                         android:maxWidth="200dp"
                         android:gravity="center"
-                        android:text="task"
                         android:textColor="#FFFFFF"
-                        android:textSize="14sp"
-                        android:fontFamily="sans-serif"
-                        android:alpha="0.9"
+                        android:textSize="12sp"
+                        android:fontFamily="sans-serif-light"
+                        android:alpha="0.8"
                         android:visibility="gone"
                         android:ellipsize="end"
-                        android:maxLines="2" />
+                        android:maxLines="1" />
 
                     <!-- Timer -->
                     <TextView
                             android:id="@+id/tv_time"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="20dp"
+                            android:layout_marginBottom="16dp"
                             android:fontFamily="sans-serif-medium"
                             android:includeFontPadding="false"
                             android:shadowColor="#0F0F0F"
@@ -324,7 +323,7 @@
                             android:text="25:00"
                             android:textAllCaps="false"
                             android:textColor="#FFFFFF"
-                            android:textSize="54sp"
+                            android:textSize="56sp"
                             android:textStyle="bold" />
 
                     <!-- Completed Sessions -->
@@ -332,11 +331,11 @@
                             android:id="@+id/tv_completed_sessions"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="32dp"
+                            android:layout_marginBottom="24dp"
                             android:fontFamily="sans-serif-condensed-medium"
                             android:text="0 sessions"
                             android:textColor="#FFFFFF"
-                            android:textSize="14sp" />
+                            android:textSize="13sp" />
 
                     <!-- Control Buttons -->
                     <LinearLayout

@@ -338,6 +338,10 @@ public class TaskRepository {
     public void updateTaskViaApi(TaskEntity task, String accessToken, DataCallback<TaskEntity> callback) {
         executor.execute(() -> {
             try {
+                Log.d("TaskRepository", "=== UPDATE TASK API CALL ===");
+                Log.d("TaskRepository", "Task ID: " + task.getTaskId());
+                Log.d("TaskRepository", "Is Completed: " + task.isCompleted());
+                
                 ApiService api = RetrofitClient.getInstance().getApiService();
                 String authHeader = accessToken != null && accessToken.startsWith("Bearer ")
                         ? accessToken
@@ -346,33 +350,55 @@ public class TaskRepository {
                 long nowMillis = System.currentTimeMillis();
                 long taskDateMillis = task.getTaskDate() != null ? task.getTaskDate().getTime() : nowMillis;
                 String priority = task.getPriority() != null ? task.getPriority().toUpperCase() : TaskEntity.PRIORITY_MEDIUM;
+                
+                // Lấy completed_at từ task, nếu null thì dùng 0
+                long completedAtMillis = 0L;
+                if (task.isCompleted()) {
+                    completedAtMillis = task.getCompletedAt() != null ? task.getCompletedAt().getTime() : nowMillis;
+                }
 
                 ApiService.TaskUpdateRequest body = new ApiService.TaskUpdateRequest(
                         task.getTitle(),
                         task.getDescription(),
                         priority,
                         taskDateMillis,
-                        task.isCompleted() ? 1 : 0,
-                        task.isCompleted() ? (task.getCompletedAt() != null ? task.getCompletedAt().getTime() : nowMillis) : 0L,
+                        task.isCompleted() ? 1 : 0,  // is_completed: 1 = true, 0 = false
+                        completedAtMillis,
                         task.getTotalTimeSpent(),
                         task.getEstimatedSessions(),
                         task.getActualSessions(),
                         task.getOrderIndex()
                 );
+                
+                // LOG REQUEST
+                Log.d("TaskRepository", "=== UPDATE REQUEST BODY ===");
+                Log.d("TaskRepository", "Is Completed: " + body.isCompleted);
+                Log.d("TaskRepository", "Completed At: " + body.completedAt);
 
                 Call<ApiService.ApiResponse<ApiService.TaskItem>> call = api.updateTask(authHeader, task.getTaskId(), body);
+                Log.d("TaskRepository", "API URL: " + call.request().url());
+                
                 Response<ApiService.ApiResponse<ApiService.TaskItem>> res = call.execute();
+                
+                // LOG RESPONSE
+                Log.d("TaskRepository", "=== UPDATE RESPONSE ===");
+                Log.d("TaskRepository", "Response Code: " + res.code());
+                Log.d("TaskRepository", "Is Successful: " + res.isSuccessful());
 
                 if (res.isSuccessful() && res.body() != null && res.body().success && res.body().data != null) {
+                    Log.d("TaskRepository", "Task updated successfully");
                     TaskEntity updated = mapToEntity(res.body().data);
                     if (callback != null) callback.onSuccess(updated);
                 } else {
                     String msg = res.body() != null ? (res.body().message != null ? res.body().message : "Unknown error") : (res.message());
+                    Log.e("TaskRepository", "Update failed: " + msg);
                     if (callback != null) callback.onError("API error: " + msg);
                 }
             } catch (IOException e) {
+                Log.e("TaskRepository", "Network error updating task", e);
                 if (callback != null) callback.onError("Network error: " + e.getMessage());
             } catch (Exception e) {
+                Log.e("TaskRepository", "Unexpected error updating task", e);
                 if (callback != null) callback.onError("Unexpected error: " + e.getMessage());
             }
         });
