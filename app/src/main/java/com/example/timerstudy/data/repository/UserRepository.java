@@ -526,6 +526,7 @@ public class UserRepository {
         String userJson = sharedPreferences.getString(KEY_CURRENT_USER, null);
         if (userJson != null) {
             try {
+                Log.d(TAG, "Reading User JSON: " + userJson);
                 return gson.fromJson(userJson, User.class);
             } catch (Exception e) {
                 Log.e(TAG, "Error parsing user JSON", e);
@@ -542,6 +543,7 @@ public class UserRepository {
     public void saveUser(User user) {
         try {
             String userJson = gson.toJson(user);
+            Log.d(TAG, "Saving User JSON: " + userJson);
             sharedPreferences.edit()
                     .putString(KEY_CURRENT_USER, userJson)
                     .apply();
@@ -581,7 +583,7 @@ public class UserRepository {
 
     /**
      * Sync Facebook user with Backend
-     * Logic: Login with Firebase Token -> Save Token
+     * Logic: Login with Firebase Token -> Save Token and User Info
      */
     public void syncFacebookUser(User fbUser, String firebaseToken, SyncCallback callback) {
         executorService.execute(() -> {
@@ -596,17 +598,64 @@ public class UserRepository {
 
                 // Login with Firebase Token
                 ApiService.LoginFirebaseRequest loginReq = new ApiService.LoginFirebaseRequest(firebaseToken);
-                Call<ApiService.ApiResponse<ApiService.LoginResponseData>> loginCall = apiService.loginFirebase(loginReq);
+                Call<ApiService.ApiResponse<ApiService.LoginResponseData>> loginCall = apiService
+                        .loginFirebase(loginReq);
                 Response<ApiService.ApiResponse<ApiService.LoginResponseData>> loginRes = loginCall.execute();
 
                 if (loginRes.isSuccessful() && loginRes.body() != null && loginRes.body().success) {
-                    String token = loginRes.body().data.accessToken;
-                    fbUser.setAccessToken(token);
+                    ApiService.LoginResponseData data = loginRes.body().data;
+                    Log.d(TAG, "API Response Data: " + new Gson().toJson(data));
+
+                    if (data.accessToken == null || data.accessToken.isEmpty()) {
+                        Log.e(TAG, "ERROR: Access Token from API is NULL or EMPTY!");
+                    } else {
+                        Log.d(TAG, "Access Token from API: "
+                                + data.accessToken.substring(0, Math.min(20, data.accessToken.length())) + "...");
+                    }
+
+                    // Calculate duration
+                    long expiresInDuration = (long) data.expiresIn;
+                    long currentTimeSeconds = System.currentTimeMillis() / 1000;
+
+                    // If expiresIn is a timestamp (e.g. > 1 year from epoch), convert to duration
+                    if (expiresInDuration > currentTimeSeconds) {
+                        expiresInDuration = expiresInDuration - currentTimeSeconds;
+                    }
+
+                    // Lưu tokens
+                    fbUser.setTokens(
+                            data.accessToken,
+                            data.refreshToken,
+                            expiresInDuration);
+
+                    Log.d(TAG, "=== BACKEND SYNC SUCCESS ===");
+                    Log.d(TAG, "Access Token: " + data.accessToken.substring(0, 20) + "...");
+                    Log.d(TAG, "Refresh Token: " + data.refreshToken.substring(0, 20) + "...");
+                    Log.d(TAG,
+                            "Token expires in: " + expiresInDuration + " seconds");
+
+                    // Merge user info từ backend (nếu có)
+                    if (data.user != null) {
+                        fbUser.setName(data.user.displayName);
+                        fbUser.setEmail(data.user.email);
+                        if (data.user.profilePictureUrl != null && !data.user.profilePictureUrl.isEmpty()) {
+                            fbUser.setProfileImageUrl(data.user.profilePictureUrl);
+                        }
+
+                        Log.d(TAG, "Backend User ID: " + data.user.userId);
+                        Log.d(TAG, "Backend Display Name: " + data.user.displayName);
+                        Log.d(TAG, "Backend Email: " + data.user.email);
+                        Log.d(TAG, "Backend Profile Picture: " + data.user.profilePictureUrl);
+                    }
 
                     // Lưu user đã có token vào local (SharedPreferences)
+                    Log.d(TAG, "Saving user with token: "
+                            + fbUser.getAccessToken().substring(0, Math.min(10, fbUser.getAccessToken().length()))
+                            + "...");
                     saveUser(fbUser);
 
-                    // --- QUAN TRỌNG: Lưu User vào Room Database để đảm bảo Foreign Key cho Session ---
+                    // --- QUAN TRỌNG: Lưu User vào Room Database để đảm bảo Foreign Key cho Session
+                    // ---
                     try {
                         UserEntity userEntity = userDao.getUserById(fbUser.getUserId());
                         if (userEntity == null) {
@@ -632,11 +681,8 @@ public class UserRepository {
                     }
                     // -----------------------------------------------------------------------------
 
-                    Log.d(TAG, "=== BACKEND SYNC SUCCESS ===");
-                    Log.d(TAG, "Access Token received");
-
                     // Post lên UI
-                    currentUserLiveData.postValue(null); // Trigger update if needed
+                    currentUserLiveData.postValue(null);
 
                     if (callback != null)
                         callback.onSuccess(fbUser);

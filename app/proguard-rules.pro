@@ -19,3 +19,7 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Keep all Fragment classes
+-keep class com.example.timerstudy.view.fragments.** { *; }
+-keepnames class com.example.timerstudy.view.fragments.**
