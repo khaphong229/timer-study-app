@@ -74,11 +74,10 @@ public class TaskPresenter implements TaskContract.Presenter {
     public void loadTasks() {
         if (view != null) view.showLoading();
 
-        long userId = userRepository.getCurrentUserId();
+        int userId = userRepository.getCurrentUserId();
         Date date = selectedDate != null ? selectedDate : new Date();
         long dayMillis = normalizeDate(date).getTime();
 
-        // Sử dụng truy vấn theo ngày
         taskRepository.getTasksByUserIdAndDate(userId, dayMillis, new DataCallback<List<TaskEntity>>() {
             @Override
             public void onSuccess(List<TaskEntity> tasks) {
@@ -86,8 +85,12 @@ public class TaskPresenter implements TaskContract.Presenter {
                     if (view != null) {
                         view.hideLoading();
                         allTasks = tasks != null ? tasks : new ArrayList<>();
+                        Log.d(TAG, "Local DB load; items: " + allTasks.size());
                         updateTaskCount();
                         applyFilter();
+                        if (apiError != null && !apiError.isEmpty()) {
+                            view.showError("Using local data. " + apiError);
+                        }
                     }
                 });
             }
@@ -97,7 +100,8 @@ public class TaskPresenter implements TaskContract.Presenter {
                 mainHandler.post(() -> {
                     if (view != null) {
                         view.hideLoading();
-                        view.showError(errorMessage);
+                        String msg = (apiError != null ? apiError + "; " : "") + errorMessage;
+                        view.showError(msg);
                     }
                 });
             }
@@ -118,7 +122,11 @@ public class TaskPresenter implements TaskContract.Presenter {
         for (TaskEntity task : allTasks) {
             boolean priorityMatch = currentPriorityFilter.equals("all") ||
                     task.getPriority().equalsIgnoreCase(currentPriorityFilter);
-            boolean completedMatch = task.isCompleted() == showCompletedTasks;
+
+            // Nếu showCompletedTasks = true: hiển thị tất cả (cả completed và chưa completed)
+            // Nếu showCompletedTasks = false: chỉ hiển thị task chưa hoàn thành
+            boolean completedMatch = showCompletedTasks || !task.isCompleted();
+
             if (priorityMatch && completedMatch) filteredTasks.add(task);
         }
 
@@ -129,7 +137,7 @@ public class TaskPresenter implements TaskContract.Presenter {
             updateTaskCount();
         }
     }
- 
+
     private void updateTaskCount() {
         if (view != null && allTasks != null) {
             int completed = 0, total = allTasks.size();
@@ -142,9 +150,13 @@ public class TaskPresenter implements TaskContract.Presenter {
     public void toggleTaskCompletion(TaskEntity task, boolean isChecked) {
         if (task == null) return;
         task.setCompleted(isChecked);
-        taskRepository.updateTask(task, new DataCallback<Void>() {
+        String token = null;
+        try { token = userRepository.getCurrentUser().getAccessToken(); } catch (Exception ignored) {}
+        if (token == null || token.isEmpty()) { if (view != null) view.showError("Missing access token"); return; }
+        String bearer = token.startsWith("Bearer ") ? token : ("Bearer " + token);
+        taskRepository.updateTaskViaApi(task, bearer, new DataCallback<TaskEntity>() {
             @Override
-            public void onSuccess(Void result) {
+            public void onSuccess(TaskEntity result) {
                 mainHandler.post(() -> {
                     updateTaskCount();
                     applyFilter();
@@ -153,9 +165,7 @@ public class TaskPresenter implements TaskContract.Presenter {
 
             @Override
             public void onError(String errorMessage) {
-                mainHandler.post(() -> {
-                    if (view != null) view.showError(errorMessage);
-                });
+                mainHandler.post(() -> { if (view != null) view.showError(errorMessage); });
             }
         });
     }
@@ -171,8 +181,12 @@ public class TaskPresenter implements TaskContract.Presenter {
         TaskEntity newTask = new TaskEntity();
         newTask.setTitle(title.trim());
         newTask.setPriority(priority);
-        Date normalizedDate = normalizeDate(selectedDate != null ? selectedDate : new Date());
+        // Sử dụng ngày đã chọn trên màn hình (this.selectedDate)
+        Date taskDate = this.selectedDate != null ? this.selectedDate : new Date();
+        Date normalizedDate = normalizeDate(taskDate);
         newTask.setTaskDate(normalizedDate);
+        
+        Log.d(TAG, "Adding task for date: " + normalizedDate);
         newTask.setCreatedAt(new Date());
         newTask.setUpdatedAt(new Date());
         newTask.setCompleted(false);
@@ -182,9 +196,16 @@ public class TaskPresenter implements TaskContract.Presenter {
         newTask.setOrderIndex(0);
         newTask.setUserId(userRepository.getCurrentUserId());
 
-        taskRepository.insertTask(newTask, new DataCallback<Void>() {
+        String token = null;
+        try {
+            token = userRepository.getCurrentUser().getAccessToken();
+        } catch (Exception ignored) {}
+
+        if (token == null || token.isEmpty()) { if (view != null) { view.hideLoading(); view.showError("Missing access token"); } return; }
+        String bearer = token.startsWith("Bearer ") ? token : ("Bearer " + token);
+        taskRepository.createTaskViaApi(newTask, bearer, new DataCallback<TaskEntity>() {
             @Override
-            public void onSuccess(Void result) {
+            public void onSuccess(TaskEntity result) {
                 mainHandler.post(() -> {
                     if (view != null) {
                         view.hideLoading();
@@ -210,18 +231,18 @@ public class TaskPresenter implements TaskContract.Presenter {
     public void updateTask(TaskEntity task) {
         if (task == null) return;
         task.setUpdatedAt(new Date());
-        taskRepository.updateTask(task, new DataCallback<Void>() {
+        // Giữ nguyên taskDate của task, không thay đổi
+        Log.d(TAG, "Updating task ID: " + task.getTaskId() + ", Task Date: " + task.getTaskDate());
+        
+        String token = null; try { token = userRepository.getCurrentUser().getAccessToken(); } catch (Exception ignored) {}
+        if (token == null || token.isEmpty()) { if (view != null) view.showError("Missing access token"); return; }
+        String bearer = token.startsWith("Bearer ") ? token : ("Bearer " + token);
+        taskRepository.updateTaskViaApi(task, bearer, new DataCallback<TaskEntity>() {
             @Override
-            public void onSuccess(Void result) {
-                mainHandler.post(TaskPresenter.this::loadTasks);
-            }
-
+            public void onSuccess(TaskEntity result) { mainHandler.post(TaskPresenter.this::loadTasks); }
             @Override
             public void onError(String errorMessage) {
-                mainHandler.post(() -> {
-                    if (view != null)
-                        view.showError("Cannot update task: " + errorMessage);
-                });
+                mainHandler.post(() -> { if (view != null) view.showError("Cannot update task: " + errorMessage); });
             }
         });
     }
@@ -229,18 +250,15 @@ public class TaskPresenter implements TaskContract.Presenter {
     @Override
     public void deleteTask(TaskEntity task) {
         if (task == null) return;
-        taskRepository.deleteTask(task, new DataCallback<Void>() {
+        String token = null; try { token = userRepository.getCurrentUser().getAccessToken(); } catch (Exception ignored) {}
+        if (token == null || token.isEmpty()) { if (view != null) view.showError("Missing access token"); return; }
+        String bearer = token.startsWith("Bearer ") ? token : ("Bearer " + token);
+        taskRepository.deleteTaskViaApi(task.getTaskId(), bearer, new DataCallback<Void>() {
             @Override
-            public void onSuccess(Void result) {
-                mainHandler.post(TaskPresenter.this::loadTasks);
-            }
-
+            public void onSuccess(Void result) { mainHandler.post(TaskPresenter.this::loadTasks); }
             @Override
             public void onError(String errorMessage) {
-                mainHandler.post(() -> {
-                    if (view != null)
-                        view.showError("Cannot delete task: " + errorMessage);
-                });
+                mainHandler.post(() -> { if (view != null) view.showError("Cannot delete task: " + errorMessage); });
             }
         });
     }

@@ -629,6 +629,14 @@ public class UserRepository {
                             expiresInDuration);
 
                     Log.d(TAG, "=== BACKEND SYNC SUCCESS ===");
+                    Log.d(TAG, "Access Token received successfully");
+                    Log.d(TAG, "ACCESS TOKEN: " + token);
+                    Log.d(TAG, "TOKEN LENGTH: " + (token != null ? token.length() : "null"));
+                    Log.d(TAG, "USER ACCESS TOKEN: " + fbUser.getAccessToken());
+
+                    // Kiểm tra token có được lưu đúng không
+                    User savedUser = getCurrentUser();
+                    Log.d(TAG, "SAVED USER TOKEN: " + savedUser);
                     Log.d(TAG, "Access Token: " + data.accessToken.substring(0, 20) + "...");
                     Log.d(TAG, "Refresh Token: " + data.refreshToken.substring(0, 20) + "...");
                     Log.d(TAG,

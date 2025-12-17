@@ -4,6 +4,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClient {
+    // Use your machine's IP address (e.g., 192.168.x.x:8669) for physical devices
     // --- CẤU HÌNH KẾT NỐI ---
     // Đặt là true nếu chạy trên Máy ảo (Emulator)
     // Đặt là false nếu chạy trên Máy thật (Real Device)
