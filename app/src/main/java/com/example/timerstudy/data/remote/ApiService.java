@@ -33,23 +33,27 @@ public interface ApiService {
     Call<ApiResponse<LoginResponseData>> loginFirebase(@Body LoginFirebaseRequest request);
 
     // --- SESSIONS ---
-
-    // Lấy tất cả phiên học (không phân trang)
     @GET("api/v1/sessions/all")
     Call<ApiResponse<List<Session>>> getAllSessions(@Header("Authorization") String token);
 
-    // Lấy danh sách phiên học (có phân trang)
-    @GET("api/v1/sessions")
-    Call<ApiResponse<List<Session>>> getSessions(
-            @Header("Authorization") String token,
-            @Query("page") Integer page,
-            @Query("page_size") Integer pageSize,
-            @Query("sort_by") String sortBy,
-            @Query("order") String order);
+    @POST("api/v1/sessions")
+    Call<ApiResponse<Session>> createSession(@Header("Authorization") String token, @Body Session session);
 
-    // Tạo phiên học mới trên server
-    @POST("sessions")
-    Call<Session> createSession(@Header("Authorization") String token, @Body Session session);
+    // Lấy chi tiết phiên học
+    @GET("api/v1/sessions/{session_id}")
+    Call<ApiResponse<Session>> getSessionDetail(@Header("Authorization") String token, @Path("session_id") int sessionId);
+
+    // Cập nhật toàn bộ phiên học
+    @PUT("api/v1/sessions/{session_id}")
+    Call<ApiResponse<Session>> updateSession(@Header("Authorization") String token, @Path("session_id") int sessionId, @Body Session session);
+
+    // Cập nhật một phần phiên học
+    @PATCH("api/v1/sessions/{session_id}")
+    Call<ApiResponse<Session>> patchSession(@Header("Authorization") String token, @Path("session_id") int sessionId, @Body Session session);
+
+    // Xóa phiên học
+    @DELETE("api/v1/sessions/{session_id}")
+    Call<ApiResponse<Void>> deleteSession(@Header("Authorization") String token, @Path("session_id") int sessionId);
 
     // --- LEADERBOARD ---
     @GET("api/v1/leaderboard/facebook-friends")
