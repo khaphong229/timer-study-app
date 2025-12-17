@@ -133,7 +133,7 @@ public class TaskPresenter implements TaskContract.Presenter {
     }
 
     private void loadTasksFromLocalWithDate(String apiError) {
-        int userId = userRepository.getCurrentUserId();
+        long userId = UserManager.getInstance().getCurrentUserId();
         Date date = selectedDate != null ? selectedDate : new Date();
         long dayMillis = normalizeDate(date).getTime();
 
