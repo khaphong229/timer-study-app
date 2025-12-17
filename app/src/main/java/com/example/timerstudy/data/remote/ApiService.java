@@ -232,7 +232,7 @@ public interface ApiService {
 
     class UserInfo {
         @SerializedName("user_id")
-        public int userId;
+        public long userId;
         @SerializedName("email")
         public String email;
         @SerializedName("display_name")
@@ -268,7 +268,7 @@ public interface ApiService {
         @SerializedName("rank")
         public int rank;
         @SerializedName("user_id")
-        public int userId;
+        public long userId;
         @SerializedName("display_name")
         public String displayName;
         @SerializedName("profile_picture_url")
@@ -298,7 +298,7 @@ public interface ApiService {
         @SerializedName("task_id")
         public int taskId;
         @SerializedName("user_id")
-        public int userId;
+        public long userId;
         @SerializedName("title")
         public String title;
         @SerializedName("description")
