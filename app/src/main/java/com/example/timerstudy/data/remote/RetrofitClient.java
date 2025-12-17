@@ -4,8 +4,8 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClient {
-    // 10.0.2.2 là localhost của máy tính khi chạy trên Android Emulator
-    private static final String BASE_URL = "http://localhost:8669/000";
+    // Use your machine's IP address (e.g., 192.168.x.x:8669) for physical devices
+    private static final String BASE_URL = "http://192.168.0.103:8669/";
     private static RetrofitClient instance;
     private Retrofit retrofit;
 

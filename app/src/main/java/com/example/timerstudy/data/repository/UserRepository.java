@@ -607,7 +607,14 @@ public class UserRepository {
                     saveUser(fbUser);
 
                     Log.d(TAG, "=== BACKEND SYNC SUCCESS ===");
-                    Log.d(TAG, "Access Token received");
+                    Log.d(TAG, "Access Token received successfully");
+                    Log.d(TAG, "ACCESS TOKEN: " + token);
+                    Log.d(TAG, "TOKEN LENGTH: " + (token != null ? token.length() : "null"));
+                    Log.d(TAG, "USER ACCESS TOKEN: " + fbUser.getAccessToken());
+
+                    // Kiểm tra token có được lưu đúng không
+                    User savedUser = getCurrentUser();
+                    Log.d(TAG, "SAVED USER TOKEN: " + savedUser);
 
                     // Post lên UI
                     currentUserLiveData.postValue(null); // Trigger update if needed
