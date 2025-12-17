@@ -336,6 +336,16 @@ public class ProfilePresenter implements ProfileContract.Presenter {
                     Log.d(TAG, "=== SYNC SUCCESS ===");
                     Log.d(TAG, "Synced user: " + syncedUser.getName());
                     Log.d(TAG, "Profile Image URL: " + syncedUser.getProfileImageUrl());
+                    Log.d(TAG,
+                            "Access Token: " + (syncedUser.getAccessToken() != null
+                                    ? syncedUser.getAccessToken().substring(0, 20) + "..."
+                                    : "null"));
+                    Log.d(TAG,
+                            "Refresh Token: " + (syncedUser.getRefreshToken() != null
+                                    ? syncedUser.getRefreshToken().substring(0, 20) + "..."
+                                    : "null"));
+                    Log.d(TAG, "Token Expires At: " + syncedUser.getTokenExpiresAt());
+                    Log.d(TAG, "Is Token Expired: " + syncedUser.isTokenExpired());
                     Log.d(TAG, "===================");
 
                     new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {

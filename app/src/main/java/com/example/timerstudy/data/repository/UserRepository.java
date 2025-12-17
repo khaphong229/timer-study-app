@@ -581,7 +581,7 @@ public class UserRepository {
 
     /**
      * Sync Facebook user with Backend
-     * Logic: Login with Firebase Token -> Save Token
+     * Logic: Login with Firebase Token -> Save Token and User Info
      */
     public void syncFacebookUser(User fbUser, String firebaseToken, SyncCallback callback) {
         executorService.execute(() -> {
@@ -596,21 +596,45 @@ public class UserRepository {
 
                 // Login with Firebase Token
                 ApiService.LoginFirebaseRequest loginReq = new ApiService.LoginFirebaseRequest(firebaseToken);
-                Call<ApiService.ApiResponse<ApiService.LoginResponseData>> loginCall = apiService.loginFirebase(loginReq);
+                Call<ApiService.ApiResponse<ApiService.LoginResponseData>> loginCall = apiService
+                        .loginFirebase(loginReq);
                 Response<ApiService.ApiResponse<ApiService.LoginResponseData>> loginRes = loginCall.execute();
 
                 if (loginRes.isSuccessful() && loginRes.body() != null && loginRes.body().success) {
-                    String token = loginRes.body().data.accessToken;
-                    fbUser.setAccessToken(token);
+                    ApiService.LoginResponseData data = loginRes.body().data;
+
+                    // Lưu tokens
+                    fbUser.setTokens(
+                            data.accessToken,
+                            data.refreshToken,
+                            (long) (data.expiresIn - System.currentTimeMillis() / 1000.0) // Convert to seconds from now
+                    );
+
+                    Log.d(TAG, "=== BACKEND SYNC SUCCESS ===");
+                    Log.d(TAG, "Access Token: " + data.accessToken.substring(0, 20) + "...");
+                    Log.d(TAG, "Refresh Token: " + data.refreshToken.substring(0, 20) + "...");
+                    Log.d(TAG,
+                            "Token expires in: " + (data.expiresIn - System.currentTimeMillis() / 1000.0) + " seconds");
+
+                    // Merge user info từ backend (nếu có)
+                    if (data.user != null) {
+                        fbUser.setName(data.user.displayName);
+                        fbUser.setEmail(data.user.email);
+                        if (data.user.profilePictureUrl != null && !data.user.profilePictureUrl.isEmpty()) {
+                            fbUser.setProfileImageUrl(data.user.profilePictureUrl);
+                        }
+
+                        Log.d(TAG, "Backend User ID: " + data.user.userId);
+                        Log.d(TAG, "Backend Display Name: " + data.user.displayName);
+                        Log.d(TAG, "Backend Email: " + data.user.email);
+                        Log.d(TAG, "Backend Profile Picture: " + data.user.profilePictureUrl);
+                    }
 
                     // Lưu user đã có token vào local
                     saveUser(fbUser);
 
-                    Log.d(TAG, "=== BACKEND SYNC SUCCESS ===");
-                    Log.d(TAG, "Access Token received");
-
                     // Post lên UI
-                    currentUserLiveData.postValue(null); // Trigger update if needed
+                    currentUserLiveData.postValue(null);
 
                     if (callback != null)
                         callback.onSuccess(fbUser);

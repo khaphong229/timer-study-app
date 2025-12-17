@@ -17,8 +17,6 @@ public interface ApiService {
     @POST("api/users/sync")
     Call<User> syncUser(@Header("Authorization") String token, @Body User user);
 
-
-
     @POST("api/auth/user-entity/register")
     Call<ApiResponse<UserResponseData>> register(@Body RegisterRequest request);
 
@@ -107,6 +105,25 @@ public interface ApiService {
         @SerializedName("token_type")
         public String tokenType;
         @SerializedName("user")
-        public Object user; // Hoặc map chi tiết nếu cần
+        public UserInfo user;
+    }
+
+    class UserInfo {
+        @SerializedName("user_id")
+        public int userId;
+        @SerializedName("email")
+        public String email;
+        @SerializedName("display_name")
+        public String displayName;
+        @SerializedName("profile_picture_url")
+        public String profilePictureUrl;
+        @SerializedName("created_at")
+        public double createdAt;
+        @SerializedName("last_login")
+        public double lastLogin;
+        @SerializedName("is_anonymous")
+        public int isAnonymous;
+        @SerializedName("updated_at")
+        public double updatedAt;
     }
 }
