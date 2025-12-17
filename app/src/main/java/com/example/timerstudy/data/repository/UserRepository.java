@@ -39,6 +39,7 @@ public class UserRepository {
     // Database and DAO
     private final AppDatabase database;
     private final UserDao userDao;
+    private final Context context;
 
     // SharedPreferences for User model
     private final SharedPreferences sharedPreferences;
@@ -62,6 +63,7 @@ public class UserRepository {
      * @param context Application context
      */
     public UserRepository(Context context) {
+        this.context = context.getApplicationContext();
         database = AppDatabase.getDatabase(context);
         userDao = database.userDao();
         executorService = Executors.newFixedThreadPool(4);
@@ -545,7 +547,36 @@ public class UserRepository {
             sharedPreferences.edit()
                     .putString(KEY_CURRENT_USER, userJson)
                     .apply();
-            Log.d(TAG, "User saved successfully");
+            Log.d(TAG, "User saved successfully to Prefs");
+
+            // Also save to Database to ensure Foreign Key constraints are met
+            executorService.execute(() -> {
+                try {
+                    if (user.getUserId() > 0) {
+                        UserEntity existing = userDao.getUserById(user.getUserId());
+                        UserEntity entity = new UserEntity();
+                        entity.setUserId(user.getUserId());
+                        entity.setEmail(user.getEmail());
+                        entity.setDisplayName(user.getName());
+                        entity.setProfilePictureUrl(user.getProfileImageUrl());
+                        entity.setLastLogin(new java.util.Date());
+                        entity.setAnonymous(false); 
+                        
+                        if (existing == null) {
+                            entity.setCreatedAt(new java.util.Date());
+                            userDao.insertUser(entity);
+                            Log.d(TAG, "User inserted into DB: " + user.getUserId());
+                        } else {
+                            entity.setCreatedAt(existing.getCreatedAt());
+                            userDao.updateUser(entity);
+                            Log.d(TAG, "User updated in DB: " + user.getUserId());
+                        }
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error saving user to DB", e);
+                }
+            });
+
         } catch (Exception e) {
             Log.e(TAG, "Error saving user", e);
         }
@@ -605,6 +636,9 @@ public class UserRepository {
 
                     // Lưu user đã có token vào local
                     saveUser(fbUser);
+
+                    // Sync sessions from server
+                    SessionRepository.getInstance(context).fetchAndSaveSessionsFromApi(token, fbUser.getUserId());
 
                     Log.d(TAG, "=== BACKEND SYNC SUCCESS ===");
                     Log.d(TAG, "Access Token received successfully");
