@@ -135,14 +135,20 @@ public class ProfilePresenter implements ProfileContract.Presenter {
                         // --- LẤY FIREBASE ID TOKEN ---
                         FirebaseUser firebaseUser = mAuth.getCurrentUser();
                         if (firebaseUser != null) {
+                            // Force refresh token và đợi một chút để tránh "token used too early"
                             firebaseUser.getIdToken(true)
                                     .addOnCompleteListener(tokenTask -> {
                                         if (tokenTask.isSuccessful()) {
                                             String firebaseIdToken = tokenTask.getResult().getToken();
-                                            Log.d(TAG, "Firebase ID Token: " + firebaseIdToken);
-
-                                            // Tiếp tục xử lý với token này
-                                            requestFacebookUserData(token, firebaseIdToken);
+                                            Log.d(TAG, "Firebase ID Token received (length: " + firebaseIdToken.length() + ")");
+                                            
+                                            // Đợi 2 giây để đảm bảo token đã "chín" và tránh lỗi "token used too early"
+                                            // Do lệch thời gian giữa client và server
+                                            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                                                Log.d(TAG, "Delaying 2 seconds before sending token to backend to avoid 'token used too early' error");
+                                                // Tiếp tục xử lý với token này
+                                                requestFacebookUserData(token, firebaseIdToken);
+                                            }, 2000); // 2 seconds delay
                                         } else {
                                             Log.e(TAG, "Error getting Firebase ID Token", tokenTask.getException());
                                             view.hideLoading();

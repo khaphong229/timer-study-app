@@ -34,12 +34,18 @@ import pl.droidsonroids.gif.GifImageView;
 import com.example.timerstudy.R;
 import com.example.timerstudy.presenter.TimerPresenter;
 import com.example.timerstudy.view.activities.MainActivity;
+import com.example.timerstudy.data.repository.StreakRepository;
+import com.example.timerstudy.data.remote.ApiService;
 
 public class TimerFragment extends Fragment implements TimerContract.View {
+
+    private static final String TAG = "TimerFragment";
 
     private TextView tvTime;
     private TextView tvSessionType;
     private TextView tvCompletedSessions;
+    private TextView tvStreakCount;
+    private TextView tvFireIcon;
     private ImageButton btnPlayPause;
     private ImageButton btnReset;
     private ImageButton btnTimerSettings;
@@ -51,6 +57,7 @@ public class TimerFragment extends Fragment implements TimerContract.View {
     private MaterialCardView cardSeekbarPanel;
     private MaterialCardView cardTodoPanel;
     private MaterialCardView cardTime;
+    private View cardStreak;
     private View timerBlurBackground;
     private GifImageView gifImageView;
 
@@ -63,6 +70,7 @@ public class TimerFragment extends Fragment implements TimerContract.View {
     private Vibrator vibrator;
 
     private ShopPresenter shopPresenter;
+    private StreakRepository streakRepository;
 
     @Nullable
     @Override
@@ -78,8 +86,10 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         initializeViews(view);
         setupShopPresenter();
         setupPresenter();
+        setupStreakRepository();
         setupListeners();
         applyBackground();
+        loadStreak();
     }
 
     private void setupShopPresenter() {
@@ -96,6 +106,7 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         }
 
         applyBackground();
+        loadStreak();
     }
 
     @Override
@@ -116,6 +127,8 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         tvTime = view.findViewById(R.id.tv_time);
         tvSessionType = view.findViewById(R.id.tv_session_type);
         tvCompletedSessions = view.findViewById(R.id.tv_completed_sessions);
+        tvStreakCount = view.findViewById(R.id.tv_streak_count);
+        tvFireIcon = view.findViewById(R.id.tv_fire_icon);
         btnPlayPause = view.findViewById(R.id.btn_play_pause);
         btnReset = view.findViewById(R.id.btn_reset);
         btnTimerSettings = view.findViewById(R.id.btn_timer_settings);
@@ -123,6 +136,7 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         cardSeekbarPanel = view.findViewById(R.id.card_seekbar_panel);
         cardTodoPanel = view.findViewById(R.id.card_todo_panel);
         cardTime = view.findViewById(R.id.card_time);
+        cardStreak = view.findViewById(R.id.card_streak);
         timerBlurBackground = view.findViewById(R.id.timer_blur_background);
 
         seekBarStudy = view.findViewById(R.id.seekbar_study);
@@ -130,6 +144,12 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         tvStudyDuration = view.findViewById(R.id.tv_study_duration);
         tvBreakDuration = view.findViewById(R.id.tv_break_duration);
         gifImageView = view.findViewById(R.id.gifImageView);
+        
+        // Set default fire icon to gray (no activity yet today)
+        if (tvFireIcon != null) {
+            tvFireIcon.setText("🔥");
+            tvFireIcon.setAlpha(0.4f);
+        }
 
         mediaPlayer = MediaPlayer.create(getContext(), R.raw.completed_session);
         if (getContext() != null) {
@@ -164,6 +184,163 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         presenter = TimerPresenter.getInstance();
         presenter.initialize(requireContext());
         presenter.attachView(this);
+    }
+
+    private void setupStreakRepository() {
+        streakRepository = StreakRepository.getInstance();
+        // Set context so StreakRepository can access UserManager
+        if (streakRepository != null && getContext() != null) {
+            streakRepository.setContext(getContext());
+        }
+    }
+
+    /**
+     * Load streak summary from API
+     */
+    private void loadStreak() {
+        if (streakRepository == null) {
+            streakRepository = StreakRepository.getInstance();
+        }
+        
+        streakRepository.getStreakSummary(new StreakRepository.StreakCallback<ApiService.StreakSummaryResponse>() {
+            @Override
+            public void onSuccess(ApiService.StreakSummaryResponse data) {
+                if (getActivity() != null && tvStreakCount != null) {
+                    getActivity().runOnUiThread(() -> {
+                        tvStreakCount.setText(String.valueOf(data.currentStreak));
+                        // Show streak card if streak > 0
+                        if (cardStreak != null) {
+                            cardStreak.setVisibility(data.currentStreak > 0 ? View.VISIBLE : View.GONE);
+                        }
+                        // Check today's activity to update fire icon color
+                        checkTodayStreakActivity();
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                // Silently fail - streak is not critical
+                android.util.Log.d(TAG, "Failed to load streak: " + error);
+                // When API fails, assume no activity today - keep icon gray
+                if (getActivity() != null && tvFireIcon != null) {
+                    getActivity().runOnUiThread(() -> {
+                        // Keep icon gray when API fails (no network or server error)
+                        tvFireIcon.setText("🔥");
+                        android.util.Log.d(TAG, "API failed - keeping fire icon GRAY");
+                    });
+                }
+
+            }
+        });
+    }
+
+    /**
+     * Check if today (UTC+7) has activity and update fire icon color
+     */
+    private void checkTodayStreakActivity() {
+        if (streakRepository == null) {
+            streakRepository = StreakRepository.getInstance();
+        }
+
+        // Get today's date in UTC+7 timezone
+        java.util.Calendar calendar = java.util.Calendar.getInstance();
+        // Set timezone to UTC+7 (Asia/Ho_Chi_Minh)
+        java.util.TimeZone timeZone = java.util.TimeZone.getTimeZone("Asia/Ho_Chi_Minh");
+        calendar.setTimeZone(timeZone);
+        
+        // Set to start of today (00:00:00)
+        calendar.set(java.util.Calendar.HOUR_OF_DAY, 0);
+        calendar.set(java.util.Calendar.MINUTE, 0);
+        calendar.set(java.util.Calendar.SECOND, 0);
+        calendar.set(java.util.Calendar.MILLISECOND, 0);
+        
+        // Convert to timestamp (seconds with decimal)
+        long todayStartMillis = calendar.getTimeInMillis();
+        double todayDate = todayStartMillis / 1000.0;
+        
+        android.util.Log.d(TAG, "Checking streak for today (UTC+7): " + todayDate + " (" + new java.util.Date(todayStartMillis) + ")");
+
+        streakRepository.getStreakByDate(todayDate, new StreakRepository.StreakCallback<ApiService.StreakRecordResponse>() {
+            @Override
+            public void onSuccess(ApiService.StreakRecordResponse data) {
+                android.util.Log.d(TAG, "Streak record found for today - has_activity: " + data.hasActivity);
+                if (getActivity() != null && tvFireIcon != null) {
+                    getActivity().runOnUiThread(() -> {
+                        // If has_activity = 1, show colored fire icon, else gray
+                        if (data != null && data.hasActivity == 1) {
+                            // Show colored fire icon
+                            android.util.Log.d(TAG, "Setting fire icon to COLORED (has activity today)");
+                            tvFireIcon.setText("🔥");
+                            tvFireIcon.setAlpha(1.0f);
+                        } else {
+                            // Show gray fire icon - no activity or has_activity = 0
+                            android.util.Log.d(TAG, "Setting fire icon to GRAY (no activity today)");
+                            tvFireIcon.setText("🔥");
+                            tvFireIcon.setAlpha(0.4f); // Make it gray by reducing opacity
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                // If no record found for today, it means no activity yet
+                android.util.Log.d(TAG, "No streak record for today or error: " + error + " - Setting icon to GRAY");
+                if (getActivity() != null && tvFireIcon != null) {
+                    getActivity().runOnUiThread(() -> {
+                        // Show gray fire icon - no record means no activity
+                        tvFireIcon.setText("🔥");
+                        tvFireIcon.setAlpha(0.4f);
+                    });
+                }
+            }
+        });
+    }
+
+    /**
+     * Update streak when session is completed
+     */
+    public void updateStreakOnSessionComplete(int sessionCount, int focusTimeMinutes) {
+        if (streakRepository == null) {
+            streakRepository = StreakRepository.getInstance();
+        }
+
+        // Get current date as timestamp (milliseconds to seconds with decimal)
+        long currentTimeMillis = System.currentTimeMillis();
+        double currentDate = currentTimeMillis / 1000.0;
+
+        // Calculate total focus time for today
+        // For now, we'll use the current session duration
+        // The backend should aggregate all sessions for the day
+        // In a production app, you'd query the database for today's total focus time
+        
+        // Upsert streak record for today
+        // Note: The backend should handle aggregation of multiple sessions per day
+        streakRepository.upsertStreakRecord(
+            currentDate,
+            1, // has_activity = 1
+            sessionCount,
+            focusTimeMinutes
+        , new StreakRepository.StreakCallback<ApiService.StreakRecordResponse>() {
+            @Override
+            public void onSuccess(ApiService.StreakRecordResponse data) {
+                // Reload streak summary to update display
+                loadStreak();
+                // Update fire icon color since we just added activity
+                if (getActivity() != null && tvFireIcon != null) {
+                    getActivity().runOnUiThread(() -> {
+                        tvFireIcon.setText("🔥");
+                        tvFireIcon.setAlpha(1.0f); // Full color
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                android.util.Log.e(TAG, "Failed to update streak: " + error);
+            }
+        });
     }
 
     private void setupListeners() {
@@ -383,6 +560,13 @@ public class TimerFragment extends Fragment implements TimerContract.View {
                         .setMessage("Great job! Take a break or start the next session.")
                         .setPositiveButton("OK", null)
                         .show();
+                
+                // Update streak when session completes
+                if (presenter != null) {
+                    int sessionCount = presenter.getCompletedSessions();
+                    int focusTimeMinutes = presenter.getStudyDurationMinutes();
+                    updateStreakOnSessionComplete(sessionCount, focusTimeMinutes);
+                }
             });
         }
     }
