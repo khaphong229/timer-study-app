@@ -1,22 +1,48 @@
 package com.example.timerstudy.presenter;
 
 import android.content.Context;
+import androidx.lifecycle.Observer;
 
 import com.example.timerstudy.R;
-import com.example.timerstudy.data.repository.SessionRepository;
+import com.example.timerstudy.data.repository.ShopRepository;
 import com.example.timerstudy.model.ShopItem;
-import com.example.timerstudy.model.ShopModel;
 import com.example.timerstudy.utils.UserManager;
 import com.example.timerstudy.view.contracts.ShopContract;
+
+import java.util.List;
 
 public class ShopPresenter implements ShopContract.Presenter {
 
     private ShopContract.View view;
-    private ShopModel model;
+    private ShopRepository repository;
     public static ShopPresenter instance;
 
     private Context context;
     private UserManager userManager;
+    
+    private Observer<List<ShopItem>> shopItemsObserver = new Observer<List<ShopItem>>() {
+        @Override
+        public void onChanged(List<ShopItem> items) {
+            if (view != null) {
+                view.updateShopItems(items);
+                view.hideLoading();
+                
+                // Update selected background if needed
+                int selectedId = repository.getSelectedBackgroundId();
+                view.updateSelectedBackground(selectedId);
+            }
+        }
+    };
+    
+    private Observer<String> errorObserver = new Observer<String>() {
+        @Override
+        public void onChanged(String error) {
+            if (view != null && error != null) {
+                view.showPurchaseError(error);
+                view.hideLoading();
+            }
+        }
+    };
 
     public static ShopPresenter getInstance() {
         if (instance == null) {
@@ -26,15 +52,18 @@ public class ShopPresenter implements ShopContract.Presenter {
     }
 
     public ShopPresenter() {
-        model = new ShopModel();
+        // Repository initialized in initialize()
     }
 
     public void initialize(Context context) {
         this.context = context;
         this.userManager = UserManager.getInstance(context);
+        this.repository = ShopRepository.getInstance(context);
 
-        model.initialize(context);
-        model.loadShopItems();
+        repository.getShopItems().observeForever(shopItemsObserver);
+        repository.getError().observeForever(errorObserver);
+        
+        repository.fetchShopItems();
     }
 
     @Override
@@ -51,9 +80,16 @@ public class ShopPresenter implements ShopContract.Presenter {
     private void initializeView() {
         if (view != null) {
             view.showLoading();
-            view.updateShopItems(model.getShopItems());
             view.updateCoins(userManager.getTotalCoins());
-            view.hideLoading();
+            
+            List<ShopItem> currentItems = repository.getShopItems().getValue();
+            if (currentItems != null) {
+                view.updateShopItems(currentItems);
+                view.hideLoading();
+                view.updateSelectedBackground(repository.getSelectedBackgroundId());
+            } else {
+                repository.fetchShopItems();
+            }
         }
     }
 
@@ -75,45 +111,26 @@ public class ShopPresenter implements ShopContract.Presenter {
     @Override
     public void onBackgroundSelected(ShopItem item) {
         if (item.isPurchased()) {
-
-            model.selectBackground(item.getId());
-            saveSelectedBackground(item.getId());
-
+            repository.selectBackground(item.getId());
             if (view != null) {
                 view.updateSelectedBackground(item.getId());
                 view.showPurchaseSuccess("Background đã được áp dụng!");
             }
-
         }
-    }
-
-    public void saveSelectedBackground(int backgroundId) {
-        if (context != null) {
-            model.saveSelectedBackground(backgroundId);
-        }
-    }
-
-    public int getSelectedBackgroundId() {
-        if (model != null) {
-            return model.getSelectedBackgroundId();
-        }
-        return -1;
     }
 
     @Override
     public void onPurchaseConfirmed(ShopItem item) {
         if (userManager.subtractCoins(item.getPrice())) {
-            if (model.purchaseItem(item)) {
-                if (view != null) {
-                    view.showPurchaseSuccess("Purchased " + item.getName() + " successfully!");
-                    view.updateItemPurchased(item.getId());
-                    view.updateCoins(userManager.getTotalCoins());
+            repository.purchaseItem(item.getId());
+            // Success message will be shown when LiveData updates or we can show it optimistically
+            if (view != null) {
+                view.showPurchaseSuccess("Purchased " + item.getName() + " successfully!");
+                view.updateItemPurchased(item.getId());
+                view.updateCoins(userManager.getTotalCoins());
 
-                    if (item.getType() == ShopItem.ItemType.BACKGROUND) {
-                        onBackgroundSelected(item);
-                    }
-
-                    savePurchasedItem(item);
+                if (item.getType() == ShopItem.ItemType.BACKGROUND) {
+                    onBackgroundSelected(item);
                 }
             }
         } else {
@@ -125,7 +142,6 @@ public class ShopPresenter implements ShopContract.Presenter {
     
     @Override
     public void onAdWatchedForItem(ShopItem item) {
-
         int rewardCoins = item.getPrice();
         userManager.addCoins(rewardCoins);
         
@@ -149,29 +165,19 @@ public class ShopPresenter implements ShopContract.Presenter {
         // No longer needed
     }
 
-    private void savePurchasedItem(ShopItem item) {
-        int id = item.getId();
-        model.savePurchasedItem(id);
-    }
-
     public int getBackgroundResourceId(int itemId) {
-        return model.getBackgroundResourceId(itemId);
+        return repository.getBackgroundResourceId(itemId);
     }
 
     public int getBackgroundSelectedResourceId() {
-        if (model == null) {
-            return getDefaultBackgroundResourceId();
+        if (repository == null) {
+            return R.drawable.sbg_default;
         }
-        int id = getSelectedBackgroundId();
-        int resourceId = getBackgroundResourceId(id);
-        if (resourceId == -1) {
+        int id = repository.getSelectedBackgroundId();
+        int resourceId = repository.getBackgroundResourceId(id);
+        if (resourceId == 0) { // 0 means not found
             resourceId = R.drawable.sbg_default;
-            saveSelectedBackground(id);
         }
         return resourceId;
-    }
-
-    private int getDefaultBackgroundResourceId() {
-        return com.example.timerstudy.R.drawable.sbg_default;
     }
 }

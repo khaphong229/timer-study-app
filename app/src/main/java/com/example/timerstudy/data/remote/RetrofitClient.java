@@ -7,7 +7,7 @@ public class RetrofitClient {
     // --- CẤU HÌNH KẾT NỐI ---
     // Đặt là true nếu chạy trên Máy ảo (Emulator)
     // Đặt là false nếu chạy trên Máy thật (Real Device)
-    private static final boolean IS_EMULATOR = false;
+    private static final boolean IS_EMULATOR = true;
 
     // IP của máy tính khi chạy máy thật (Thay đổi theo mạng Wifi của bạn)
     // Cách xem IP: Mở CMD -> gõ ipconfig -> xem dòng IPv4 Address

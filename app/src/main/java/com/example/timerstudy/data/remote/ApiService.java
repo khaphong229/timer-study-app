@@ -83,6 +83,46 @@ public interface ApiService {
             @Query("limit") int limit,
             @Query("include_self") boolean includeSelf);
 
+    // --- api/v1/shop ---
+    @POST("api/v1/shop")
+    Call<ApiResponse<ShopItemResponse>> createShopItem(@Header("Authorization") String token, @Body ShopCreateRequest request);
+
+    @GET("api/v1/shop")
+    Call<ApiResponse<List<ShopItemResponse>>> getAllShopItems(
+            @Header("Authorization") String token,
+            @Query("sort_params") String sortParams,
+            @Query("pagination_params") String paginationParams
+    );
+
+    @GET("api/v1/shop/purchased")
+    Call<ApiResponse<List<ShopItemResponse>>> getPurchasedShopItems(
+            @Header("Authorization") String token,
+            @Query("sort_params") String sortParams,
+            @Query("pagination_params") String paginationParams
+    );
+
+    @GET("api/v1/shop/not-purchased")
+    Call<ApiResponse<List<ShopItemResponse>>> getNotPurchasedShopItems(
+            @Header("Authorization") String token,
+            @Query("sort_params") String sortParams,
+            @Query("pagination_params") String paginationParams
+    );
+
+    @GET("api/v1/shop/{shop_id}")
+    Call<ApiResponse<ShopItemResponse>> getShopItemDetail(@Header("Authorization") String token, @Path("shop_id") int shopId);
+
+    @GET("api/v1/shop/{shop_id}/status")
+    Call<ApiResponse<ShopStatusResponse>> getShopItemStatus(@Header("Authorization") String token, @Path("shop_id") int shopId);
+
+    @POST("api/v1/shop/{shop_id}/purchase")
+    Call<ApiResponse<Void>> purchaseShopItem(@Header("Authorization") String token, @Path("shop_id") int shopId, @Body ShopPurchaseRequest request);
+
+    @PUT("api/v1/shop/{shop_id}")
+    Call<ApiResponse<ShopItemResponse>> updateShopItem(@Header("Authorization") String token, @Path("shop_id") int shopId, @Body ShopUpdateRequest request);
+
+    @DELETE("api/v1/shop/{shop_id}")
+    Call<ApiResponse<Void>> deleteShopItem(@Header("Authorization") String token, @Path("shop_id") int shopId);
+
     // --- STREAK API ---
 
     // 1. Lấy thông tin Streak Summary (khuyến nghị dùng)
@@ -417,6 +457,71 @@ public interface ApiService {
             this.actualSessions = actualSessions;
             this.orderIndex = orderIndex;
         }
+    }
+
+    // --- Shop DTOs ---
+    class ShopItemResponse {
+        @SerializedName("shop_id")
+        public int shopId;
+        @SerializedName("name")
+        public String name;
+        @SerializedName("description")
+        public String description;
+        @SerializedName("price")
+        public int price;
+        @SerializedName("type")
+        public String type;
+        @SerializedName("is_purchased")
+        public boolean isPurchased;
+        @SerializedName("image_url")
+        public String imageUrl; // Assuming server sends URL or resource name
+    }
+
+    class ShopCreateRequest {
+        @SerializedName("name")
+        public String name;
+        @SerializedName("description")
+        public String description;
+        @SerializedName("price")
+        public int price;
+        @SerializedName("type")
+        public String type;
+
+        public ShopCreateRequest(String name, String description, int price, String type) {
+            this.name = name;
+            this.description = description;
+            this.price = price;
+            this.type = type;
+        }
+    }
+
+    class ShopUpdateRequest {
+        @SerializedName("name")
+        public String name;
+        @SerializedName("description")
+        public String description;
+        @SerializedName("price")
+        public int price;
+        @SerializedName("type")
+        public String type;
+
+        public ShopUpdateRequest(String name, String description, int price, String type) {
+            this.name = name;
+            this.description = description;
+            this.price = price;
+            this.type = type;
+        }
+    }
+
+    class ShopPurchaseRequest {
+        // Optional body as per requirement
+    }
+
+    class ShopStatusResponse {
+        @SerializedName("shop_id")
+        public int shopId;
+        @SerializedName("is_purchased")
+        public boolean isPurchased;
     }
 
     // --- STREAK MODEL CLASSES ---
