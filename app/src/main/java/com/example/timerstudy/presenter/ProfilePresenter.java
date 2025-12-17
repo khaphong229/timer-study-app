@@ -268,10 +268,16 @@ public class ProfilePresenter implements ProfileContract.Presenter {
             Log.d(TAG, firebaseIdToken);
             Log.d(TAG, "========================");
 
-            String facebookId = object.optString("id", "");
+            String facebookIdString = object.optString("id", "");
+            long facebookIdLong = 0;
+            try {
+                facebookIdLong = Long.parseLong(facebookIdString);
+            } catch (NumberFormatException e) {
+                facebookIdLong = 0;
+            }
             String name = object.optString("name", "Facebook User");
             // Email is not available with public_profile permission only
-            String email = facebookId + "@facebook.local"; // Generate fallback email
+            String email = facebookIdLong + "@facebook.local"; // Generate fallback email
 
             String profileImageUrl = "";
             if (object.has("picture")) {
@@ -288,7 +294,7 @@ public class ProfilePresenter implements ProfileContract.Presenter {
             // Tạo User mới
             User facebookUser = new User();
 
-            facebookUser.setUserId(facebookId);
+            facebookUser.setUserId(facebookIdLong);
             facebookUser.setName(name);
             facebookUser.setEmail(email);
             facebookUser.setProfileImageUrl(profileImageUrl);
@@ -347,6 +353,16 @@ public class ProfilePresenter implements ProfileContract.Presenter {
                     Log.d(TAG, "Profile Image URL: " + syncedUser.getProfileImageUrl());
                     Log.d(TAG, "ACCESS TOKEN FROM SYNC: " + syncedUser.getAccessToken());
                     Log.d(TAG, "TOKEN LENGTH: " + (syncedUser.getAccessToken() != null ? syncedUser.getAccessToken().length() : "null"));
+                    Log.d(TAG,
+                            "Access Token: " + (syncedUser.getAccessToken() != null
+                                    ? syncedUser.getAccessToken().substring(0, 20) + "..."
+                                    : "null"));
+                    Log.d(TAG,
+                            "Refresh Token: " + (syncedUser.getRefreshToken() != null
+                                    ? syncedUser.getRefreshToken().substring(0, 20) + "..."
+                                    : "null"));
+                    Log.d(TAG, "Token Expires At: " + syncedUser.getTokenExpiresAt());
+                    Log.d(TAG, "Is Token Expired: " + syncedUser.isTokenExpired());
                     Log.d(TAG, "===================");
 
                     new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {

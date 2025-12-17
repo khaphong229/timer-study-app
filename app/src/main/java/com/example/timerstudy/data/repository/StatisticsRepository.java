@@ -83,7 +83,7 @@ public class StatisticsRepository {
     // ==================== Day / Month / Year ====================
 
     // CỦA MÔ HÌNH MVVP KHÔNG DÙNG DO ĐÃ ĐỔI SANG MVP NHA KÊNH CHAT
-    public void loadDailyStats(int userId, Date dayStart, Date dayEnd) {
+    public void loadDailyStats(long userId, Date dayStart, Date dayEnd) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -111,7 +111,7 @@ public class StatisticsRepository {
         void onError(String errorMessage);
     }
 
-    public void loadDailyStats(int userId, Date dayStart, Date dayEnd, DailyStatsCallback callback) {
+    public void loadDailyStats(long userId, Date dayStart, Date dayEnd, DailyStatsCallback callback) {
         executorService.execute(() -> {
             try {
                 long start = dayStart.getTime();
@@ -132,7 +132,7 @@ public class StatisticsRepository {
         });
     }
 
-    public void loadMonthlyStats(int userId, Date monthStart, Date monthEnd) {
+    public void loadMonthlyStats(long userId, Date monthStart, Date monthEnd) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -167,7 +167,7 @@ public class StatisticsRepository {
         void onError(String errorMessage);
     }
 
-    public void loadMonthlyStats(int userId, Date monthStart, Date monthEnd, MonthlyStatsCallback callback) {
+    public void loadMonthlyStats(long userId, Date monthStart, Date monthEnd, MonthlyStatsCallback callback) {
         executorService.execute(() -> {
             try {
                 long start = monthStart.getTime();
@@ -184,7 +184,7 @@ public class StatisticsRepository {
         });
     }
 
-    public void loadMonthlyStats(int userId, Date monthStart, Date monthEnd, MonthlyStatsWithTimelineCallback callback) {
+    public void loadMonthlyStats(long userId, Date monthStart, Date monthEnd, MonthlyStatsWithTimelineCallback callback) {
         executorService.execute(() -> {
             try {
                 long start = monthStart.getTime();
@@ -201,7 +201,7 @@ public class StatisticsRepository {
         });
     }
 
-    public void loadYearlyStats(int userId, Date yearStart, Date yearEnd) {
+    public void loadYearlyStats(long userId, Date yearStart, Date yearEnd) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -226,7 +226,7 @@ public class StatisticsRepository {
         void onError(String errorMessage);
     }
 
-    public void loadYearlyStats(int userId, Date yearStart, Date yearEnd, YearlyStatsCallback callback) {
+    public void loadYearlyStats(long userId, Date yearStart, Date yearEnd, YearlyStatsCallback callback) {
         executorService.execute(() -> {
             try {
                 long start = yearStart.getTime();
@@ -242,7 +242,7 @@ public class StatisticsRepository {
 
     // ==================== Streaks ====================
 
-    public void loadStreakStats(int userId, Date rangeStart, Date rangeEnd) {
+    public void loadStreakStats(long userId, Date rangeStart, Date rangeEnd) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -262,7 +262,7 @@ public class StatisticsRepository {
 
     // ==================== Comparisons ====================
 
-    public void compareMonths(int userId, Date thisMonthStart, Date thisMonthEnd, Date prevMonthStart, Date prevMonthEnd) {
+    public void compareMonths(long userId, Date thisMonthStart, Date thisMonthEnd, Date prevMonthStart, Date prevMonthEnd) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -280,7 +280,7 @@ public class StatisticsRepository {
         });
     }
 
-    public void compareYears(int userId, Date thisYearStart, Date thisYearEnd, Date prevYearStart, Date prevYearEnd) {
+    public void compareYears(long userId, Date thisYearStart, Date thisYearEnd, Date prevYearStart, Date prevYearEnd) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);

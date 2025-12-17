@@ -21,7 +21,7 @@ import retrofit2.Response;
 
 public class TaskRepository {
     // Khớp với Presenter: lấy task theo userId và ngày
-    public void getTasksByUserIdAndDate(int userId, long taskDate, DataCallback<List<TaskEntity>> callback) {
+    public void getTasksByUserIdAndDate(long userId, long taskDate, DataCallback<List<TaskEntity>> callback) {
         getTasksByUserAndDate(userId, taskDate, callback);
     }
     private final TaskDao taskDao;
@@ -35,8 +35,27 @@ public class TaskRepository {
         userRepository = UserRepository.getInstance(context);
     }
 
+    public void getAllTasks(DataCallback<List<TaskEntity>> callback){
+        executor.execute(() -> {
+            try {
+                callback.onSuccess(taskDao.getAllTasks());
+            } catch (Exception e) {
+                callback.onError(e.getMessage());
+            }
+        });
+    }
 
-    public void getTasksByUserAndDate(int userId, long taskDate, DataCallback<List<TaskEntity>> callback) {
+    public void getTasksByUserId(long userId, DataCallback<List<TaskEntity>> callback){
+        executor.execute(() -> {
+            try {
+                callback.onSuccess(taskDao.getTasksByUserId(userId));
+            } catch (Exception e) {
+                callback.onError(e.getMessage());
+            }
+        });
+    }
+
+    public void getTasksByUserAndDate(long userId, long taskDate, DataCallback<List<TaskEntity>> callback) {
         executor.execute(() -> {
             try {
                 callback.onSuccess(taskDao.getTasksByUserAndDate(userId, taskDate));

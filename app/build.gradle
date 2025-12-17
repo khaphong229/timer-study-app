@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.google.gms.google.services)
+    alias(libs.plugins.kotlin.android)
 }
 
 android {
@@ -41,6 +42,9 @@ android {
     buildFeatures {
         viewBinding true
     }
+    kotlinOptions {
+        jvmTarget = '11'
+    }
     defaultConfig {
         vectorDrawables.useSupportLibrary = true
     }
@@ -60,6 +64,8 @@ dependencies {
     implementation libs.recyclerview
     implementation libs.cardview
     implementation libs.firebase.auth
+    // Hạ phiên bản core-ktx để tương thích với Android Gradle Plugin 8.9.0
+    implementation 'androidx.core:core-ktx:1.12.0'
     annotationProcessor libs.room.compiler
     
     testImplementation libs.junit
@@ -98,4 +104,7 @@ dependencies {
     
     // Lifecycle Process
     implementation "androidx.lifecycle:lifecycle-process:2.6.1"
+
+    // Guava for ListenableFuture (required by WorkManager)
+    implementation 'com.google.guava:guava:31.1-android'
 }

@@ -32,7 +32,7 @@ public class StatisticsCacheEntity {
     private int cacheId;
 
     @ColumnInfo(name = "user_id")
-    private int userId;
+    private long userId;
 
     @ColumnInfo(name = "cache_date")
     @TypeConverters(DateConverter.class)
@@ -80,8 +80,8 @@ public class StatisticsCacheEntity {
     public int getCacheId() { return cacheId; }
     public void setCacheId(int cacheId) { this.cacheId = cacheId; }
 
-    public int getUserId() { return userId; }
-    public void setUserId(int userId) { this.userId = userId; }
+    public long getUserId() { return userId; }
+    public void setUserId(long userId) { this.userId = userId; }
 
     public Date getCacheDate() { return cacheDate; }
     public void setCacheDate(Date cacheDate) { this.cacheDate = cacheDate; }
