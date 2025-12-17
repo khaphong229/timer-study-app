@@ -25,7 +25,7 @@ import java.util.concurrent.Executors;
 
 /**
  * Repository for User data operations
- * 
+ *
  * This repository handles all user-related database operations and provides
  * a clean interface for the ViewModel layer. It manages background threads
  * and error handling for database operations.
@@ -39,6 +39,7 @@ public class UserRepository {
     // Database and DAO
     private final AppDatabase database;
     private final UserDao userDao;
+    private final Context context;
 
     // SharedPreferences for User model
     private final SharedPreferences sharedPreferences;
@@ -58,10 +59,11 @@ public class UserRepository {
 
     /**
      * Constructor
-     * 
+     *
      * @param context Application context
      */
     public UserRepository(Context context) {
+        this.context = context.getApplicationContext();
         database = AppDatabase.getDatabase(context);
         userDao = database.userDao();
         executorService = Executors.newFixedThreadPool(4);
@@ -83,7 +85,7 @@ public class UserRepository {
 
     /**
      * Get singleton instance
-     * 
+     *
      * @param context Application context
      * @return UserRepository instance
      */
@@ -102,7 +104,7 @@ public class UserRepository {
 
     /**
      * Get all users LiveData
-     * 
+     *
      * @return LiveData containing list of all users
      */
     public LiveData<List<UserEntity>> getAllUsersLiveData() {
@@ -111,7 +113,7 @@ public class UserRepository {
 
     /**
      * Get current user LiveData
-     * 
+     *
      * @return LiveData containing current user
      */
     public LiveData<UserEntity> getCurrentUserLiveData() {
@@ -120,7 +122,7 @@ public class UserRepository {
 
     /**
      * Get loading state LiveData
-     * 
+     *
      * @return LiveData containing loading state
      */
     public LiveData<Boolean> getIsLoadingLiveData() {
@@ -129,7 +131,7 @@ public class UserRepository {
 
     /**
      * Get error LiveData
-     * 
+     *
      * @return LiveData containing error messages
      */
     public LiveData<String> getErrorLiveData() {
@@ -159,7 +161,7 @@ public class UserRepository {
 
     /**
      * Get user by ID
-     * 
+     *
      * @param userId User ID to search for
      * @return UserEntity or null if not found
      */
@@ -181,7 +183,7 @@ public class UserRepository {
 
     /**
      * Get user by email
-     * 
+     *
      * @param email Email to search for
      * @return UserEntity or null if not found
      */
@@ -203,7 +205,7 @@ public class UserRepository {
 
     /**
      * Create a new user
-     * 
+     *
      * @param user UserEntity to create
      * @return User ID of created user
      */
@@ -227,7 +229,7 @@ public class UserRepository {
 
     /**
      * Create a new anonymous user
-     * 
+     *
      * @return UserEntity of created anonymous user
      */
     public void createAnonymousUser() {
@@ -252,7 +254,7 @@ public class UserRepository {
 
     /**
      * Update user information
-     * 
+     *
      * @param user UserEntity with updated information
      */
     public void updateUser(UserEntity user) {
@@ -274,7 +276,7 @@ public class UserRepository {
 
     /**
      * Update user's last login time
-     * 
+     *
      * @param userId User ID to update
      */
     public void updateLastLogin(long userId) {
@@ -298,7 +300,7 @@ public class UserRepository {
 
     /**
      * Update user's display name
-     * 
+     *
      * @param userId      User ID to update
      * @param displayName New display name
      */
@@ -323,7 +325,7 @@ public class UserRepository {
 
     /**
      * Update user's profile picture URL
-     * 
+     *
      * @param userId            User ID to update
      * @param profilePictureUrl New profile picture URL
      */
@@ -348,7 +350,7 @@ public class UserRepository {
 
     /**
      * Convert anonymous user to registered user
-     * 
+     *
      * @param userId      User ID to convert
      * @param email       User's email
      * @param displayName User's display name
@@ -379,7 +381,7 @@ public class UserRepository {
 
     /**
      * Delete user by ID
-     * 
+     *
      * @param userId User ID to delete
      */
     public void deleteUser(long userId) {
@@ -405,7 +407,7 @@ public class UserRepository {
 
     /**
      * Check if email exists
-     * 
+     *
      * @param email Email to check
      * @return True if email exists, false otherwise
      */
@@ -424,7 +426,7 @@ public class UserRepository {
 
     /**
      * Get user count
-     * 
+     *
      * @return Total number of users
      */
     public void getUserCount() {
@@ -472,7 +474,7 @@ public class UserRepository {
 
     /**
      * Check if repository is closed
-     * 
+     *
      * @return True if closed, false otherwise
      */
     public boolean isClosed() {
@@ -508,7 +510,7 @@ public class UserRepository {
 
     /**
      * Get current user ID
-     * 
+     *
      * @return int user ID
      */
     public int getCurrentUserId() {
@@ -519,7 +521,7 @@ public class UserRepository {
 
     /**
      * Get current user (User model for profile)
-     * 
+     *
      * @return User object
      */
     public User getCurrentUser() {
@@ -536,7 +538,7 @@ public class UserRepository {
 
     /**
      * Save user (User model for profile)
-     * 
+     *
      * @param user User object to save
      */
     public void saveUser(User user) {
@@ -545,7 +547,36 @@ public class UserRepository {
             sharedPreferences.edit()
                     .putString(KEY_CURRENT_USER, userJson)
                     .apply();
-            Log.d(TAG, "User saved successfully");
+            Log.d(TAG, "User saved successfully to Prefs");
+
+            // Also save to Database to ensure Foreign Key constraints are met
+            executorService.execute(() -> {
+                try {
+                    if (user.getUserId() > 0) {
+                        UserEntity existing = userDao.getUserById(user.getUserId());
+                        UserEntity entity = new UserEntity();
+                        entity.setUserId(user.getUserId());
+                        entity.setEmail(user.getEmail());
+                        entity.setDisplayName(user.getName());
+                        entity.setProfilePictureUrl(user.getProfileImageUrl());
+                        entity.setLastLogin(new java.util.Date());
+                        entity.setAnonymous(false); 
+                        
+                        if (existing == null) {
+                            entity.setCreatedAt(new java.util.Date());
+                            userDao.insertUser(entity);
+                            Log.d(TAG, "User inserted into DB: " + user.getUserId());
+                        } else {
+                            entity.setCreatedAt(existing.getCreatedAt());
+                            userDao.updateUser(entity);
+                            Log.d(TAG, "User updated in DB: " + user.getUserId());
+                        }
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error saving user to DB", e);
+                }
+            });
+
         } catch (Exception e) {
             Log.e(TAG, "Error saving user", e);
         }
@@ -563,7 +594,7 @@ public class UserRepository {
 
     /**
      * Check if user exists
-     * 
+     *
      * @return true if user data exists
      */
     public boolean hasCurrentUser() {
@@ -650,8 +681,11 @@ public class UserRepository {
                         // Lưu user đã có token vào local
                         saveUser(fbUser);
 
+                    // Sync sessions from server
+                    SessionRepository.getInstance(context).fetchAndSaveSessionsFromApi(token, fbUser.getUserId());
+
                         Log.d(TAG, "=== BACKEND SYNC SUCCESS ===");
-                        Log.d(TAG, "Access Token received from backend");
+                        Log.d(TAG, "Access Token received successfully from backend");
                         Log.d(TAG, "Access Token: " + token);
                         Log.d(TAG, "Token length: " + token.length());
                         if (loginRes.body().data != null) {
@@ -661,6 +695,13 @@ public class UserRepository {
                         }
                         Log.d(TAG, "User saved with token: " + (fbUser.getAccessToken() != null && !fbUser.getAccessToken().isEmpty()));
                         Log.d(TAG, "============================");
+                    Log.d(TAG, "ACCESS TOKEN: " + token);
+                    Log.d(TAG, "TOKEN LENGTH: " + (token != null ? token.length() : "null"));
+                    Log.d(TAG, "USER ACCESS TOKEN: " + fbUser.getAccessToken());
+
+                    // Kiểm tra token có được lưu đúng không
+                    User savedUser = getCurrentUser();
+                    Log.d(TAG, "SAVED USER TOKEN: " + savedUser);
 
                         // Post lên UI
                         currentUserLiveData.postValue(null); // Trigger update if needed

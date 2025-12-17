@@ -8,6 +8,7 @@ import androidx.room.Update;
 
 import com.example.timerstudy.data.local.database.entities.SessionEntity;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -43,6 +44,13 @@ public interface SessionDao {
      */
     @Query("SELECT * FROM sessions ORDER BY created_at DESC")
     List<SessionEntity> getAllSessions();
+
+    /**
+     * Get all unsynced sessions
+     * @return List of unsynced sessions
+     */
+    @Query("SELECT * FROM sessions WHERE is_synced = 0")
+    List<SessionEntity> getUnsyncedSessions();
     
     /**
      * Get session by ID
@@ -141,6 +149,15 @@ public interface SessionDao {
      */
     @Query("SELECT * FROM sessions WHERE user_id = :userId AND session_type IN ('SHORT_BREAK', 'LONG_BREAK') ORDER BY session_date DESC")
     List<SessionEntity> getBreakSessionsByUser(long userId);
+
+    /**
+     * Count completed focus sessions for a user since a specific time
+     * @param userId User ID
+     * @param startTime Start timestamp
+     * @return Count of sessions
+     */
+    @Query("SELECT COUNT(*) FROM sessions WHERE user_id = :userId AND session_type = 'FOCUS_SESSION' AND is_completed = 1 AND session_date >= :startTime")
+    int countCompletedFocusSessionsSince(long userId, Date startTime);
     
     /**
      * Get session count by user

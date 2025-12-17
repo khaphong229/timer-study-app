@@ -3,6 +3,8 @@ package com.example.timerstudy.presenter;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.example.timerstudy.data.remote.ApiService;
+import com.example.timerstudy.data.remote.RetrofitClient;
 import com.example.timerstudy.data.repository.UserRepository;
 import com.example.timerstudy.model.User;
 import com.example.timerstudy.utils.UserManager;
@@ -17,6 +19,10 @@ import com.google.firebase.auth.FirebaseUser;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ProfilePresenter implements ProfileContract.Presenter {
 
@@ -44,6 +50,9 @@ public class ProfilePresenter implements ProfileContract.Presenter {
             Log.d(TAG, "IsLoggedIn: " + currentUser.isLoggedIn());
             Log.d(TAG, "Profile Image URL: " + currentUser.getProfileImageUrl());
             Log.d(TAG, "Login Provider: " + currentUser.getLoginProvider());
+            Log.d(TAG, "ACCESS TOKEN: " + currentUser.getAccessToken());
+
+            Log.d(TAG, "TOKEN LENGTH: " + (currentUser.getAccessToken() != null ? currentUser.getAccessToken().length() : "null"));
         } else {
             Log.d(TAG, "No user found");
         }
@@ -348,6 +357,18 @@ public class ProfilePresenter implements ProfileContract.Presenter {
                     Log.d(TAG, "=== SYNC SUCCESS ===");
                     Log.d(TAG, "Synced user: " + syncedUser.getName());
                     Log.d(TAG, "Profile Image URL: " + syncedUser.getProfileImageUrl());
+                    Log.d(TAG, "ACCESS TOKEN FROM SYNC: " + syncedUser.getAccessToken());
+                    Log.d(TAG, "TOKEN LENGTH: " + (syncedUser.getAccessToken() != null ? syncedUser.getAccessToken().length() : "null"));
+                    Log.d(TAG,
+                            "Access Token: " + (syncedUser.getAccessToken() != null
+                                    ? syncedUser.getAccessToken().substring(0, 20) + "..."
+                                    : "null"));
+                    Log.d(TAG,
+                            "Refresh Token: " + (syncedUser.getRefreshToken() != null
+                                    ? syncedUser.getRefreshToken().substring(0, 20) + "..."
+                                    : "null"));
+                    Log.d(TAG, "Token Expires At: " + syncedUser.getTokenExpiresAt());
+                    Log.d(TAG, "Is Token Expired: " + syncedUser.isTokenExpired());
                     Log.d(TAG, "===================");
 
                     new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {

@@ -15,19 +15,19 @@
         android:icon="@drawable/todo"
         android:title="Todo" />
 
-    <!-- <item
+    <item
         android:id="@+id/menu_statistics"
         android:icon="@drawable/statistic"
-        android:title="Statistic" /> -->
+        android:title="Ranking" />
     <item
         android:id="@+id/nav_shop"
         android:icon="@drawable/photo"
         android:title="Shop" />
 
-    <item
+    <!-- <item
         android:id="@+id/leaderboardFragment"
         android:icon="@drawable/ic_leaderboard"
-        android:title="Ranking" />
+        android:title="Ranking" /> -->
 
     <item
         android:id="@+id/profileFragment"

@@ -16,6 +16,8 @@ public class RetrofitClient {
                 .baseUrl(BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
+
+        android.util.Log.d("RetrofitClient", "Initialized with BASE_URL: " + BASE_URL);
     }
 
     public static synchronized RetrofitClient getInstance() {
