@@ -37,7 +37,7 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
         this.sessionRepository = SessionRepository.getInstance(context);
 
         int duration = userManager.getTimerDuration();
-        model.setStudyDuration(1);
+        model.setStudyDuration(duration);
 
         loadCompletedSessionsCount();
     }
