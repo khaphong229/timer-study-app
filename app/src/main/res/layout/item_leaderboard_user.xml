@@ -1,18 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:padding="12dp"
     android:background="?attr/selectableItemBackground">
 
+    <androidx.cardview.widget.CardView
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="12dp"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="0dp">
+
+        <ImageView
+            android:id="@+id/ivAvatar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/person_24dp"
+            android:scaleType="centerCrop"
+            android:background="#E0E0E0"/>
+    </androidx.cardview.widget.CardView>
+
     <TextView
         android:id="@+id/tvRank"
-        android:layout_width="0dp"
+        android:layout_width="30dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:layout_gravity="center_vertical"
         android:text="4"
         android:textSize="14sp"
+        android:textStyle="bold"
         android:textColor="#000000" />
 
     <TextView

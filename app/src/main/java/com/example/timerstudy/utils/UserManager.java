@@ -9,6 +9,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class UserManager {
+    private static final String TAG = "UserManager";
     private static UserManager instance;
     private UserRepository userRepository;
 
@@ -34,6 +35,26 @@ public class UserManager {
         if (currentUser == null) {
             loadCurrentUser();
         }
+
+        // Debug log để kiểm tra
+        if (currentUser != null) {
+            android.util.Log.d(TAG, "=== GET CURRENT USER ===");
+            android.util.Log.d(TAG, "User Name: " + currentUser.getName());
+            android.util.Log.d(TAG, "Is Logged In: " + currentUser.isLoggedIn());
+            android.util.Log.d(TAG, "Login Provider: " + currentUser.getLoginProvider());
+            android.util.Log.d(TAG,
+                    "Access Token: " + (currentUser.getAccessToken() != null && !currentUser.getAccessToken().isEmpty()
+                            ? currentUser.getAccessToken().substring(0,
+                                    Math.min(30, currentUser.getAccessToken().length())) + "..."
+                            : "NULL/EMPTY"));
+            android.util.Log.d(TAG, "Token Expired: " + currentUser.isTokenExpired());
+            android.util.Log.d(TAG, "Token Expires At: " + currentUser.getTokenExpiresAt());
+            android.util.Log.d(TAG, "Current Time: " + System.currentTimeMillis());
+            android.util.Log.d(TAG, "========================");
+        } else {
+            android.util.Log.d(TAG, "getCurrentUser() returned NULL");
+        }
+
         return currentUser;
     }
 
@@ -93,20 +114,49 @@ public class UserManager {
             user.getIdToken(true).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     String token = task.getResult().getToken();
-//                    sessionRepository.syncSession(session, token, new SessionRepository.SyncCallback() {
-//                        @Override
-//                        public void onSuccess() {
-//                            android.util.Log.d("UserManager", "Session synced successfully");
-//                        }
-//
-//                        @Override
-//                        public void onError(String message) {
-//                            android.util.Log.e("UserManager", "Session sync failed: " + message);
-//                            // Có thể lưu vào hàng đợi để sync sau bằng WorkManager nếu muốn
-//                        }
-//                    });
+                    // sessionRepository.syncSession(session, token, new
+                    // SessionRepository.SyncCallback() {
+                    // @Override
+                    // public void onSuccess() {
+                    // android.util.Log.d("UserManager", "Session synced successfully");
+                    // }
+                    //
+                    // @Override
+                    // public void onError(String message) {
+                    // android.util.Log.e("UserManager", "Session sync failed: " + message);
+                    // // Có thể lưu vào hàng đợi để sync sau bằng WorkManager nếu muốn
+                    // }
+                    // });
                 }
             });
         }
+    }
+
+    /**
+     * Debug method để log toàn bộ trạng thái user
+     */
+    public void debugUserState() {
+        User user = getCurrentUser();
+        android.util.Log.d(TAG, "=== DEBUG USER STATE ===");
+        if (user != null) {
+            android.util.Log.d(TAG, "User ID: " + user.getUserId());
+            android.util.Log.d(TAG, "Name: " + user.getName());
+            android.util.Log.d(TAG, "Email: " + user.getEmail());
+            android.util.Log.d(TAG, "Is Logged In: " + user.isLoggedIn());
+            android.util.Log.d(TAG, "Login Provider: " + user.getLoginProvider());
+            android.util.Log.d(TAG, "Profile Image URL: " + user.getProfileImageUrl());
+            android.util.Log.d(TAG,
+                    "Access Token Present: " + (user.getAccessToken() != null && !user.getAccessToken().isEmpty()));
+            android.util.Log.d(TAG,
+                    "Access Token Length: " + (user.getAccessToken() != null ? user.getAccessToken().length() : 0));
+            android.util.Log.d(TAG,
+                    "Refresh Token Present: " + (user.getRefreshToken() != null && !user.getRefreshToken().isEmpty()));
+            android.util.Log.d(TAG, "Token Expires At: " + user.getTokenExpiresAt());
+            android.util.Log.d(TAG, "Current Time: " + System.currentTimeMillis());
+            android.util.Log.d(TAG, "Is Token Expired: " + user.isTokenExpired());
+        } else {
+            android.util.Log.d(TAG, "User is NULL");
+        }
+        android.util.Log.d(TAG, "========================");
     }
 }

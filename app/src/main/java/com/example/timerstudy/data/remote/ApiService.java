@@ -11,6 +11,8 @@ import com.example.timerstudy.model.User;
 
 import java.util.List;
 import retrofit2.http.Header;
+import retrofit2.http.GET;
+import retrofit2.http.Query;
 
 public interface ApiService {
 
@@ -27,6 +29,15 @@ public interface ApiService {
     // Tạo phiên học mới trên server
     @POST("sessions")
     Call<Session> createSession(@Header("Authorization") String token, @Body Session session);
+
+    // --- LEADERBOARD ---
+    @GET("api/v1/leaderboard/facebook-friends")
+    Call<ApiResponse<LeaderboardData>> getFacebookFriendsLeaderboard(
+            @Header("Authorization") String token,
+            @Query("period") String period,
+            @Query("metric") String metric,
+            @Query("limit") int limit,
+            @Query("include_self") boolean includeSelf);
 
     // --- DTO Classes ---
 
@@ -99,9 +110,9 @@ public interface ApiService {
         @SerializedName("refresh_token")
         public String refreshToken;
         @SerializedName("expires_in")
-        public long expiresIn;
+        public double expiresIn;
         @SerializedName("refresh_expires_in")
-        public long refreshExpiresIn;
+        public double refreshExpiresIn;
         @SerializedName("token_type")
         public String tokenType;
         @SerializedName("user")
@@ -125,5 +136,49 @@ public interface ApiService {
         public int isAnonymous;
         @SerializedName("updated_at")
         public double updatedAt;
+    }
+
+    class LeaderboardData {
+        @SerializedName("period")
+        public String period;
+        @SerializedName("metric")
+        public String metric;
+        @SerializedName("current_user_rank")
+        public int currentUserRank;
+        @SerializedName("total_participants")
+        public int totalParticipants;
+        @SerializedName("entries")
+        public List<LeaderboardEntry> entries;
+        @SerializedName("note")
+        public String note;
+    }
+
+    class LeaderboardEntry {
+        @SerializedName("rank")
+        public int rank;
+        @SerializedName("user_id")
+        public int userId;
+        @SerializedName("display_name")
+        public String displayName;
+        @SerializedName("profile_picture_url")
+        public String profilePictureUrl;
+        @SerializedName("facebook_user_id")
+        public String facebookUserId;
+        @SerializedName("is_current_user")
+        public boolean isCurrentUser;
+        @SerializedName("focus_time")
+        public int focusTime;
+        @SerializedName("sessions")
+        public int sessions;
+        @SerializedName("tasks")
+        public int tasks;
+        @SerializedName("current_streak")
+        public int currentStreak;
+        @SerializedName("best_streak")
+        public int bestStreak;
+        @SerializedName("goals")
+        public int goals;
+        @SerializedName("score")
+        public int score;
     }
 }

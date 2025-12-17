@@ -526,6 +526,7 @@ public class UserRepository {
         String userJson = sharedPreferences.getString(KEY_CURRENT_USER, null);
         if (userJson != null) {
             try {
+                Log.d(TAG, "Reading User JSON: " + userJson);
                 return gson.fromJson(userJson, User.class);
             } catch (Exception e) {
                 Log.e(TAG, "Error parsing user JSON", e);
@@ -542,6 +543,7 @@ public class UserRepository {
     public void saveUser(User user) {
         try {
             String userJson = gson.toJson(user);
+            Log.d(TAG, "Saving User JSON: " + userJson);
             sharedPreferences.edit()
                     .putString(KEY_CURRENT_USER, userJson)
                     .apply();
@@ -602,19 +604,35 @@ public class UserRepository {
 
                 if (loginRes.isSuccessful() && loginRes.body() != null && loginRes.body().success) {
                     ApiService.LoginResponseData data = loginRes.body().data;
+                    Log.d(TAG, "API Response Data: " + new Gson().toJson(data));
+
+                    if (data.accessToken == null || data.accessToken.isEmpty()) {
+                        Log.e(TAG, "ERROR: Access Token from API is NULL or EMPTY!");
+                    } else {
+                        Log.d(TAG, "Access Token from API: "
+                                + data.accessToken.substring(0, Math.min(20, data.accessToken.length())) + "...");
+                    }
+
+                    // Calculate duration
+                    long expiresInDuration = (long) data.expiresIn;
+                    long currentTimeSeconds = System.currentTimeMillis() / 1000;
+
+                    // If expiresIn is a timestamp (e.g. > 1 year from epoch), convert to duration
+                    if (expiresInDuration > currentTimeSeconds) {
+                        expiresInDuration = expiresInDuration - currentTimeSeconds;
+                    }
 
                     // Lưu tokens
                     fbUser.setTokens(
                             data.accessToken,
                             data.refreshToken,
-                            (long) (data.expiresIn - System.currentTimeMillis() / 1000.0) // Convert to seconds from now
-                    );
+                            expiresInDuration);
 
                     Log.d(TAG, "=== BACKEND SYNC SUCCESS ===");
                     Log.d(TAG, "Access Token: " + data.accessToken.substring(0, 20) + "...");
                     Log.d(TAG, "Refresh Token: " + data.refreshToken.substring(0, 20) + "...");
                     Log.d(TAG,
-                            "Token expires in: " + (data.expiresIn - System.currentTimeMillis() / 1000.0) + " seconds");
+                            "Token expires in: " + expiresInDuration + " seconds");
 
                     // Merge user info từ backend (nếu có)
                     if (data.user != null) {
@@ -631,6 +649,9 @@ public class UserRepository {
                     }
 
                     // Lưu user đã có token vào local
+                    Log.d(TAG, "Saving user with token: "
+                            + fbUser.getAccessToken().substring(0, Math.min(10, fbUser.getAccessToken().length()))
+                            + "...");
                     saveUser(fbUser);
 
                     // Post lên UI
