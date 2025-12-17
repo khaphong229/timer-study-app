@@ -569,6 +569,9 @@ public class TimerFragment extends Fragment implements TimerContract.View {
             }
         }
         
+        // Sort by order_index (ascending)
+        filtered.sort((t1, t2) -> Integer.compare(t1.getOrderIndex(), t2.getOrderIndex()));
+        
         Log.d(TAG, "Filtered " + filtered.size() + " today's pending tasks from " + tasks.size() + " total");
         return filtered;
     }
@@ -585,11 +588,19 @@ public class TimerFragment extends Fragment implements TimerContract.View {
             }
         }
         
+        // Sort by order_index (ascending)
+        filtered.sort((t1, t2) -> Integer.compare(t1.getOrderIndex(), t2.getOrderIndex()));
+        
         return filtered;
     }
     
     private void updateTaskList(List<TaskEntity> tasks) {
         currentTasks = tasks;
+        
+        // Sort by order_index before updating adapter
+        if (tasks != null && !tasks.isEmpty()) {
+            tasks.sort((t1, t2) -> Integer.compare(t1.getOrderIndex(), t2.getOrderIndex()));
+        }
         
         if (todoAdapter != null) {
             todoAdapter.updateTasks(tasks);

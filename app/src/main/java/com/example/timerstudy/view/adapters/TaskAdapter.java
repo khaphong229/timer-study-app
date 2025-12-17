@@ -60,9 +60,14 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     @Override
     public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
         TaskEntity task = tasks.get(position);
-        holder.tvTitle.setText(task.getTitle());
+        
+        // Hiển thị order index cùng dòng với title
+        String titleWithOrder = task.getOrderIndex() + ". " + task.getTitle();
+        holder.tvTitle.setText(titleWithOrder);
+        
         holder.cbCompleted.setOnCheckedChangeListener(null);
         holder.cbCompleted.setChecked(task.isCompleted());
+        
         // Mô tả
         if (task.getDescription() != null && !task.getDescription().isEmpty()) {
             holder.tvDescription.setVisibility(View.VISIBLE);

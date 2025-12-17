@@ -5,7 +5,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClient {
     // Use your machine's IP address (e.g., 192.168.x.x:8669) for physical devices
-    private static final String BASE_URL = "http://192.168.0.103:8669/";
+    private static final String BASE_URL = "http://192.168.0.100:8669/";
     private static RetrofitClient instance;
     private Retrofit retrofit;
 

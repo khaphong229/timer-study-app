@@ -1,24 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="20dp">
+    android:fillViewport="true">
 
-    <EditText
-        android:id="@+id/etNewTask"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter task name"
-        android:inputType="textCapSentences"
-        android:background="@drawable/edittext_border"
-        android:padding="12dp"
-        android:layout_marginBottom="12dp" />
+        android:orientation="vertical"
+        android:padding="20dp">
 
-    <Spinner
-        android:id="@+id/spinnerPriority"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:entries="@array/priority_values" />
+        <EditText
+            android:id="@+id/etNewTask"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter task name"
+            android:inputType="textCapSentences"
+            android:background="@drawable/edittext_border"
+            android:padding="12dp"
+            android:layout_marginBottom="12dp" />
 
-</LinearLayout>
+        <Spinner
+            android:id="@+id/spinnerPriority"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:entries="@array/priority_values"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Order Index (for sorting)"
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/etOrderIndex"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter order index (e.g., 1, 2, 3...)"
+            android:inputType="number"
+            android:background="@drawable/edittext_border"
+            android:padding="12dp"
+            android:text="0"
+            android:layout_marginBottom="16dp" />
+
+    </LinearLayout>
+
+</ScrollView>

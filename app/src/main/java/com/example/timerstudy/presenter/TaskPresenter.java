@@ -188,6 +188,9 @@ public class TaskPresenter implements TaskContract.Presenter {
 
             if (priorityMatch && completedMatch) filteredTasks.add(task);
         }
+        
+        // Sắp xếp theo order_index ASC (số nhỏ hơn lên đầu)
+        filteredTasks.sort((t1, t2) -> Integer.compare(t1.getOrderIndex(), t2.getOrderIndex()));
 
         if (view != null) {
             if (filteredTasks.isEmpty()) view.showEmptyState();
@@ -264,6 +267,11 @@ public class TaskPresenter implements TaskContract.Presenter {
 
     @Override
     public void addTask(String title, String priority, Date selectedDate) {
+        addTask(title, priority, selectedDate, 0);
+    }
+    
+    @Override
+    public void addTask(String title, String priority, Date selectedDate, int orderIndex) {
         if (title == null || title.trim().isEmpty()) {
             if (view != null) view.showError("Please enter task content");
             return;
@@ -278,14 +286,14 @@ public class TaskPresenter implements TaskContract.Presenter {
         Date normalizedDate = normalizeDate(taskDate);
         newTask.setTaskDate(normalizedDate);
         
-        Log.d(TAG, "Adding task for date: " + normalizedDate);
+        Log.d(TAG, "Adding task for date: " + normalizedDate + " with order index: " + orderIndex);
         newTask.setCreatedAt(new Date());
         newTask.setUpdatedAt(new Date());
         newTask.setCompleted(false);
         newTask.setTotalTimeSpent(0);
         newTask.setEstimatedSessions(1);
         newTask.setActualSessions(0);
-        newTask.setOrderIndex(0);
+        newTask.setOrderIndex(orderIndex);
         newTask.setUserId(userRepository.getCurrentUserId());
 
         String token = null;

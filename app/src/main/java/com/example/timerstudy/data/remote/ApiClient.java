@@ -6,7 +6,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class ApiClient {
     // Use 10.0.2.2 for Android Emulator (maps to host machine's localhost)
     // Use your machine's IP address (e.g., 192.168.x.x:8669) for physical devices
-    private static final String BASE_URL = "http://192.168.0.103:8669/";
+    private static final String BASE_URL = "http://192.168.0.100:8669/";
     private static Retrofit retrofit = null;
 
     public static ApiService getService() {

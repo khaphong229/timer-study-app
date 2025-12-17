@@ -171,11 +171,14 @@ public class TaskFragment extends Fragment implements TaskContract.View {
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_task, null);
         EditText etTaskTitle = dialogView.findViewById(R.id.etNewTask);
         Spinner spinnerPriority = dialogView.findViewById(R.id.spinnerPriority);
+        EditText etOrderIndex = dialogView.findViewById(R.id.etOrderIndex);
+        
         String[] priorityNames = getResources().getStringArray(R.array.priority_levels);
         int[] colors = {R.color.priority_low, R.color.priority_medium, R.color.priority_high};
         PriorityAdapter adapter = new PriorityAdapter(requireContext(), List.of(priorityNames), colors);
         spinnerPriority.setAdapter(adapter);
         spinnerPriority.setSelection(1);
+        
         new AlertDialog.Builder(requireContext())
                 .setTitle("Add New Task")
                 .setView(dialogView)
@@ -184,7 +187,19 @@ public class TaskFragment extends Fragment implements TaskContract.View {
                     if (!title.isEmpty()) {
                         String[] priorityValues = getResources().getStringArray(R.array.priority_values);
                         String priority = priorityValues[spinnerPriority.getSelectedItemPosition()];
-                        presenter.addTask(title, priority, selectedDate);
+                        
+                        // Get order index
+                        int orderIndex = 0;
+                        try {
+                            String orderStr = etOrderIndex.getText().toString().trim();
+                            if (!orderStr.isEmpty()) {
+                                orderIndex = Integer.parseInt(orderStr);
+                            }
+                        } catch (NumberFormatException e) {
+                            orderIndex = 0;
+                        }
+                        
+                        presenter.addTask(title, priority, selectedDate, orderIndex);
                     } else {
                         Toast.makeText(requireContext(), "Please enter task name", Toast.LENGTH_SHORT).show();
                     }
@@ -197,7 +212,11 @@ public class TaskFragment extends Fragment implements TaskContract.View {
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_edit_task, null);
         EditText etEditTitle = dialogView.findViewById(R.id.etEditTitle);
         Spinner spinnerEditPriority = dialogView.findViewById(R.id.spinnerEditPriority);
+        EditText etEditOrderIndex = dialogView.findViewById(R.id.etEditOrderIndex);
+        
         etEditTitle.setText(task.getTitle());
+        etEditOrderIndex.setText(String.valueOf(task.getOrderIndex()));
+        
         String[] priorityNames = getResources().getStringArray(R.array.priority_levels);
         int[] colors = {R.color.priority_low, R.color.priority_medium, R.color.priority_high};
         PriorityAdapter adapter = new PriorityAdapter(requireContext(), List.of(priorityNames), colors);
@@ -217,6 +236,17 @@ public class TaskFragment extends Fragment implements TaskContract.View {
                     if (!newTitle.isEmpty()) {
                         task.setTitle(newTitle);
                         task.setPriority(priorityValues[spinnerEditPriority.getSelectedItemPosition()]);
+                        
+                        // Lưu order index
+                        try {
+                            String orderStr = etEditOrderIndex.getText().toString().trim();
+                            if (!orderStr.isEmpty()) {
+                                task.setOrderIndex(Integer.parseInt(orderStr));
+                            }
+                        } catch (NumberFormatException e) {
+                            // Giữ nguyên giá trị cũ
+                        }
+                        
                         presenter.updateTask(task);
                         Toast.makeText(requireContext(), "Task updated", Toast.LENGTH_SHORT).show();
                     } else {
