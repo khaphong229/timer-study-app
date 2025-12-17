@@ -4,13 +4,19 @@ import com.example.timerstudy.data.local.database.entities.SessionEntity;
 import com.google.gson.annotations.SerializedName;
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
+import retrofit2.http.GET;
+import retrofit2.http.Header;
+import retrofit2.http.PATCH;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 import com.example.timerstudy.model.Session;
 import com.example.timerstudy.model.User;
 
 import java.util.List;
-import retrofit2.http.Header;
 
 public interface ApiService {
 
@@ -26,9 +32,40 @@ public interface ApiService {
     Call<ApiResponse<LoginResponseData>> loginFirebase(@Body LoginFirebaseRequest request);
 
     // --- SESSIONS ---
+
+    // Lấy tất cả phiên học (không phân trang)
+    @GET("api/v1/sessions/all")
+    Call<ApiResponse<List<Session>>> getAllSessions(@Header("Authorization") String token);
+
+    // Lấy danh sách phiên học (có phân trang)
+    @GET("api/v1/sessions")
+    Call<ApiResponse<List<Session>>> getSessions(
+            @Header("Authorization") String token,
+            @Query("page") Integer page,
+            @Query("page_size") Integer pageSize,
+            @Query("sort_by") String sortBy,
+            @Query("order") String order
+    );
+
     // Tạo phiên học mới trên server
-    @POST("sessions")
-    Call<Session> createSession(@Header("Authorization") String token, @Body Session session);
+    @POST("api/v1/sessions")
+    Call<ApiResponse<Session>> createSession(@Header("Authorization") String token, @Body Session session);
+
+    // Lấy chi tiết phiên học
+    @GET("api/v1/sessions/{session_id}")
+    Call<ApiResponse<Session>> getSessionDetail(@Header("Authorization") String token, @Path("session_id") int sessionId);
+
+    // Cập nhật toàn bộ phiên học
+    @PUT("api/v1/sessions/{session_id}")
+    Call<ApiResponse<Session>> updateSession(@Header("Authorization") String token, @Path("session_id") int sessionId, @Body Session session);
+
+    // Cập nhật một phần phiên học
+    @PATCH("api/v1/sessions/{session_id}")
+    Call<ApiResponse<Session>> patchSession(@Header("Authorization") String token, @Path("session_id") int sessionId, @Body Session session);
+
+    // Xóa phiên học
+    @DELETE("api/v1/sessions/{session_id}")
+    Call<ApiResponse<Void>> deleteSession(@Header("Authorization") String token, @Path("session_id") int sessionId);
 
     // --- DTO Classes ---
 
@@ -101,12 +138,12 @@ public interface ApiService {
         @SerializedName("refresh_token")
         public String refreshToken;
         @SerializedName("expires_in")
-        public long expiresIn;
+        public double expiresIn;
         @SerializedName("refresh_expires_in")
-        public long refreshExpiresIn;
+        public double refreshExpiresIn;
         @SerializedName("token_type")
         public String tokenType;
         @SerializedName("user")
-        public Object user; // Hoặc map chi tiết nếu cần
+        public Object user; 
     }
 }

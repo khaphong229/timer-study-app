@@ -6,11 +6,14 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 
+import androidx.lifecycle.ProcessLifecycleOwner;
 import androidx.work.Constraints;
+import androidx.work.ExistingWorkPolicy;
 import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
+import com.example.timerstudy.worker.SyncWorker;
 import com.facebook.FacebookSdk;
 import com.facebook.appevents.AppEventsLogger;
 
@@ -25,14 +28,11 @@ public class TimerStudyApplication extends Application implements DefaultLifecyc
         super.onCreate();
 
         // Initialize Facebook SDK
-        // This MUST be called before using any Facebook features
         FacebookSdk.sdkInitialize(getApplicationContext());
-
-        // Enable App Events logging (optional, for analytics)
         AppEventsLogger.activateApp(this);
 
         // Register Lifecycle Observer to detect when app goes to background
-
+        ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
     }
 
     @Override
@@ -46,7 +46,18 @@ public class TimerStudyApplication extends Application implements DefaultLifecyc
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
 
+        OneTimeWorkRequest syncRequest = new OneTimeWorkRequest.Builder(SyncWorker.class)
+                .setConstraints(constraints)
+                .build();
 
-
+        WorkManager.getInstance(this).enqueueUniqueWork(
+                "SyncWorker",
+                ExistingWorkPolicy.REPLACE,
+                syncRequest
+        );
     }
 }
+
+
+
+

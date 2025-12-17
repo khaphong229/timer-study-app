@@ -98,4 +98,7 @@ dependencies {
     
     // Lifecycle Process
     implementation "androidx.lifecycle:lifecycle-process:2.6.1"
+
+    // Guava for ListenableFuture (required by WorkManager)
+    implementation 'com.google.guava:guava:31.1-android'
 }

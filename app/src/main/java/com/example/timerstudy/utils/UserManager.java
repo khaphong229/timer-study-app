@@ -1,6 +1,8 @@
 package com.example.timerstudy.utils;
 
 import android.content.Context;
+import android.util.Log;
+
 import com.example.timerstudy.data.repository.UserRepository;
 import com.example.timerstudy.data.repository.SessionRepository;
 import com.example.timerstudy.model.User;
@@ -11,11 +13,13 @@ import com.google.firebase.auth.FirebaseUser;
 public class UserManager {
     private static UserManager instance;
     private UserRepository userRepository;
+    private SessionRepository sessionRepository;
 
     private User currentUser;
 
     private UserManager(Context context) {
         userRepository = UserRepository.getInstance(context);
+        sessionRepository = SessionRepository.getInstance(context);
         loadCurrentUser();
     }
 
@@ -78,35 +82,58 @@ public class UserManager {
         saveUser();
     }
 
-    public int getCurrentUserId() {
-        return userRepository.getCurrentUserId();
+    public long getCurrentUserId() {
+        return getCurrentUser().getUserId();
     }
 
     public void syncFacebookUser(User fbUser, String firebaseToken, UserRepository.SyncCallback callback) {
-        userRepository.syncFacebookUser(fbUser, firebaseToken, callback);
+        userRepository.syncFacebookUser(fbUser, firebaseToken, new UserRepository.SyncCallback() {
+            @Override
+            public void onSuccess(User user) {
+                // Cập nhật biến currentUser trong RAM ngay lập tức
+                setCurrentUser(user);
+                android.util.Log.d("UserManager", "User synced and updated in UserManager");
+                
+                // Tự động tải session từ server về
+                if (user.getAccessToken() != null && !user.getAccessToken().isEmpty()) {
+                    sessionRepository.fetchAndSaveSessionsFromApi(user.getAccessToken(), user.getUserId());
+                }
+                
+                if (callback != null) {
+                    callback.onSuccess(user);
+                }
+            }
+
+            @Override
+            public void onError(String message) {
+                if (callback != null) {
+                    callback.onError(message);
+                }
+            }
+        });
     }
 
     // Hàm mới để sync session
     public void syncSession(Session session) {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) {
-            user.getIdToken(true).addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    String token = task.getResult().getToken();
-//                    sessionRepository.syncSession(session, token, new SessionRepository.SyncCallback() {
-//                        @Override
-//                        public void onSuccess() {
-//                            android.util.Log.d("UserManager", "Session synced successfully");
-//                        }
-//
-//                        @Override
-//                        public void onError(String message) {
-//                            android.util.Log.e("UserManager", "Session sync failed: " + message);
-//                            // Có thể lưu vào hàng đợi để sync sau bằng WorkManager nếu muốn
-//                        }
-//                    });
+        User currentUser = getCurrentUser();
+        Log.d("DebugSyncSession", "syncSession: " + currentUser.getAccessToken());
+
+        if (currentUser.getAccessToken() != null && !currentUser.getAccessToken().isEmpty()) {
+            String token = currentUser.getAccessToken();
+            sessionRepository.syncSession(session, token, new SessionRepository.SyncCallback() {
+                @Override
+                public void onSuccess() {
+                   Log.d("UserManager", "Session synced successfully");
+                }
+
+                @Override
+                public void onError(String message) {
+                    Log.e("UserManager", "Session sync failed: " + message);
+                    // Có thể lưu vào hàng đợi để sync sau bằng WorkManager nếu muốn
                 }
             });
+        } else {
+            android.util.Log.e("UserManager", "Cannot sync session: User not logged in or no access token");
         }
     }
 }
