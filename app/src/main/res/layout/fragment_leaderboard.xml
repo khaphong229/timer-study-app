@@ -105,11 +105,11 @@
                 android:background="#E0E0E0"/>
         </androidx.cardview.widget.CardView>
 
-        <TextView
+<TextView
             android:id="@+id/tvName1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="User 1"
+            android:text="-"
             android:textSize="11sp"
             android:textStyle="bold"
             android:textColor="#000000"
@@ -121,7 +121,7 @@
             android:id="@+id/tvScore1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="135,786"
+            android:text="-"
             android:textSize="11sp"
             android:textColor="#2196F3"
             android:layout_marginBottom="2dp"
@@ -166,7 +166,7 @@
             android:id="@+id/tvName2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="User 2"
+            android:text="-"
             android:textSize="10sp"
             android:textStyle="bold"
             android:textColor="#000000"
@@ -178,7 +178,7 @@
             android:id="@+id/tvScore2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="25,796"
+            android:text="-"
             android:textSize="10sp"
             android:textColor="#2196F3"
             android:layout_marginBottom="2dp"
@@ -223,7 +223,7 @@
             android:id="@+id/tvName3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="User 3"
+            android:text="-"
             android:textSize="10sp"
             android:textStyle="bold"
             android:textColor="#000000"
@@ -235,7 +235,7 @@
             android:id="@+id/tvScore3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="22,325"
+            android:text="-"
             android:textSize="10sp"
             android:textColor="#2196F3"
             android:layout_marginBottom="2dp"
@@ -261,63 +261,65 @@
 
     <!-- List Section (Right Side) -->
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/layoutList"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@drawable/bg_list_container"
-        android:paddingTop="16dp"
-        android:layout_marginStart="16dp"
-        app:layout_constraintBottom_toTopOf="@id/layoutBottomRank"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/guideline"
-        app:layout_constraintTop_toTopOf="parent">
+            android:id="@+id/layoutList"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@drawable/bg_list_container"
+            android:paddingTop="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginVertical="10dp"
+            app:layout_constraintBottom_toTopOf="@id/layoutBottomRank"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/guideline"
+            app:layout_constraintTop_toTopOf="parent">
 
         <!-- List Header -->
         <LinearLayout
-            android:id="@+id/listHeader"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingBottom="8dp"
-            app:layout_constraintTop_toTopOf="parent">
+                android:id="@+id/listHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="8dp"
+                app:layout_constraintTop_toTopOf="parent">
 
             <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Rank"
-                android:textColor="#757575"
-                android:textSize="12sp" />
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Rank"
+                    android:textColor="#757575"
+                    android:textSize="12sp" />
 
             <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="3"
-                android:text="ID &amp; Level"
-                android:textColor="#757575"
-                android:textSize="12sp" />
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="3"
+                    android:text="ID &amp; Level"
+                    android:textColor="#757575"
+                    android:textSize="12sp" />
 
             <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="end"
-                android:text="Points"
-                android:textColor="#757575"
-                android:textSize="12sp" />
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:text="Points"
+                    android:textColor="#757575"
+                    android:textSize="12sp" />
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvLeaderboard"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:clipToPadding="false"
-            android:paddingBottom="8dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/listHeader"
-            tools:listitem="@layout/item_leaderboard_user" />
+                android:id="@+id/rvLeaderboard"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:clipToPadding="false"
+                android:paddingBottom="8dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/listHeader"
+                tools:listitem="@layout/item_leaderboard_user" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -329,6 +331,7 @@
         android:background="@drawable/bg_rank_now"
         android:padding="12dp"
         android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/guideline">
@@ -337,7 +340,7 @@
             android:id="@+id/tvMyRank"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="253"
+            android:text="-"
             android:textColor="#FFFFFF"
             android:textSize="14sp"
             android:textStyle="bold"
@@ -350,7 +353,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="24dp"
-            android:text="You"
+            android:text="-"
             android:textColor="#FFFFFF"
             android:textSize="14sp"
             android:textStyle="bold"
@@ -364,7 +367,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="24dp"
-            android:text="No Level"
+            android:text="-"
             android:textColor="#E0E0E0"
             android:textSize="11sp"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -375,7 +378,7 @@
             android:id="@+id/tvMyScore"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="5,356"
+            android:text="-"
             android:textColor="#FFFFFF"
             android:textSize="14sp"
             android:textStyle="bold"

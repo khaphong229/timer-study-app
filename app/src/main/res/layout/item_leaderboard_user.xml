@@ -28,7 +28,7 @@
         android:layout_width="30dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:text="4"
+        android:text="-"
         android:textSize="14sp"
         android:textStyle="bold"
         android:textColor="#000000" />
@@ -38,7 +38,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="3"
-        android:text="User Name"
+        android:text="-"
         android:textSize="14sp"
         android:textColor="#000000" />
 
@@ -48,7 +48,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:gravity="end"
-        android:text="1,234"
+        android:text="-"
         android:textSize="14sp"
         android:textColor="#2196F3" />
 
