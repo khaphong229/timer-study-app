@@ -621,27 +621,80 @@ public class UserRepository {
 
                 Log.d(TAG, "=== STARTING FACEBOOK SYNC ===");
                 Log.d(TAG, "User: " + fbUser.getName());
-                Log.d(TAG, "Firebase Token: " + firebaseToken);
+                Log.d(TAG, "Firebase Token length: " + (firebaseToken != null ? firebaseToken.length() : 0));
 
                 ApiService apiService = RetrofitClient.getInstance().getApiService();
+                Log.d(TAG, "ApiService created successfully");
 
                 // Login with Firebase Token
                 ApiService.LoginFirebaseRequest loginReq = new ApiService.LoginFirebaseRequest(firebaseToken);
                 Call<ApiService.ApiResponse<ApiService.LoginResponseData>> loginCall = apiService.loginFirebase(loginReq);
                 Response<ApiService.ApiResponse<ApiService.LoginResponseData>> loginRes = loginCall.execute();
 
-                if (loginRes.isSuccessful() && loginRes.body() != null && loginRes.body().success) {
-                    String token = loginRes.body().data.accessToken;
-                    fbUser.setAccessToken(token);
+                // Log response details for debugging
+                Log.d(TAG, "=== BACKEND LOGIN RESPONSE ===");
+                Log.d(TAG, "HTTP Code: " + loginRes.code());
+                Log.d(TAG, "Is Successful: " + loginRes.isSuccessful());
+                Log.d(TAG, "Response Body is null: " + (loginRes.body() == null));
+                
+                // Try to log raw response if available
+                if (loginRes.errorBody() != null) {
+                    try {
+                        String errorBody = loginRes.errorBody().string();
+                        Log.d(TAG, "Error Body (if any): " + errorBody);
+                    } catch (Exception e) {
+                        Log.e(TAG, "Cannot read error body", e);
+                    }
+                }
+                
+                if (loginRes.body() != null) {
+                    Log.d(TAG, "Response success: " + loginRes.body().success);
+                    Log.d(TAG, "Response http_code: " + loginRes.body().httpCode);
+                    Log.d(TAG, "Response message: " + loginRes.body().message);
+                    Log.d(TAG, "Response data is null: " + (loginRes.body().data == null));
+                    
+                    if (loginRes.body().data != null) {
+                        Log.d(TAG, "Data accessToken is null: " + (loginRes.body().data.accessToken == null));
+                        Log.d(TAG, "Data accessToken empty: " + (loginRes.body().data.accessToken != null && loginRes.body().data.accessToken.isEmpty()));
+                        if (loginRes.body().data.accessToken != null) {
+                            Log.d(TAG, "Data accessToken length: " + loginRes.body().data.accessToken.length());
+                        }
+                    }
+                } else {
+                    Log.e(TAG, "Response body is NULL");
+                    if (loginRes.errorBody() != null) {
+                        try {
+                            String errorBody = loginRes.errorBody().string();
+                            Log.e(TAG, "Error body: " + errorBody);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Cannot read error body", e);
+                        }
+                    }
+                }
+                Log.d(TAG, "==============================");
 
-                    // Lưu user đã có token vào local
-                    saveUser(fbUser);
+                if (loginRes.isSuccessful() && loginRes.body() != null && loginRes.body().success) {
+                    if (loginRes.body().data != null && loginRes.body().data.accessToken != null) {
+                        String token = loginRes.body().data.accessToken;
+                        fbUser.setAccessToken(token);
+
+                        // Lưu user đã có token vào local
+                        saveUser(fbUser);
 
                     // Sync sessions from server
                     SessionRepository.getInstance(context).fetchAndSaveSessionsFromApi(token, fbUser.getUserId());
 
-                    Log.d(TAG, "=== BACKEND SYNC SUCCESS ===");
-                    Log.d(TAG, "Access Token received successfully");
+                        Log.d(TAG, "=== BACKEND SYNC SUCCESS ===");
+                        Log.d(TAG, "Access Token received successfully from backend");
+                        Log.d(TAG, "Access Token: " + token);
+                        Log.d(TAG, "Token length: " + token.length());
+                        if (loginRes.body().data != null) {
+                            Log.d(TAG, "Refresh Token: " + loginRes.body().data.refreshToken);
+                            Log.d(TAG, "Expires In: " + loginRes.body().data.expiresIn + " seconds");
+                            Log.d(TAG, "Token Type: " + loginRes.body().data.tokenType);
+                        }
+                        Log.d(TAG, "User saved with token: " + (fbUser.getAccessToken() != null && !fbUser.getAccessToken().isEmpty()));
+                        Log.d(TAG, "============================");
                     Log.d(TAG, "ACCESS TOKEN: " + token);
                     Log.d(TAG, "TOKEN LENGTH: " + (token != null ? token.length() : "null"));
                     Log.d(TAG, "USER ACCESS TOKEN: " + fbUser.getAccessToken());
@@ -650,16 +703,68 @@ public class UserRepository {
                     User savedUser = getCurrentUser();
                     Log.d(TAG, "SAVED USER TOKEN: " + savedUser);
 
-                    // Post lên UI
-                    currentUserLiveData.postValue(null); // Trigger update if needed
+                        // Post lên UI
+                        currentUserLiveData.postValue(null); // Trigger update if needed
 
-                    if (callback != null)
-                        callback.onSuccess(fbUser);
+                        if (callback != null)
+                            callback.onSuccess(fbUser);
+                    } else {
+                        Log.e(TAG, "=== BACKEND SYNC FAILED ===");
+                        Log.e(TAG, "Response data or accessToken is null!");
+                        Log.e(TAG, "Data is null: " + (loginRes.body().data == null));
+                        if (loginRes.body().data != null) {
+                            Log.e(TAG, "AccessToken is null: " + (loginRes.body().data.accessToken == null));
+                        }
+                        Log.e(TAG, "============================");
+                        
+                        // Lưu user local ngay cả khi không có token
+                        saveUser(fbUser);
+                        
+                        if (callback != null)
+                            callback.onError("Backend returned success but no access token");
+                    }
                 } else {
-                    String errorMsg = (loginRes.body() != null) ? loginRes.body().message : "Login failed";
-                    Log.e(TAG, "Login failed: " + errorMsg);
+                    // Backend returned error or success=false
+                    String errorMsg = "Login failed";
+                    if (loginRes.body() != null) {
+                        errorMsg = loginRes.body().message != null ? loginRes.body().message : "Login failed";
+                        Log.e(TAG, "=== BACKEND LOGIN FAILED ===");
+                        Log.e(TAG, "Response success: " + loginRes.body().success);
+                        Log.e(TAG, "Response http_code: " + loginRes.body().httpCode);
+                        Log.e(TAG, "Response message: " + loginRes.body().message);
+                        Log.e(TAG, "Response data is null: " + (loginRes.body().data == null));
+                        
+                        // Even if success=false, check if data exists
+                        if (loginRes.body().data != null) {
+                            Log.e(TAG, "Data exists but success=false");
+                            Log.e(TAG, "AccessToken: " + (loginRes.body().data.accessToken != null ? "EXISTS" : "NULL"));
+                            // Try to use token even if success=false (some backends do this)
+                            if (loginRes.body().data.accessToken != null && !loginRes.body().data.accessToken.isEmpty()) {
+                                String token = loginRes.body().data.accessToken;
+                                fbUser.setAccessToken(token);
+                                saveUser(fbUser);
+                                Log.d(TAG, "=== TOKEN EXTRACTED DESPITE success=false ===");
+                                Log.d(TAG, "Access Token: " + token);
+                                Log.d(TAG, "Token length: " + token.length());
+                                Log.d(TAG, "===========================================");
+                                
+                                if (callback != null)
+                                    callback.onSuccess(fbUser);
+                                return; // Exit early
+                            }
+                        }
+                        Log.e(TAG, "============================");
+                    } else {
+                        Log.e(TAG, "Response body is NULL");
+                    }
+                    
                     if (loginRes.errorBody() != null) {
-                        Log.e(TAG, "Login error body: " + loginRes.errorBody().string());
+                        try {
+                            String errorBody = loginRes.errorBody().string();
+                            Log.e(TAG, "Error body: " + errorBody);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Cannot read error body", e);
+                        }
                     }
 
                     // Lưu user local ngay cả khi backend fail
