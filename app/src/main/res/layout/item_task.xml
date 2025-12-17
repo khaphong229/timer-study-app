@@ -50,7 +50,7 @@
             app:layout_constraintEnd_toStartOf="@id/actionButtons"
             app:layout_constraintTop_toTopOf="parent">
 
-            <!-- Title -->
+            <!-- Title with Order Index -->
             <TextView
                 android:id="@+id/tvTitle"
                 android:layout_width="match_parent"
@@ -97,7 +97,7 @@
                     android:layout_height="20dp"
                     android:layout_gravity="center"
                     android:src="@android:drawable/ic_menu_edit"
-                    app:tint="#FFFFFF" />
+                    app:tint="#92400E" />
             </FrameLayout>
 
             <!-- Delete button với background tròn -->

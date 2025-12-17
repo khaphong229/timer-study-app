@@ -191,6 +191,9 @@ public class TaskPresenter implements TaskContract.Presenter {
 
             if (priorityMatch && completedMatch) filteredTasks.add(task);
         }
+        
+        // Sắp xếp theo order_index ASC (số nhỏ hơn lên đầu)
+        filteredTasks.sort((t1, t2) -> Integer.compare(t1.getOrderIndex(), t2.getOrderIndex()));
 
         if (view != null) {
             if (filteredTasks.isEmpty()) view.showEmptyState();
@@ -211,15 +214,37 @@ public class TaskPresenter implements TaskContract.Presenter {
     @Override
     public void toggleTaskCompletion(TaskEntity task, boolean isChecked) {
         if (task == null) return;
+        
+        // Lưu trạng thái cũ để revert nếu API fail
+        boolean oldCompletedState = task.isCompleted();
+        Date oldCompletedAt = task.getCompletedAt();
+        
+        // Cập nhật trạng thái mới
         task.setCompleted(isChecked);
+        
+        // Nếu đánh dấu hoàn thành, set completed_at = now
+        // Nếu bỏ đánh dấu, set completed_at = null
+        if (isChecked) {
+            task.setCompletedAt(new Date());
+            Log.d(TAG, "Marking task as COMPLETED: " + task.getTitle() + " (ID: " + task.getTaskId() + ")");
+        } else {
+            task.setCompletedAt(null);
+            Log.d(TAG, "Marking task as PENDING: " + task.getTitle() + " (ID: " + task.getTaskId() + ")");
+        }
+        
         String token = null;
         try { token = userRepository.getCurrentUser().getAccessToken(); } catch (Exception ignored) {}
-        if (token == null || token.isEmpty()) { if (view != null) view.showError("Missing access token"); return; }
+        if (token == null || token.isEmpty()) { 
+            if (view != null) view.showError("Missing access token"); 
+            return; 
+        }
+        
         String bearer = token.startsWith("Bearer ") ? token : ("Bearer " + token);
         taskRepository.updateTaskViaApi(task, bearer, new DataCallback<TaskEntity>() {
             @Override
             public void onSuccess(TaskEntity result) {
                 mainHandler.post(() -> {
+                    Log.d(TAG, "Task completion status updated successfully");
                     updateTaskCount();
                     applyFilter();
                 });
@@ -227,13 +252,29 @@ public class TaskPresenter implements TaskContract.Presenter {
 
             @Override
             public void onError(String errorMessage) {
-                mainHandler.post(() -> { if (view != null) view.showError(errorMessage); });
+                mainHandler.post(() -> { 
+                    // Revert lại trạng thái cũ nếu API fail
+                    task.setCompleted(oldCompletedState);
+                    task.setCompletedAt(oldCompletedAt);
+                    
+                    Log.e(TAG, "Failed to update task completion: " + errorMessage);
+                    if (view != null) {
+                        view.showError("Failed to update task: " + errorMessage);
+                        // Cập nhật lại UI với trạng thái cũ
+                        applyFilter();
+                    }
+                });
             }
         });
     }
 
     @Override
     public void addTask(String title, String priority, Date selectedDate) {
+        addTask(title, priority, selectedDate, 0);
+    }
+    
+    @Override
+    public void addTask(String title, String priority, Date selectedDate, int orderIndex) {
         if (title == null || title.trim().isEmpty()) {
             if (view != null) view.showError("Please enter task content");
             return;
@@ -247,15 +288,15 @@ public class TaskPresenter implements TaskContract.Presenter {
         Date taskDate = this.selectedDate != null ? this.selectedDate : new Date();
         Date normalizedDate = normalizeDate(taskDate);
         newTask.setTaskDate(normalizedDate);
-
-        Log.d(TAG, "Adding task for date: " + normalizedDate);
+        
+        Log.d(TAG, "Adding task for date: " + normalizedDate + " with order index: " + orderIndex);
         newTask.setCreatedAt(new Date());
         newTask.setUpdatedAt(new Date());
         newTask.setCompleted(false);
         newTask.setTotalTimeSpent(0);
         newTask.setEstimatedSessions(1);
         newTask.setActualSessions(0);
-        newTask.setOrderIndex(0);
+        newTask.setOrderIndex(orderIndex);
         newTask.setUserId(userRepository.getCurrentUserId());
 
         String token = null;

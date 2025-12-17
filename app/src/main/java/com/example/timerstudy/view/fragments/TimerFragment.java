@@ -24,6 +24,22 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.timerstudy.data.repository.TaskRepository;
+import com.example.timerstudy.data.repository.UserRepository;
+import com.example.timerstudy.view.adapters.TaskAdapter;
+import com.example.timerstudy.data.local.database.entities.TaskEntity;
+import com.example.timerstudy.data.callback.DataCallback;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import android.util.Log;
+import android.os.Handler;
+import android.os.Looper;
 
 import com.example.timerstudy.presenter.ShopPresenter;
 import com.example.timerstudy.utils.ViewAnimator;
@@ -44,6 +60,7 @@ public class TimerFragment extends Fragment implements TimerContract.View {
     private TextView tvTime;
     private TextView tvSessionType;
     private TextView tvCompletedSessions;
+    private TextView tvCurrentTask;
     private TextView tvStreakCount;
     private TextView tvFireIcon;
     private ImageButton btnPlayPause;
@@ -70,6 +87,17 @@ public class TimerFragment extends Fragment implements TimerContract.View {
     private Vibrator vibrator;
 
     private ShopPresenter shopPresenter;
+    
+    // Todo list components
+    private RecyclerView rvTodoList;
+    private TextView tvTaskCount;
+    private ImageButton btnAddTask;
+    private View layoutEmptyTasks;
+    private TaskAdapter todoAdapter;
+    private TaskRepository taskRepository;
+    private UserRepository userRepository;
+    private List<TaskEntity> currentTasks = new ArrayList<>();
+    private Handler mainHandler = new Handler(Looper.getMainLooper());
     private StreakRepository streakRepository;
 
     @Nullable
@@ -88,7 +116,11 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         setupPresenter();
         setupStreakRepository();
         setupListeners();
+        setupTaskList(view);
         applyBackground();
+        
+        // Load todo list automatically when fragment is created
+        loadTodayTasks();
         loadStreak();
     }
 
@@ -127,6 +159,7 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         tvTime = view.findViewById(R.id.tv_time);
         tvSessionType = view.findViewById(R.id.tv_session_type);
         tvCompletedSessions = view.findViewById(R.id.tv_completed_sessions);
+        tvCurrentTask = view.findViewById(R.id.tv_current_task);
         tvStreakCount = view.findViewById(R.id.tv_streak_count);
         tvFireIcon = view.findViewById(R.id.tv_fire_icon);
         btnPlayPause = view.findViewById(R.id.btn_play_pause);
@@ -145,6 +178,11 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         tvBreakDuration = view.findViewById(R.id.tv_break_duration);
         gifImageView = view.findViewById(R.id.gifImageView);
         
+        // Todo list views
+        rvTodoList = view.findViewById(R.id.rv_todo_list);
+        tvTaskCount = view.findViewById(R.id.tv_task_count);
+        btnAddTask = view.findViewById(R.id.btn_add_task);
+        layoutEmptyTasks = view.findViewById(R.id.layout_empty_tasks);
         // Set default fire icon to gray (no activity yet today)
         if (tvFireIcon != null) {
             tvFireIcon.setText("🔥");
@@ -376,6 +414,13 @@ public class TimerFragment extends Fragment implements TimerContract.View {
             ViewAnimator.animateButtonClick(btnTodoList);
             toggleTodoPanel();
         });
+        
+        // Add task button
+        if (btnAddTask != null) {
+            btnAddTask.setOnClickListener(v -> {
+                showAddTaskDialog();
+            });
+        }
 
         gifImageView.setOnClickListener(v -> {
             toggleNavigationRail();
@@ -493,6 +538,9 @@ public class TimerFragment extends Fragment implements TimerContract.View {
                     .alpha(1f)
                     .setDuration(300)
                     .setListener(null);
+            
+            // Load today's tasks when panel opens
+            loadTodayTasks();
         }
     }
 
@@ -589,6 +637,329 @@ public class TimerFragment extends Fragment implements TimerContract.View {
         if (getActivity() != null) {
             getActivity().runOnUiThread(() -> Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show());
         }
+    }
+    
+    // ===== Todo List Methods =====
+    
+    private void setupTaskList(View view) {
+        // Initialize repositories
+        taskRepository = new TaskRepository(requireContext());
+        userRepository = new UserRepository(requireContext());
+        
+        try {
+            userRepository.initializeUser();
+        } catch (Exception e) {
+            Log.e(TAG, "Error initializing user", e);
+        }
+        
+        // Setup RecyclerView
+        if (rvTodoList != null) {
+            rvTodoList.setLayoutManager(new LinearLayoutManager(requireContext()));
+            todoAdapter = new TaskAdapter(
+                new ArrayList<>(),
+                this::onTaskCheckedChanged,
+                null, // No delete callback
+                null  // No edit callback
+            );
+            rvTodoList.setAdapter(todoAdapter);
+        }
+    }
+    
+    private void loadTodayTasks() {
+        String token = null;
+        try {
+            if (userRepository.getCurrentUser() != null) {
+                token = userRepository.getCurrentUser().getAccessToken();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting access token", e);
+        }
+        
+        if (token == null || token.isEmpty()) {
+            Log.d(TAG, "No access token available");
+            loadTasksFromLocal();
+            return;
+        }
+        
+        String bearer = token.startsWith("Bearer ") ? token : ("Bearer " + token);
+        Log.d(TAG, "Loading today's tasks from API");
+        
+        taskRepository.fetchAllTasksFromApi(bearer, new DataCallback<List<TaskEntity>>() {
+            @Override
+            public void onSuccess(List<TaskEntity> tasks) {
+                mainHandler.post(() -> {
+                    Log.d(TAG, "API returned " + (tasks != null ? tasks.size() : 0) + " tasks");
+                    List<TaskEntity> todayTasks = filterTodayPendingTasks(tasks);
+                    updateTaskList(todayTasks);
+                });
+            }
+            
+            @Override
+            public void onError(String errorMessage) {
+                Log.e(TAG, "API error: " + errorMessage);
+                mainHandler.post(() -> loadTasksFromLocal());
+            }
+        });
+    }
+    
+    private void loadTasksFromLocal() {
+        int userId = 0;
+        try {
+            userId = userRepository.getCurrentUserId();
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting user ID", e);
+        }
+        
+        Date today = normalizeDate(new Date());
+        long todayMillis = today.getTime();
+        
+        taskRepository.getTasksByUserIdAndDate(userId, todayMillis, new DataCallback<List<TaskEntity>>() {
+            @Override
+            public void onSuccess(List<TaskEntity> tasks) {
+                mainHandler.post(() -> {
+                    Log.d(TAG, "Local DB returned " + (tasks != null ? tasks.size() : 0) + " tasks");
+                    List<TaskEntity> pendingTasks = filterPendingTasks(tasks);
+                    updateTaskList(pendingTasks);
+                });
+            }
+            
+            @Override
+            public void onError(String errorMessage) {
+                mainHandler.post(() -> {
+                    Log.e(TAG, "Local DB error: " + errorMessage);
+                    updateTaskList(new ArrayList<>());
+                });
+            }
+        });
+    }
+    
+    private List<TaskEntity> filterTodayPendingTasks(List<TaskEntity> tasks) {
+        if (tasks == null || tasks.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        List<TaskEntity> filtered = new ArrayList<>();
+        Date today = normalizeDate(new Date());
+        long todayMillis = today.getTime();
+        
+        for (TaskEntity task : tasks) {
+            if (task.getTaskDate() != null) {
+                long taskMillis = normalizeDate(task.getTaskDate()).getTime();
+                if (taskMillis == todayMillis && !task.isCompleted()) {
+                    filtered.add(task);
+                }
+            }
+        }
+        
+        // Sort by order_index (ascending)
+        filtered.sort((t1, t2) -> Integer.compare(t1.getOrderIndex(), t2.getOrderIndex()));
+        
+        Log.d(TAG, "Filtered " + filtered.size() + " today's pending tasks from " + tasks.size() + " total");
+        return filtered;
+    }
+    
+    private List<TaskEntity> filterPendingTasks(List<TaskEntity> tasks) {
+        if (tasks == null || tasks.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        List<TaskEntity> filtered = new ArrayList<>();
+        for (TaskEntity task : tasks) {
+            if (!task.isCompleted()) {
+                filtered.add(task);
+            }
+        }
+        
+        // Sort by order_index (ascending)
+        filtered.sort((t1, t2) -> Integer.compare(t1.getOrderIndex(), t2.getOrderIndex()));
+        
+        return filtered;
+    }
+    
+    private void updateTaskList(List<TaskEntity> tasks) {
+        currentTasks = tasks;
+        
+        // Sort by order_index before updating adapter
+        if (tasks != null && !tasks.isEmpty()) {
+            tasks.sort((t1, t2) -> Integer.compare(t1.getOrderIndex(), t2.getOrderIndex()));
+        }
+        
+        if (todoAdapter != null) {
+            todoAdapter.updateTasks(tasks);
+        }
+        
+        // Update task count
+        if (tvTaskCount != null) {
+            int count = tasks != null ? tasks.size() : 0;
+            tvTaskCount.setText(count + " tasks remaining");
+        }
+        
+        // Show/hide empty state
+        if (rvTodoList != null && layoutEmptyTasks != null) {
+            if (tasks == null || tasks.isEmpty()) {
+                rvTodoList.setVisibility(View.GONE);
+                layoutEmptyTasks.setVisibility(View.VISIBLE);
+            } else {
+                rvTodoList.setVisibility(View.VISIBLE);
+                layoutEmptyTasks.setVisibility(View.GONE);
+            }
+        }
+        
+        // Update current task display in timer
+        updateCurrentTaskDisplay(tasks);
+    }
+    
+    private void onTaskCheckedChanged(TaskEntity task, boolean isChecked) {
+        if (task == null) return;
+        
+        // Save old state for revert
+        boolean oldState = task.isCompleted();
+        Date oldCompletedAt = task.getCompletedAt();
+        
+        // Update new state
+        task.setCompleted(isChecked);
+        if (isChecked) {
+            task.setCompletedAt(new Date());
+            Log.d(TAG, "Marking task as COMPLETED: " + task.getTitle());
+        } else {
+            task.setCompletedAt(null);
+            Log.d(TAG, "Marking task as PENDING: " + task.getTitle());
+        }
+        
+        String token = null;
+        try {
+            if (userRepository.getCurrentUser() != null) {
+                token = userRepository.getCurrentUser().getAccessToken();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting access token", e);
+        }
+        
+        if (token == null || token.isEmpty()) {
+            Toast.makeText(requireContext(), "Missing access token", Toast.LENGTH_SHORT).show();
+            task.setCompleted(oldState);
+            task.setCompletedAt(oldCompletedAt);
+            return;
+        }
+        
+        String bearer = token.startsWith("Bearer ") ? token : ("Bearer " + token);
+        taskRepository.updateTaskViaApi(task, bearer, new DataCallback<TaskEntity>() {
+            @Override
+            public void onSuccess(TaskEntity result) {
+                mainHandler.post(() -> {
+                    Log.d(TAG, "Task completion updated successfully");
+                    // Reload to refresh list
+                    loadTodayTasks();
+                });
+            }
+            
+            @Override
+            public void onError(String errorMessage) {
+                mainHandler.post(() -> {
+                    Log.e(TAG, "Failed to update task: " + errorMessage);
+                    // Revert state
+                    task.setCompleted(oldState);
+                    task.setCompletedAt(oldCompletedAt);
+                    if (todoAdapter != null) {
+                        todoAdapter.notifyDataSetChanged();
+                    }
+                    Toast.makeText(requireContext(), "Failed to update task", Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
+    }
+    
+    private Date normalizeDate(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTime();
+    }
+    
+    private void updateCurrentTaskDisplay(List<TaskEntity> tasks) {
+        if (tvCurrentTask == null) return;
+        
+        if (tasks != null && !tasks.isEmpty()) {
+            TaskEntity firstTask = tasks.get(0);
+            tvCurrentTask.setText(firstTask.getTitle());
+            tvCurrentTask.setVisibility(View.VISIBLE);
+        } else {
+            tvCurrentTask.setVisibility(View.GONE);
+        }
+    }
+    
+    private void showAddTaskDialog() {
+        android.widget.EditText input = new android.widget.EditText(requireContext());
+        input.setHint("Enter task title");
+        input.setPadding(50, 30, 50, 30);
+        
+        new AlertDialog.Builder(requireContext())
+            .setTitle("Add New Task")
+            .setView(input)
+            .setPositiveButton("Add", (dialog, which) -> {
+                String title = input.getText().toString().trim();
+                if (!title.isEmpty()) {
+                    addNewTask(title);
+                } else {
+                    Toast.makeText(requireContext(), "Task title cannot be empty", Toast.LENGTH_SHORT).show();
+                }
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
+    }
+    
+    private void addNewTask(String title) {
+        String token = null;
+        try {
+            if (userRepository.getCurrentUser() != null) {
+                token = userRepository.getCurrentUser().getAccessToken();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting access token", e);
+        }
+        
+        if (token == null || token.isEmpty()) {
+            Toast.makeText(requireContext(), "Missing access token", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // Create new task entity
+        TaskEntity newTask = new TaskEntity();
+        newTask.setUserId(userRepository.getCurrentUserId());
+        newTask.setTitle(title);
+        newTask.setDescription("");
+        newTask.setPriority(TaskEntity.PRIORITY_MEDIUM);
+        newTask.setTaskDate(new Date()); // Today
+        newTask.setCompleted(false);
+        newTask.setOrderIndex(0);
+        newTask.setTotalTimeSpent(0);
+        newTask.setEstimatedSessions(1);
+        newTask.setActualSessions(0);
+        
+        String bearer = token.startsWith("Bearer ") ? token : ("Bearer " + token);
+        
+        taskRepository.createTaskViaApi(newTask, bearer, new DataCallback<TaskEntity>() {
+            @Override
+            public void onSuccess(TaskEntity result) {
+                mainHandler.post(() -> {
+                    Log.d(TAG, "Task created successfully: " + result.getTitle());
+                    Toast.makeText(requireContext(), "Task added", Toast.LENGTH_SHORT).show();
+                    // Reload tasks
+                    loadTodayTasks();
+                });
+            }
+            
+            @Override
+            public void onError(String errorMessage) {
+                mainHandler.post(() -> {
+                    Log.e(TAG, "Failed to create task: " + errorMessage);
+                    Toast.makeText(requireContext(), "Failed to add task: " + errorMessage, Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
     }
 
     @Override

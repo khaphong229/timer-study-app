@@ -42,6 +42,7 @@ public interface TaskContract {
         void detachView();
         void loadTasks();
         void addTask(String title, String priority, Date selectedDate);
+        void addTask(String title, String priority, Date selectedDate, int orderIndex);
         void updateTask(TaskEntity task);
         void deleteTask(TaskEntity task);
         void toggleTaskCompletion(TaskEntity task, boolean isCompleted);
