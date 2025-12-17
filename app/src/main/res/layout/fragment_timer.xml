@@ -22,13 +22,28 @@
             android:layout_height="match_parent"
             android:background="#4D000000" />
 
-    <!-- Streak Display Card - Góc trên bên phải (kiểu Duolingo/TikTok) -->
+    <!-- Floating Action Button ở góc trái -->
+    <ImageButton
+            android:id="@+id/btn_timer_settings"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_gravity="start|top"
+            android:layout_margin="16dp"
+            android:src="@drawable/ic_timer_set_time"
+            android:background="@drawable/fab_background"
+            android:scaleType="centerInside"
+            android:contentDescription="Timer Settings"
+            android:padding="12dp"
+            android:elevation="4dp" />
+
+    <!-- Streak Display Card - Bên cạnh btn_timer_settings -->
     <LinearLayout
         android:id="@+id/card_streak"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="end|top"
-        android:layout_margin="16dp"
+        android:layout_gravity="start|top"
+        android:layout_marginStart="88dp"
+        android:layout_marginTop="16dp"
         android:background="@drawable/fab_background"
         android:elevation="4dp"
         android:orientation="horizontal"
@@ -72,20 +87,6 @@
         </LinearLayout>
 
     </LinearLayout>
-
-    <!-- Floating Action Button ở góc trái -->
-    <ImageButton
-            android:id="@+id/btn_timer_settings"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_gravity="start|top"
-            android:layout_margin="16dp"
-            android:src="@drawable/ic_timer_set_time"
-            android:background="@drawable/fab_background"
-            android:scaleType="centerInside"
-            android:contentDescription="Timer Settings"
-            android:padding="12dp"
-            android:elevation="4dp" />
 
     <!-- Floating Action Button ở góc trái dưới - Todo List -->
     <ImageButton
