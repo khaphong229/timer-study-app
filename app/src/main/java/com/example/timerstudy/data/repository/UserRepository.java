@@ -25,7 +25,7 @@ import java.util.concurrent.Executors;
 
 /**
  * Repository for User data operations
- * 
+ *
  * This repository handles all user-related database operations and provides
  * a clean interface for the ViewModel layer. It manages background threads
  * and error handling for database operations.
@@ -58,7 +58,7 @@ public class UserRepository {
 
     /**
      * Constructor
-     * 
+     *
      * @param context Application context
      */
     public UserRepository(Context context) {
@@ -83,7 +83,7 @@ public class UserRepository {
 
     /**
      * Get singleton instance
-     * 
+     *
      * @param context Application context
      * @return UserRepository instance
      */
@@ -102,7 +102,7 @@ public class UserRepository {
 
     /**
      * Get all users LiveData
-     * 
+     *
      * @return LiveData containing list of all users
      */
     public LiveData<List<UserEntity>> getAllUsersLiveData() {
@@ -111,7 +111,7 @@ public class UserRepository {
 
     /**
      * Get current user LiveData
-     * 
+     *
      * @return LiveData containing current user
      */
     public LiveData<UserEntity> getCurrentUserLiveData() {
@@ -120,7 +120,7 @@ public class UserRepository {
 
     /**
      * Get loading state LiveData
-     * 
+     *
      * @return LiveData containing loading state
      */
     public LiveData<Boolean> getIsLoadingLiveData() {
@@ -129,7 +129,7 @@ public class UserRepository {
 
     /**
      * Get error LiveData
-     * 
+     *
      * @return LiveData containing error messages
      */
     public LiveData<String> getErrorLiveData() {
@@ -159,11 +159,11 @@ public class UserRepository {
 
     /**
      * Get user by ID
-     * 
+     *
      * @param userId User ID to search for
      * @return UserEntity or null if not found
      */
-    public void getUserById(long userId) {
+    public void getUserById(int userId) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -181,7 +181,7 @@ public class UserRepository {
 
     /**
      * Get user by email
-     * 
+     *
      * @param email Email to search for
      * @return UserEntity or null if not found
      */
@@ -203,7 +203,7 @@ public class UserRepository {
 
     /**
      * Create a new user
-     * 
+     *
      * @param user UserEntity to create
      * @return User ID of created user
      */
@@ -227,7 +227,7 @@ public class UserRepository {
 
     /**
      * Create a new anonymous user
-     * 
+     *
      * @return UserEntity of created anonymous user
      */
     public void createAnonymousUser() {
@@ -252,7 +252,7 @@ public class UserRepository {
 
     /**
      * Update user information
-     * 
+     *
      * @param user UserEntity with updated information
      */
     public void updateUser(UserEntity user) {
@@ -274,10 +274,10 @@ public class UserRepository {
 
     /**
      * Update user's last login time
-     * 
+     *
      * @param userId User ID to update
      */
-    public void updateLastLogin(long userId) {
+    public void updateLastLogin(int userId) {
         executorService.execute(() -> {
             try {
                 long currentTime = System.currentTimeMillis();
@@ -298,11 +298,11 @@ public class UserRepository {
 
     /**
      * Update user's display name
-     * 
+     *
      * @param userId      User ID to update
      * @param displayName New display name
      */
-    public void updateDisplayName(long userId, String displayName) {
+    public void updateDisplayName(int userId, String displayName) {
         executorService.execute(() -> {
             try {
                 userDao.updateDisplayName(userId, displayName);
@@ -323,11 +323,11 @@ public class UserRepository {
 
     /**
      * Update user's profile picture URL
-     * 
+     *
      * @param userId            User ID to update
      * @param profilePictureUrl New profile picture URL
      */
-    public void updateProfilePicture(long userId, String profilePictureUrl) {
+    public void updateProfilePicture(int userId, String profilePictureUrl) {
         executorService.execute(() -> {
             try {
                 userDao.updateProfilePicture(userId, profilePictureUrl);
@@ -348,12 +348,12 @@ public class UserRepository {
 
     /**
      * Convert anonymous user to registered user
-     * 
+     *
      * @param userId      User ID to convert
      * @param email       User's email
      * @param displayName User's display name
      */
-    public void convertToRegisteredUser(long userId, String email, String displayName) {
+    public void convertToRegisteredUser(int userId, String email, String displayName) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -379,10 +379,10 @@ public class UserRepository {
 
     /**
      * Delete user by ID
-     * 
+     *
      * @param userId User ID to delete
      */
-    public void deleteUser(long userId) {
+    public void deleteUser(int userId) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -405,7 +405,7 @@ public class UserRepository {
 
     /**
      * Check if email exists
-     * 
+     *
      * @param email Email to check
      * @return True if email exists, false otherwise
      */
@@ -424,7 +424,7 @@ public class UserRepository {
 
     /**
      * Get user count
-     * 
+     *
      * @return Total number of users
      */
     public void getUserCount() {
@@ -472,7 +472,7 @@ public class UserRepository {
 
     /**
      * Check if repository is closed
-     * 
+     *
      * @return True if closed, false otherwise
      */
     public boolean isClosed() {
@@ -487,7 +487,7 @@ public class UserRepository {
         executorService.execute(() -> {
             try {
                 // Sử dụng user ID cố định
-                long userId = 1;
+                int userId = 1;
 
                 // Kiểm tra user đã tồn tại chưa
                 UserEntity existingUser = userDao.getUserById(userId);
@@ -508,7 +508,7 @@ public class UserRepository {
 
     /**
      * Get current user ID
-     * 
+     *
      * @return int user ID
      */
     public int getCurrentUserId() {
@@ -519,14 +519,13 @@ public class UserRepository {
 
     /**
      * Get current user (User model for profile)
-     * 
+     *
      * @return User object
      */
     public User getCurrentUser() {
         String userJson = sharedPreferences.getString(KEY_CURRENT_USER, null);
         if (userJson != null) {
             try {
-                Log.d(TAG, "Reading User JSON: " + userJson);
                 return gson.fromJson(userJson, User.class);
             } catch (Exception e) {
                 Log.e(TAG, "Error parsing user JSON", e);
@@ -537,13 +536,12 @@ public class UserRepository {
 
     /**
      * Save user (User model for profile)
-     * 
+     *
      * @param user User object to save
      */
     public void saveUser(User user) {
         try {
             String userJson = gson.toJson(user);
-            Log.d(TAG, "Saving User JSON: " + userJson);
             sharedPreferences.edit()
                     .putString(KEY_CURRENT_USER, userJson)
                     .apply();
@@ -565,7 +563,7 @@ public class UserRepository {
 
     /**
      * Check if user exists
-     * 
+     *
      * @return true if user data exists
      */
     public boolean hasCurrentUser() {
@@ -583,7 +581,7 @@ public class UserRepository {
 
     /**
      * Sync Facebook user with Backend
-     * Logic: Login with Firebase Token -> Save Token and User Info
+     * Logic: Login with Firebase Token -> Save Token
      */
     public void syncFacebookUser(User fbUser, String firebaseToken, SyncCallback callback) {
         executorService.execute(() -> {
@@ -598,35 +596,15 @@ public class UserRepository {
 
                 // Login with Firebase Token
                 ApiService.LoginFirebaseRequest loginReq = new ApiService.LoginFirebaseRequest(firebaseToken);
-                Call<ApiService.ApiResponse<ApiService.LoginResponseData>> loginCall = apiService
-                        .loginFirebase(loginReq);
+                Call<ApiService.ApiResponse<ApiService.LoginResponseData>> loginCall = apiService.loginFirebase(loginReq);
                 Response<ApiService.ApiResponse<ApiService.LoginResponseData>> loginRes = loginCall.execute();
 
                 if (loginRes.isSuccessful() && loginRes.body() != null && loginRes.body().success) {
-                    ApiService.LoginResponseData data = loginRes.body().data;
-                    Log.d(TAG, "API Response Data: " + new Gson().toJson(data));
+                    String token = loginRes.body().data.accessToken;
+                    fbUser.setAccessToken(token);
 
-                    if (data.accessToken == null || data.accessToken.isEmpty()) {
-                        Log.e(TAG, "ERROR: Access Token from API is NULL or EMPTY!");
-                    } else {
-                        Log.d(TAG, "Access Token from API: "
-                                + data.accessToken.substring(0, Math.min(20, data.accessToken.length())) + "...");
-                    }
-
-                    // Calculate duration
-                    long expiresInDuration = (long) data.expiresIn;
-                    long currentTimeSeconds = System.currentTimeMillis() / 1000;
-
-                    // If expiresIn is a timestamp (e.g. > 1 year from epoch), convert to duration
-                    if (expiresInDuration > currentTimeSeconds) {
-                        expiresInDuration = expiresInDuration - currentTimeSeconds;
-                    }
-
-                    // Lưu tokens
-                    fbUser.setTokens(
-                            data.accessToken,
-                            data.refreshToken,
-                            expiresInDuration);
+                    // Lưu user đã có token vào local
+                    saveUser(fbUser);
 
                     Log.d(TAG, "=== BACKEND SYNC SUCCESS ===");
                     Log.d(TAG, "Access Token received successfully");
@@ -637,60 +615,9 @@ public class UserRepository {
                     // Kiểm tra token có được lưu đúng không
                     User savedUser = getCurrentUser();
                     Log.d(TAG, "SAVED USER TOKEN: " + savedUser);
-                    Log.d(TAG, "Access Token: " + data.accessToken.substring(0, 20) + "...");
-                    Log.d(TAG, "Refresh Token: " + data.refreshToken.substring(0, 20) + "...");
-                    Log.d(TAG,
-                            "Token expires in: " + expiresInDuration + " seconds");
-
-                    // Merge user info từ backend (nếu có)
-                    if (data.user != null) {
-                        fbUser.setName(data.user.displayName);
-                        fbUser.setEmail(data.user.email);
-                        if (data.user.profilePictureUrl != null && !data.user.profilePictureUrl.isEmpty()) {
-                            fbUser.setProfileImageUrl(data.user.profilePictureUrl);
-                        }
-
-                        Log.d(TAG, "Backend User ID: " + data.user.userId);
-                        Log.d(TAG, "Backend Display Name: " + data.user.displayName);
-                        Log.d(TAG, "Backend Email: " + data.user.email);
-                        Log.d(TAG, "Backend Profile Picture: " + data.user.profilePictureUrl);
-                    }
-
-                    // Lưu user đã có token vào local (SharedPreferences)
-                    Log.d(TAG, "Saving user with token: "
-                            + fbUser.getAccessToken().substring(0, Math.min(10, fbUser.getAccessToken().length()))
-                            + "...");
-                    saveUser(fbUser);
-
-                    // --- QUAN TRỌNG: Lưu User vào Room Database để đảm bảo Foreign Key cho Session
-                    // ---
-                    try {
-                        UserEntity userEntity = userDao.getUserById(fbUser.getUserId());
-                        if (userEntity == null) {
-                            userEntity = new UserEntity();
-                            userEntity.setUserId(fbUser.getUserId());
-                            userEntity.setDisplayName(fbUser.getName());
-                            userEntity.setEmail(fbUser.getEmail());
-                            userEntity.setProfilePictureUrl(fbUser.getProfileImageUrl());
-                            userEntity.setAnonymous(false);
-                            userEntity.setCreatedAt(new java.util.Date());
-                            userDao.insertUser(userEntity);
-                            Log.d(TAG, "Inserted Facebook user to Room DB: " + fbUser.getUserId());
-                        } else {
-                            userEntity.setDisplayName(fbUser.getName());
-                            userEntity.setEmail(fbUser.getEmail());
-                            userEntity.setProfilePictureUrl(fbUser.getProfileImageUrl());
-                            userEntity.setLastLogin(new java.util.Date());
-                            userDao.updateUser(userEntity);
-                            Log.d(TAG, "Updated Facebook user in Room DB: " + fbUser.getUserId());
-                        }
-                    } catch (Exception dbEx) {
-                        Log.e(TAG, "Failed to save Facebook user to Room DB", dbEx);
-                    }
-                    // -----------------------------------------------------------------------------
 
                     // Post lên UI
-                    currentUserLiveData.postValue(null);
+                    currentUserLiveData.postValue(null); // Trigger update if needed
 
                     if (callback != null)
                         callback.onSuccess(fbUser);
