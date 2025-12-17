@@ -59,7 +59,7 @@ public interface SettingDao {
      * @return List of settings for the user
      */
     @Query("SELECT * FROM user_settings WHERE user_id = :userId ORDER BY created_at DESC")
-    List<UserSettingEntity> getUserSettingsByUserId(int userId);
+    List<UserSettingEntity> getUserSettingsByUserId(long userId);
     
     /**
      * Get user setting by user ID and key
@@ -68,7 +68,7 @@ public interface SettingDao {
      * @return UserSettingEntity or null if not found
      */
     @Query("SELECT * FROM user_settings WHERE user_id = :userId AND setting_key = :settingKey")
-    UserSettingEntity getUserSettingByKey(int userId, String settingKey);
+    UserSettingEntity getUserSettingByKey(long userId, String settingKey);
     
     /**
      * Get user settings by data type
@@ -77,7 +77,7 @@ public interface SettingDao {
      * @return List of settings with the specified data type
      */
     @Query("SELECT * FROM user_settings WHERE user_id = :userId AND data_type = :dataType ORDER BY created_at DESC")
-    List<UserSettingEntity> getUserSettingsByDataType(int userId, String dataType);
+    List<UserSettingEntity> getUserSettingsByDataType(long userId, String dataType);
     
     /**
      * Get user setting value by key
@@ -86,7 +86,7 @@ public interface SettingDao {
      * @return Setting value or null if not found
      */
     @Query("SELECT setting_value FROM user_settings WHERE user_id = :userId AND setting_key = :settingKey")
-    String getUserSettingValue(int userId, String settingKey);
+    String getUserSettingValue(long userId, String settingKey);
     
     /**
      * Check if user setting exists
@@ -95,7 +95,7 @@ public interface SettingDao {
      * @return True if setting exists, false otherwise
      */
     @Query("SELECT EXISTS(SELECT 1 FROM user_settings WHERE user_id = :userId AND setting_key = :settingKey)")
-    boolean userSettingExists(int userId, String settingKey);
+    boolean userSettingExists(long userId, String settingKey);
     
     /**
      * Get user setting count
@@ -103,7 +103,7 @@ public interface SettingDao {
      * @return Number of settings for the user
      */
     @Query("SELECT COUNT(*) FROM user_settings WHERE user_id = :userId")
-    int getUserSettingCount(int userId);
+    int getUserSettingCount(long userId);
     
     // UPDATE OPERATIONS
     /**
@@ -120,7 +120,7 @@ public interface SettingDao {
      * @param settingValue New setting value
      */
     @Query("UPDATE user_settings SET setting_value = :settingValue, updated_at = :updatedAt WHERE user_id = :userId AND setting_key = :settingKey")
-    void updateUserSettingValue(int userId, String settingKey, String settingValue, long updatedAt);
+    void updateUserSettingValue(long userId, String settingKey, String settingValue, long updatedAt);
     
     /**
      * Update user setting value and data type
@@ -130,7 +130,7 @@ public interface SettingDao {
      * @param dataType New data type
      */
     @Query("UPDATE user_settings SET setting_value = :settingValue, data_type = :dataType, updated_at = :updatedAt WHERE user_id = :userId AND setting_key = :settingKey")
-    void updateUserSettingValueAndType(int userId, String settingKey, String settingValue, String dataType, long updatedAt);
+    void updateUserSettingValueAndType(long userId, String settingKey, String settingValue, String dataType, long updatedAt);
     
     // DELETE OPERATIONS
     /**
@@ -153,14 +153,14 @@ public interface SettingDao {
      * @param settingKey Setting key to delete
      */
     @Query("DELETE FROM user_settings WHERE user_id = :userId AND setting_key = :settingKey")
-    void deleteUserSettingByKey(int userId, String settingKey);
+    void deleteUserSettingByKey(long userId, String settingKey);
     
     /**
      * Delete all user settings by user ID
      * @param userId User ID to filter by
      */
     @Query("DELETE FROM user_settings WHERE user_id = :userId")
-    void deleteAllUserSettingsByUser(int userId);
+    void deleteAllUserSettingsByUser(long userId);
     
     /**
      * Delete all user settings (use with caution)
@@ -346,7 +346,7 @@ public interface SettingDao {
            "SELECT ds.default_value FROM default_settings ds " +
            "WHERE ds.setting_key = :settingKey " +
            "AND NOT EXISTS (SELECT 1 FROM user_settings us WHERE us.user_id = :userId AND us.setting_key = :settingKey)")
-    String getUserOrDefaultSettingValue(int userId, String settingKey);
+    String getUserOrDefaultSettingValue(long userId, String settingKey);
     
     /**
      * Get all settings for user (user settings + default settings)
@@ -366,6 +366,6 @@ public interface SettingDao {
             "WHERE NOT EXISTS (" +
             "SELECT 1 FROM user_settings us WHERE us.user_id = :userId AND us.setting_key = ds.setting_key" +
             ")")
-    List<UserSettingEntity> getAllSettingsForUser(int userId);
+    List<UserSettingEntity> getAllSettingsForUser(long userId);
 
 }

@@ -50,7 +50,7 @@ public interface UserDao {
      * @return UserEntity or null if not found
      */
     @Query("SELECT * FROM users WHERE user_id = :userId")
-    UserEntity getUserById(int userId);
+    UserEntity getUserById(long userId);
     
     /**
      * Get user by email
@@ -127,7 +127,7 @@ public interface UserDao {
      * @param lastLogin New last login timestamp
      */
     @Query("UPDATE users SET last_login = :lastLogin WHERE user_id = :userId")
-    void updateLastLogin(int userId, long lastLogin);
+    void updateLastLogin(long userId, long lastLogin);
     
     /**
      * Update user's display name
@@ -135,7 +135,7 @@ public interface UserDao {
      * @param displayName New display name
      */
     @Query("UPDATE users SET display_name = :displayName WHERE user_id = :userId")
-    void updateDisplayName(int userId, String displayName);
+    void updateDisplayName(long userId, String displayName);
     
     /**
      * Update user's profile picture URL
@@ -143,7 +143,7 @@ public interface UserDao {
      * @param profilePictureUrl New profile picture URL
      */
     @Query("UPDATE users SET profile_picture_url = :profilePictureUrl WHERE user_id = :userId")
-    void updateProfilePicture(int userId, String profilePictureUrl);
+    void updateProfilePicture(long userId, String profilePictureUrl);
     
     /**
      * Convert anonymous user to registered user
@@ -152,7 +152,7 @@ public interface UserDao {
      * @param displayName User's display name
      */
     @Query("UPDATE users SET is_anonymous = 0, email = :email, display_name = :displayName WHERE user_id = :userId")
-    void convertToRegisteredUser(int userId, String email, String displayName);
+    void convertToRegisteredUser(long userId, String email, String displayName);
     
     // ==================== DELETE OPERATIONS ====================
     
@@ -168,7 +168,7 @@ public interface UserDao {
      * @param userId User ID to delete
      */
     @Query("DELETE FROM users WHERE user_id = :userId")
-    void deleteUserById(int userId);
+    void deleteUserById(long userId);
     
     /**
      * Delete all anonymous users

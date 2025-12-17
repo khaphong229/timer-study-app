@@ -89,7 +89,7 @@ public interface ApiService {
 
     class UserResponseData {
         @SerializedName("user_id")
-        public int userId;
+        public long userId;
         public String email;
         @SerializedName("display_name")
         public String displayName;

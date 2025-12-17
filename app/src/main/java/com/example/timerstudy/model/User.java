@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class User {
-    private String userId;
+    private long userId;
     private String name;
     private int age;
     private String email;
@@ -38,7 +38,7 @@ public class User {
     private int friendsCount;
 
     // Constructor
-    public User(String userId, String name, int age, String email, String bio, String profileImageUrl) {
+    public User(long userId, String name, int age, String email, String bio, String profileImageUrl) {
         this.userId = userId;
         this.name = name;
         this.age = age;
@@ -68,7 +68,7 @@ public class User {
     }
 
     public User() {
-        this.userId = "guest_" + System.currentTimeMillis();
+        this.userId = (int) System.currentTimeMillis();
         this.name = "Guest User";
         this.email = "";
         this.profileImageUrl = "";
@@ -88,7 +88,7 @@ public class User {
         this.friendsCount = 0;
     }
 
-    public static User fromFacebookLogin(String facebookId, String name, String email, String profileImageUrl) {
+    public static User fromFacebookLogin(int facebookId, String name, String email, String profileImageUrl) {
         User user = new User();
         user.userId = facebookId;
         user.name = name;
@@ -101,7 +101,7 @@ public class User {
     }
 
     // Getters
-    public String getUserId() {
+    public long getUserId() {
         return userId;
     }
 
@@ -240,7 +240,7 @@ public class User {
     }
 
     // Setters
-    public void setUserId(String userId) {
+    public void setUserId(long userId) {
         this.userId = userId;
     }
 

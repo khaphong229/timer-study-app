@@ -26,7 +26,7 @@ public interface ShopContract {
         void onPurchaseConfirmed(ShopItem item);
         void onAdWatchedForItem(ShopItem item); // Called when user watched ad for item
         int getUserCoins();
-        void setUserId(int userId);
+        void setUserId(long userId);
         void onBackgroundSelected(ShopItem item);
     }
 }

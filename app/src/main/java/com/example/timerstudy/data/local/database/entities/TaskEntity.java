@@ -33,7 +33,7 @@ public class TaskEntity {
     private int taskId;
 
     @ColumnInfo(name = "user_id")
-    private int userId;
+    private long userId;
 
     @ColumnInfo(name = "title")
     private String title;
@@ -91,8 +91,8 @@ public class TaskEntity {
     public int getTaskId() { return taskId; }
     public void setTaskId(int taskId) { this.taskId = taskId; }
 
-    public int getUserId() { return userId; }
-    public void setUserId(int userId) { this.userId = userId; }
+    public long getUserId() { return userId; }
+    public void setUserId(long userId) { this.userId = userId; }
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }

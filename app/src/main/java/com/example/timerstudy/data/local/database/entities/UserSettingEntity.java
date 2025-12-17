@@ -30,7 +30,7 @@ public class UserSettingEntity {
     private int settingId;
 
     @ColumnInfo(name = "user_id")
-    private int userId;
+    private long userId;
 
     @ColumnInfo(name = "setting_key")
     private String settingKey;
@@ -66,8 +66,8 @@ public class UserSettingEntity {
     public int getSettingId() { return settingId; }
     public void setSettingId(int settingId) { this.settingId = settingId; }
 
-    public int getUserId() { return userId; }
-    public void setUserId(int userId) { this.userId = userId; }
+    public long getUserId() { return userId; }
+    public void setUserId(long userId) { this.userId = userId; }
 
     public String getSettingKey() { return settingKey; }
     public void setSettingKey(String settingKey) { this.settingKey = settingKey; }

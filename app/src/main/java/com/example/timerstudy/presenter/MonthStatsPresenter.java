@@ -16,10 +16,10 @@ public class MonthStatsPresenter implements MonthStatsContract.Presenter {
 
     private final StatisticsRepository repository;
     private MonthStatsContract.View view;
-    private final int userId;
+    private final long userId;
     private final Handler mainHandler;
 
-    public MonthStatsPresenter(Context context, int userId) {
+    public MonthStatsPresenter(Context context, long userId) {
         this.repository = StatisticsRepository.getInstance(context.getApplicationContext());
         this.userId = userId;
         this.mainHandler = new Handler(Looper.getMainLooper());
