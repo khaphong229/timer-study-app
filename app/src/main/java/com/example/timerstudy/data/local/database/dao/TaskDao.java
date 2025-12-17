@@ -58,7 +58,7 @@ public interface TaskDao {
      * @return List of tasks for the user
      */
     @Query("SELECT * FROM tasks WHERE user_id = :userId ORDER BY order_index ASC, created_at DESC")
-    List<TaskEntity> getTasksByUserId(int userId);
+    List<TaskEntity> getTasksByUserId(long userId);
     
     /**
      * Get tasks by user ID and date
@@ -67,7 +67,7 @@ public interface TaskDao {
      * @return List of tasks for the user on the specified date
      */
     @Query("SELECT * FROM tasks WHERE user_id = :userId AND task_date = :taskDate ORDER BY order_index ASC")
-    List<TaskEntity> getTasksByUserAndDate(int userId, long taskDate);
+    List<TaskEntity> getTasksByUserAndDate(long userId, long taskDate);
     
     /**
      * Get tasks by user ID and date range
@@ -77,7 +77,7 @@ public interface TaskDao {
      * @return List of tasks in date range
      */
     @Query("SELECT * FROM tasks WHERE user_id = :userId AND task_date BETWEEN :startDate AND :endDate ORDER BY task_date DESC, order_index ASC")
-    List<TaskEntity> getTasksByUserAndDateRange(int userId, long startDate, long endDate);
+    List<TaskEntity> getTasksByUserAndDateRange(long userId, long startDate, long endDate);
     
     /**
      * Get tasks by priority
@@ -94,7 +94,7 @@ public interface TaskDao {
      * @return List of tasks for the user with the specified priority
      */
     @Query("SELECT * FROM tasks WHERE user_id = :userId AND priority = :priority ORDER BY order_index ASC, created_at DESC")
-    List<TaskEntity> getTasksByUserAndPriority(int userId, String priority);
+    List<TaskEntity> getTasksByUserAndPriority(long userId, String priority);
     
     /**
      * Get completed tasks
@@ -109,7 +109,7 @@ public interface TaskDao {
      * @return List of completed tasks for the user
      */
     @Query("SELECT * FROM tasks WHERE user_id = :userId AND is_completed = 1 ORDER BY completed_at DESC")
-    List<TaskEntity> getCompletedTasksByUser(int userId);
+    List<TaskEntity> getCompletedTasksByUser(long userId);
     
     /**
      * Get pending tasks
@@ -124,7 +124,7 @@ public interface TaskDao {
      * @return List of pending tasks for the user
      */
     @Query("SELECT * FROM tasks WHERE user_id = :userId AND is_completed = 0 ORDER BY order_index ASC, created_at DESC")
-    List<TaskEntity> getPendingTasksByUser(int userId);
+    List<TaskEntity> getPendingTasksByUser(long userId);
     
     /**
      * Get high priority tasks
@@ -139,7 +139,7 @@ public interface TaskDao {
      * @return List of high priority tasks for the user
      */
     @Query("SELECT * FROM tasks WHERE user_id = :userId AND priority = 'HIGH' AND is_completed = 0 ORDER BY order_index ASC, created_at DESC")
-    List<TaskEntity> getHighPriorityTasksByUser(int userId);
+    List<TaskEntity> getHighPriorityTasksByUser(long userId);
     
     /**
      * Get tasks for today
@@ -149,7 +149,7 @@ public interface TaskDao {
      * @return List of tasks for today
      */
     @Query("SELECT * FROM tasks WHERE user_id = :userId AND task_date BETWEEN :todayStart AND :todayEnd ORDER BY order_index ASC")
-    List<TaskEntity> getTodayTasks(int userId, long todayStart, long todayEnd);
+    List<TaskEntity> getTodayTasks(long userId, long todayStart, long todayEnd);
     
     /**
      * Get overdue tasks (past due date and not completed)
@@ -166,7 +166,7 @@ public interface TaskDao {
      * @return List of overdue tasks for the user
      */
     @Query("SELECT * FROM tasks WHERE user_id = :userId AND task_date < :currentTime AND is_completed = 0 ORDER BY task_date ASC")
-    List<TaskEntity> getOverdueTasksByUser(int userId, long currentTime);
+    List<TaskEntity> getOverdueTasksByUser(long userId, long currentTime);
     
     /**
      * Search tasks by title or description
@@ -183,7 +183,7 @@ public interface TaskDao {
      * @return List of tasks for the user matching the search query
      */
     @Query("SELECT * FROM tasks WHERE user_id = :userId AND (title LIKE '%' || :searchQuery || '%' OR description LIKE '%' || :searchQuery || '%') ORDER BY order_index ASC, created_at DESC")
-    List<TaskEntity> searchTasksByUser(int userId, String searchQuery);
+    List<TaskEntity> searchTasksByUser(long userId, String searchQuery);
     
     /**
      * Get task count by user
@@ -191,7 +191,7 @@ public interface TaskDao {
      * @return Number of tasks for the user
      */
     @Query("SELECT COUNT(*) FROM tasks WHERE user_id = :userId")
-    int getTaskCountByUser(int userId);
+    int getTaskCountByUser(long userId);
     
     /**
      * Get completed task count by user
@@ -199,7 +199,7 @@ public interface TaskDao {
      * @return Number of completed tasks for the user
      */
     @Query("SELECT COUNT(*) FROM tasks WHERE user_id = :userId AND is_completed = 1")
-    int getCompletedTaskCountByUser(int userId);
+    int getCompletedTaskCountByUser(long userId);
     
     /**
      * Get pending task count by user
@@ -207,7 +207,7 @@ public interface TaskDao {
      * @return Number of pending tasks for the user
      */
     @Query("SELECT COUNT(*) FROM tasks WHERE user_id = :userId AND is_completed = 0")
-    int getPendingTaskCountByUser(int userId);
+    int getPendingTaskCountByUser(long userId);
     
     /**
      * Get total time spent on tasks by user
@@ -215,7 +215,7 @@ public interface TaskDao {
      * @return Total time spent in minutes
      */
     @Query("SELECT COALESCE(SUM(total_time_spent), 0) FROM tasks WHERE user_id = :userId")
-    int getTotalTimeSpentByUser(int userId);
+    int getTotalTimeSpentByUser(long userId);
     
     /**
      * Get total time spent on completed tasks by user
@@ -223,7 +223,7 @@ public interface TaskDao {
      * @return Total time spent on completed tasks in minutes
      */
     @Query("SELECT COALESCE(SUM(total_time_spent), 0) FROM tasks WHERE user_id = :userId AND is_completed = 1")
-    int getTotalTimeSpentOnCompletedTasksByUser(int userId);
+    int getTotalTimeSpentOnCompletedTasksByUser(long userId);
     
     /**
      * Get average time spent per task by user
@@ -231,7 +231,7 @@ public interface TaskDao {
      * @return Average time spent per task in minutes
      */
     @Query("SELECT COALESCE(AVG(total_time_spent), 0) FROM tasks WHERE user_id = :userId AND total_time_spent > 0")
-    double getAverageTimeSpentPerTaskByUser(int userId);
+    double getAverageTimeSpentPerTaskByUser(long userId);
     
     // ==================== UPDATE OPERATIONS ====================
     
@@ -333,7 +333,7 @@ public interface TaskDao {
      * @param userId User ID to filter by
      */
     @Query("DELETE FROM tasks WHERE user_id = :userId")
-    void deleteTasksByUser(int userId);
+    void deleteTasksByUser(long userId);
     
     /**
      * Delete completed tasks
@@ -346,7 +346,7 @@ public interface TaskDao {
      * @param userId User ID to filter by
      */
     @Query("DELETE FROM tasks WHERE user_id = :userId AND is_completed = 1")
-    void deleteCompletedTasksByUser(int userId);
+    void deleteCompletedTasksByUser(long userId);
     
     /**
      * Delete tasks older than specified date

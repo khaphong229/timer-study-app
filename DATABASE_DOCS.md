@@ -538,37 +538,37 @@ Tất cả DAO classes đã được implement với đầy đủ CRUD operation
 ```java
 // UserDao - 192 lines
 @Insert long insertUser(UserEntity user);
-@Query("SELECT * FROM users WHERE user_id = :userId") UserEntity getUserById(int userId);
+@Query("SELECT * FROM users WHERE user_id = :userId") UserEntity getUserById(long userId);
 @Update void updateUser(UserEntity user);
 @Delete void deleteUser(UserEntity user);
 
 // SessionDao - 603 lines  
 @Insert long insertSession(SessionEntity session);
-@Query("SELECT * FROM sessions WHERE user_id = :userId") List<SessionEntity> getSessionsByUserId(int userId);
+@Query("SELECT * FROM sessions WHERE user_id = :userId") List<SessionEntity> getSessionsByUserId(long userId);
 @Update void updateSession(SessionEntity session);
 @Delete void deleteSession(SessionEntity session);
 
 // TaskDao - 500+ lines
 @Insert long insertTask(TaskEntity task);
-@Query("SELECT * FROM tasks WHERE user_id = :userId") List<TaskEntity> getTasksByUserId(int userId);
+@Query("SELECT * FROM tasks WHERE user_id = :userId") List<TaskEntity> getTasksByUserId(long userId);
 @Update void updateTask(TaskEntity task);
 @Delete void deleteTask(TaskEntity task);
 
 // GoalDao - 400+ lines
 @Insert long insertGoal(GoalEntity goal);
-@Query("SELECT * FROM goals WHERE user_id = :userId") List<GoalEntity> getGoalsByUserId(int userId);
+@Query("SELECT * FROM goals WHERE user_id = :userId") List<GoalEntity> getGoalsByUserId(long userId);
 @Update void updateGoal(GoalEntity goal);
 @Delete void deleteGoal(GoalEntity goal);
 
 // SettingDao - 300+ lines
 @Insert long insertUserSetting(UserSettingEntity setting);
-@Query("SELECT * FROM user_settings WHERE user_id = :userId") List<UserSettingEntity> getUserSettingsByUserId(int userId);
+@Query("SELECT * FROM user_settings WHERE user_id = :userId") List<UserSettingEntity> getUserSettingsByUserId(long userId);
 @Update void updateUserSetting(UserSettingEntity setting);
 @Delete void deleteUserSetting(UserSettingEntity setting);
 
 // StatisticsDao - 400+ lines
 @Insert long insertStatisticsCache(StatisticsCacheEntity cache);
-@Query("SELECT * FROM statistics_cache WHERE user_id = :userId") List<StatisticsCacheEntity> getStatisticsCacheByUserId(int userId);
+@Query("SELECT * FROM statistics_cache WHERE user_id = :userId") List<StatisticsCacheEntity> getStatisticsCacheByUserId(long userId);
 @Update void updateStatisticsCache(StatisticsCacheEntity cache);
 @Delete void deleteStatisticsCache(StatisticsCacheEntity cache);
 ```
@@ -580,19 +580,19 @@ Tất cả DAO classes đều có advanced queries:
 ```java
 // Complex joins và aggregations
 @Query("SELECT COALESCE(SUM(actual_duration_minutes), 0) FROM sessions WHERE user_id = :userId AND session_type = 'FOCUS_SESSION' AND is_completed = 1")
-int getTotalFocusTimeByUser(int userId);
+int getTotalFocusTimeByUser(long userId);
 
 // Date range queries
 @Query("SELECT * FROM sessions WHERE user_id = :userId AND session_date BETWEEN :startDate AND :endDate ORDER BY session_date DESC")
-List<SessionEntity> getSessionsByUserAndDateRange(int userId, long startDate, long endDate);
+List<SessionEntity> getSessionsByUserAndDateRange(long userId, long startDate, long endDate);
 
 // Complex statistics queries
 @Query("SELECT COALESCE(AVG(completion_percentage), 0) FROM goals WHERE user_id = :userId")
-double getAverageCompletionPercentageByUser(int userId);
+double getAverageCompletionPercentageByUser(long userId);
 
 // Search và filtering
 @Query("SELECT * FROM tasks WHERE user_id = :userId AND (title LIKE '%' || :searchQuery || '%' OR description LIKE '%' || :searchQuery || '%') ORDER BY order_index ASC, created_at DESC")
-List<TaskEntity> searchTasksByUser(int userId, String searchQuery);
+List<TaskEntity> searchTasksByUser(long userId, String searchQuery);
 ```
 
 ---

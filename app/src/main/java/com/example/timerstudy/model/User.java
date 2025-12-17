@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class User {
-    private String userId;
+    private long userId;
     private String name;
     private int age;
     private String email;
@@ -38,7 +38,7 @@ public class User {
     private int friendsCount;
 
     // Constructor
-    public User(String userId, String name, int age, String email, String bio, String profileImageUrl) {
+    public User(long userId, String name, int age, String email, String bio, String profileImageUrl) {
         this.userId = userId;
         this.name = name;
         this.age = age;
@@ -68,7 +68,7 @@ public class User {
     }
 
     public User() {
-        this.userId = "guest_" + System.currentTimeMillis();
+        this.userId = (int) System.currentTimeMillis();
         this.name = "Guest User";
         this.email = "";
         this.profileImageUrl = "";
@@ -88,7 +88,7 @@ public class User {
         this.friendsCount = 0;
     }
 
-    public static User fromFacebookLogin(String facebookId, String name, String email, String profileImageUrl) {
+    public static User fromFacebookLogin(int facebookId, String name, String email, String profileImageUrl) {
         User user = new User();
         user.userId = facebookId;
         user.name = name;
@@ -101,7 +101,7 @@ public class User {
     }
 
     // Getters
-    public String getUserId() {
+    public long getUserId() {
         return userId;
     }
 
@@ -211,15 +211,45 @@ public class User {
     public void setTokens(String accessToken, String refreshToken, long expiresIn) {
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
-        // expiresIn là số giây, convert sang milliseconds và cộng với thời gian hiện tại
+        // expiresIn là số giây, convert sang milliseconds và cộng với thời gian hiện
+        // tại
         this.tokenExpiresAt = System.currentTimeMillis() + (expiresIn * 1000);
+
+        // Debug log
+        android.util.Log.d("User", "=== SET TOKENS ===");
+        android.util.Log.d("User", "Access Token Set: " + (accessToken != null && !accessToken.isEmpty()));
+        android.util.Log.d("User", "Access Token Length: " + (accessToken != null ? accessToken.length() : 0));
+        android.util.Log.d("User", "Refresh Token Set: " + (refreshToken != null && !refreshToken.isEmpty()));
+        android.util.Log.d("User", "Expires In (seconds): " + expiresIn);
+        android.util.Log.d("User", "Token Expires At: " + this.tokenExpiresAt);
+        android.util.Log.d("User", "Current Time: " + System.currentTimeMillis());
+        android.util.Log.d("User",
+                "Time Until Expiry (minutes): " + ((this.tokenExpiresAt - System.currentTimeMillis()) / 1000 / 60));
+        android.util.Log.d("User", "==================");
     }
 
     /**
      * Kiểm tra token có hết hạn không
+     * Thêm buffer 60 giây để tránh edge case
      */
     public boolean isTokenExpired() {
-        return System.currentTimeMillis() >= tokenExpiresAt;
+        if (tokenExpiresAt == 0) {
+            android.util.Log.d("User", "Token expired check: tokenExpiresAt is 0");
+            return true;
+        }
+
+        long currentTime = System.currentTimeMillis();
+        long bufferTime = 60 * 1000; // 60 seconds buffer
+        boolean expired = currentTime >= (tokenExpiresAt - bufferTime);
+
+        if (expired) {
+            android.util.Log.d("User", "Token is EXPIRED");
+            android.util.Log.d("User", "Current Time: " + currentTime);
+            android.util.Log.d("User", "Expires At: " + tokenExpiresAt);
+            android.util.Log.d("User", "Difference (seconds): " + ((tokenExpiresAt - currentTime) / 1000));
+        }
+
+        return expired;
     }
 
     public List<String> getFriendIds() {
@@ -240,7 +270,7 @@ public class User {
     }
 
     // Setters
-    public void setUserId(String userId) {
+    public void setUserId(long userId) {
         this.userId = userId;
     }
 

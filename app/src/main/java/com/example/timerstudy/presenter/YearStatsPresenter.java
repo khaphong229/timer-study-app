@@ -14,10 +14,10 @@ public class YearStatsPresenter implements YearStatsContract.Presenter {
 
     private final StatisticsRepository repository;
     private YearStatsContract.View view;
-    private final int userId;
+    private final long userId;
     private final Handler mainHandler;
 
-    public YearStatsPresenter(Context context, int userId) {
+    public YearStatsPresenter(Context context, long userId) {
         this.repository = StatisticsRepository.getInstance(context.getApplicationContext());
         this.userId = userId;
         this.mainHandler = new Handler(Looper.getMainLooper());

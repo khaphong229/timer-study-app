@@ -31,7 +31,7 @@ public class GoalEntity {
     private int goalId;
 
     @ColumnInfo(name = "user_id")
-    private int userId;
+    private long userId;
 
     @ColumnInfo(name = "goal_date")
     @TypeConverters(DateConverter.class)
@@ -71,8 +71,8 @@ public class GoalEntity {
     public int getGoalId() { return goalId; }
     public void setGoalId(int goalId) { this.goalId = goalId; }
 
-    public int getUserId() { return userId; }
-    public void setUserId(int userId) { this.userId = userId; }
+    public long getUserId() { return userId; }
+    public void setUserId(long userId) { this.userId = userId; }
 
     public Date getGoalDate() { return goalDate; }
     public void setGoalDate(Date goalDate) { this.goalDate = goalDate; }

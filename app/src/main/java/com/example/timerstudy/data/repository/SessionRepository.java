@@ -9,9 +9,10 @@ import androidx.lifecycle.MutableLiveData;
 import com.example.timerstudy.data.local.database.AppDatabase;
 import com.example.timerstudy.data.local.database.dao.SessionDao;
 import com.example.timerstudy.data.local.database.entities.SessionEntity;
-import com.example.timerstudy.data.remote.ApiClient;
+import com.example.timerstudy.data.remote.RetrofitClient;
 import com.example.timerstudy.data.remote.ApiService;
 import com.example.timerstudy.model.Session;
+import com.example.timerstudy.utils.UserManager;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -35,6 +36,7 @@ public class SessionRepository {
     // Database and DAO
     private final AppDatabase database;
     private final SessionDao sessionDao;
+    private final Context context;
     
     // Thread executor for background operations
     private final ExecutorService executorService;
@@ -56,6 +58,7 @@ public class SessionRepository {
      * @param context Application context
      */
     private SessionRepository(Context context) {
+        this.context = context;
         database = AppDatabase.getDatabase(context);
         sessionDao = database.sessionDao();
         executorService = Executors.newFixedThreadPool(4);
@@ -168,7 +171,7 @@ public class SessionRepository {
      * 
      * @param userId User ID to filter by
      */
-    public void loadSessionsByUserId(int userId) {
+    public void loadSessionsByUserId(long userId) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -191,7 +194,7 @@ public class SessionRepository {
      * @param startDate Start date timestamp
      * @param endDate End date timestamp
      */
-    public void loadSessionsByUserAndDateRange(int userId, long startDate, long endDate) {
+    public void loadSessionsByUserAndDateRange(long userId, long startDate, long endDate) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -257,7 +260,7 @@ public class SessionRepository {
      * @param userId User ID
      * @param durationMinutes Session duration in minutes
      */
-    public void startFocusSession(int userId, int durationMinutes) {
+    public void startFocusSession(long userId, int durationMinutes) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -290,7 +293,7 @@ public class SessionRepository {
      * @param durationMinutes Break duration in minutes
      * @param isLongBreak True for long break, false for short break
      */
-    public void startBreakSession(int userId, int durationMinutes, boolean isLongBreak) {
+    public void startBreakSession(long userId, int durationMinutes, boolean isLongBreak) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -467,7 +470,7 @@ public class SessionRepository {
      * 
      * @param userId User ID to filter by
      */
-    public void getSessionsInProgressByUser(int userId) {
+    public void getSessionsInProgressByUser(long userId) {
         executorService.execute(() -> {
             try {
                 List<SessionEntity> sessions = sessionDao.getSessionsInProgressByUser(userId);
@@ -485,7 +488,7 @@ public class SessionRepository {
      * 
      * @param userId User ID to filter by
      */
-    public void getCompletedSessionsByUser(int userId) {
+    public void getCompletedSessionsByUser(long userId) {
         executorService.execute(() -> {
             try {
                 List<SessionEntity> sessions = sessionDao.getCompletedSessionsByUser(userId);
@@ -503,7 +506,7 @@ public class SessionRepository {
      * 
      * @param userId User ID to filter by
      */
-    public void getTodaySessions(int userId) {
+    public void getTodaySessions(long userId) {
         executorService.execute(() -> {
             try {
                 // Calculate today's start and end timestamps
@@ -532,7 +535,7 @@ public class SessionRepository {
      * 
      * @param userId User ID to filter by
      */
-    public void getTotalFocusTimeByUser(int userId) {
+    public void getTotalFocusTimeByUser(long userId) {
         executorService.execute(() -> {
             try {
                 int totalFocusTime = sessionDao.getTotalFocusTimeByUser(userId);
@@ -623,26 +626,19 @@ public class SessionRepository {
      * 
      * @param userId User ID to filter by
      */
-    public void loadCompletedSessionsCountToday(int userId) {
+    public void loadCompletedSessionsCountToday(long userId) {
         executorService.execute(() -> {
             try {
-                List<SessionEntity> sessions = sessionDao.getCompletedSessionsByUser(userId);
-                
+                Log.d("DebugLoadCompletedSession", "userId" + userId);
+                Log.d("DebugLoadCompletedSession", "loadCompletedSessionsCountToday: ");
                 java.util.Calendar calendar = java.util.Calendar.getInstance();
                 calendar.set(java.util.Calendar.HOUR_OF_DAY, 0);
                 calendar.set(java.util.Calendar.MINUTE, 0);
                 calendar.set(java.util.Calendar.SECOND, 0);
                 calendar.set(java.util.Calendar.MILLISECOND, 0);
                 long todayStart = calendar.getTimeInMillis();
-                
-                int count = 0;
-                for (SessionEntity session : sessions) {
-                    if (session.getSessionDate() != null 
-                        && session.getSessionDate().getTime() >= todayStart
-                        && SessionEntity.TYPE_FOCUS_SESSION.equals(session.getSessionType())) {
-                        count++;
-                    }
-                }
+                java.util.Date todayStartDate = calendar.getTime();
+                int count = sessionDao.countCompletedFocusSessionsSince(userId, todayStartDate);
                 
                 completedSessionsCountLiveData.postValue(count);
                 Log.d(TAG, "Today's completed sessions count: " + count);
@@ -660,7 +656,7 @@ public class SessionRepository {
      * 
      * @param userId User ID to filter by
      */
-    public void loadTotalCompletedSessionsCount(int userId) {
+    public void loadTotalCompletedSessionsCount(long userId) {
         executorService.execute(() -> {
             try {
                 List<SessionEntity> sessions = sessionDao.getCompletedSessionsByUser(userId);
@@ -688,7 +684,7 @@ public class SessionRepository {
      * @param userId User ID
      * @param durationMinutes Duration in minutes
      */
-    public void saveCompletedStudySession(int userId, int durationMinutes) {
+    public void saveCompletedStudySession(long userId, int durationMinutes) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -707,14 +703,35 @@ public class SessionRepository {
                 session.setCompleted(true);
                 session.setCreatedAt(now);
                 session.setUpdatedAt(now);
+                session.setSynced(false); // Mặc định chưa sync
                 
                 long sessionId = sessionDao.insertSession(session);
+                session.setSessionId((int) sessionId); // Update ID
                 
                 Log.d(TAG, "Saved completed study session: " + sessionId);
         
                 loadCompletedSessionsCountToday(userId);
                 loadSessionsByUserId(userId);
                 errorLiveData.postValue(null);
+
+                Session sessionModel = new Session();
+                sessionModel.setSession_id(session.getSessionId());
+                sessionModel.setUser_id(session.getUserId());
+                sessionModel.setSession_date(session.getSessionDate() != null ? session.getSessionDate().getTime() : null);
+                sessionModel.setStart_time(session.getStartTime() != null ? session.getStartTime().getTime() : null);
+                sessionModel.setEnd_time(session.getEndTime() != null ? session.getEndTime().getTime() : null);
+                sessionModel.setDuration_minutes(session.getDurationMinutes());
+                sessionModel.setActual_duration_minutes(session.getActualDurationMinutes());
+                sessionModel.setSession_type(session.getSessionType());
+                sessionModel.setStatus(session.getStatus());
+                sessionModel.setFocus_session_count(0); // Default or from entity
+                sessionModel.setIs_completed(session.isCompleted() ? 1 : 0);
+                sessionModel.setPause_count(session.getPauseCount());
+                sessionModel.setTotal_pause_duration(session.getTotalPauseDuration());
+                // sessionModel.setCreated_at(session.getCreatedAt()); // CreatedAt is String in model but Date in Entity, handle conversion if needed or let server set it
+
+                UserManager.getInstance(context).syncSession(sessionModel);
+
             } catch (Exception e) {
                 Log.e(TAG, "Error saving completed study session", e);
                 errorLiveData.postValue("Failed to save session: " + e.getMessage());
@@ -724,38 +741,145 @@ public class SessionRepository {
         });
     }
 
-    // Hàm đồng bộ session lên server
-    public void syncSession(SessionEntity sessionEntity, String firebaseToken, SyncCallback callback) {
-        ApiService apiService = ApiClient.getService();
-        String authHeader = "Bearer " + firebaseToken;
 
-        // Convert Entity to Model
-        com.example.timerstudy.model.Session session = new com.example.timerstudy.model.Session();
-        session.setSession_id(sessionEntity.getSessionId());
-        session.setUser_id(sessionEntity.getUserId());
-        session.setSession_date(sessionEntity.getSessionDate());
-        session.setStart_time(sessionEntity.getStartTime());
-        session.setEnd_time(sessionEntity.getEndTime());
-        session.setDuration_minutes(sessionEntity.getDurationMinutes());
-        session.setSession_type(sessionEntity.getSessionType());
-        session.setStatus(sessionEntity.getStatus());
-        session.setCreated_at(sessionEntity.getCreatedAt());
+    public void syncSession(Session session, String accessToken, SyncCallback callback) {
+        ApiService apiService = RetrofitClient.getInstance().getApiService();
+  
+        String authHeader = accessToken.startsWith("Bearer ") ? accessToken : "Bearer " + accessToken;
+        Log.d("FixSyncSession", "authHeader" + authHeader);
 
-        apiService.createSession(authHeader, session).enqueue(new Callback<com.example.timerstudy.model.Session>() {
+        apiService.createSession(authHeader, session).enqueue(new Callback<ApiService.ApiResponse<Session>>() {
             @Override
-            public void onResponse(Call<com.example.timerstudy.model.Session> call, Response<com.example.timerstudy.model.Session> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    // Server trả về session đã tạo (có thể có ID từ server)
-                    // Bạn có thể update lại ID local nếu cần, hoặc chỉ cần log thành công
-                    callback.onSuccess();
+            public void onResponse(Call<ApiService.ApiResponse<Session>> call, Response<ApiService.ApiResponse<Session>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().success) {
+                    Session serverSession = response.body().data;
+                    
+                    Log.d("FixSyncSession", "Sync success. Local ID: " + session.getSession_id() + " -> Server ID: " + serverSession.getSession_id());
+
+                    executorService.execute(() -> {
+                        SessionEntity entity = sessionDao.getSessionById(session.getSession_id());
+                        if (entity != null) {
+                            entity.setSynced(true);
+                            sessionDao.updateSession(entity);
+                        }
+                    });
+                    
+                    if (callback != null) callback.onSuccess();
                 } else {
-                    callback.onError("Server error: " + response.code());
+                    String errorMsg = "Server error: " + response.code();
+                    if (response.body() != null) errorMsg += " - " + response.body().message;
+                    
+                    try {
+                        if (response.errorBody() != null) {
+                            errorMsg += " | " + response.errorBody().string();
+                        }
+                    } catch (Exception e) {
+                        Log.e("FixSyncSession", "Error reading error body", e);
+                    }
+                    Log.e("FixSyncSession", errorMsg);
+
+                    if (callback != null) callback.onError(errorMsg);
                 }
             }
 
             @Override
-            public void onFailure(Call<Session> call, Throwable t) {
-                callback.onError("Network error: " + t.getMessage());
+            public void onFailure(Call<ApiService.ApiResponse<Session>> call, Throwable t) {
+                String errorMsg = "Network error: " + t.getMessage();
+                Log.e("FixSyncSession", errorMsg, t);
+                if (callback != null) callback.onError(errorMsg);
+            }
+        });
+    }
+
+    // Hàm đồng bộ session lên server (Cho SessionEntity)
+    public void syncSession(SessionEntity sessionEntity, String accessToken, SyncCallback callback) {
+        // Convert Entity to Model
+        com.example.timerstudy.model.Session session = new com.example.timerstudy.model.Session();
+        session.setSession_id(sessionEntity.getSessionId());
+        session.setUser_id(sessionEntity.getUserId());
+        session.setSession_date(sessionEntity.getSessionDate() != null ? sessionEntity.getSessionDate().getTime() : null);
+        session.setStart_time(sessionEntity.getStartTime() != null ? sessionEntity.getStartTime().getTime() : null);
+        session.setEnd_time(sessionEntity.getEndTime() != null ? sessionEntity.getEndTime().getTime() : null);
+        session.setDuration_minutes(sessionEntity.getDurationMinutes());
+        session.setActual_duration_minutes(sessionEntity.getActualDurationMinutes());
+        session.setSession_type(sessionEntity.getSessionType());
+        session.setStatus(sessionEntity.getStatus());
+        session.setFocus_session_count(0); // Default
+        session.setIs_completed(sessionEntity.isCompleted() ? 1 : 0);
+        session.setPause_count(sessionEntity.getPauseCount());
+        session.setTotal_pause_duration(sessionEntity.getTotalPauseDuration());
+        // session.setCreated_at(sessionEntity.getCreatedAt());
+
+        syncSession(session, accessToken, callback);
+    }
+
+    /**
+     * Synchronous sync for WorkManager
+     * @param sessionEntity Session to sync
+     * @param accessToken Auth token
+     * @return true if success
+     */
+    public boolean syncSessionSynchronous(SessionEntity sessionEntity, String accessToken) {
+        try {
+            // Convert Entity to Model
+            com.example.timerstudy.model.Session session = new com.example.timerstudy.model.Session();
+            session.setSession_id(sessionEntity.getSessionId());
+            session.setUser_id(sessionEntity.getUserId());
+            session.setSession_date(sessionEntity.getSessionDate() != null ? sessionEntity.getSessionDate().getTime() : null);
+            session.setStart_time(sessionEntity.getStartTime() != null ? sessionEntity.getStartTime().getTime() : null);
+            session.setEnd_time(sessionEntity.getEndTime() != null ? sessionEntity.getEndTime().getTime() : null);
+            session.setDuration_minutes(sessionEntity.getDurationMinutes());
+            session.setActual_duration_minutes(sessionEntity.getActualDurationMinutes());
+            session.setSession_type(sessionEntity.getSessionType());
+            session.setStatus(sessionEntity.getStatus());
+            session.setFocus_session_count(0);
+            session.setIs_completed(sessionEntity.isCompleted() ? 1 : 0);
+            session.setPause_count(sessionEntity.getPauseCount());
+            session.setTotal_pause_duration(sessionEntity.getTotalPauseDuration());
+            // session.setCreated_at(sessionEntity.getCreatedAt());
+
+            ApiService apiService = RetrofitClient.getInstance().getApiService();
+            String authHeader = "Bearer " + accessToken;
+
+            Response<ApiService.ApiResponse<com.example.timerstudy.model.Session>> response = 
+                apiService.createSession(authHeader, session).execute();
+
+            if (response.isSuccessful() && response.body() != null && response.body().success) {
+                // Update local status
+                sessionEntity.setSynced(true);
+                sessionDao.updateSession(sessionEntity);
+                return true;
+            } else {
+                Log.e(TAG, "Sync failed: " + response.code());
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Sync failed for session " + sessionEntity.getSessionId(), e);
+        }
+        return false;
+    }
+
+    /**
+     * Sync all pending sessions (is_synced = 0)
+     * Call this when internet is available
+     */
+    public void syncPendingSessions(String accessToken) {
+        executorService.execute(() -> {
+            List<SessionEntity> pendingSessions = sessionDao.getUnsyncedSessions();
+            if (pendingSessions != null && !pendingSessions.isEmpty()) {
+                Log.d(TAG, "Found " + pendingSessions.size() + " pending sessions to sync");
+                for (SessionEntity entity : pendingSessions) {
+                    syncSession(entity, accessToken, new SyncCallback() {
+                        @Override
+                        public void onSuccess() {
+                            Log.d(TAG, "Synced pending session: " + entity.getSessionId());
+                        }
+
+                        @Override
+                        public void onError(String message) {
+                            Log.e(TAG, "Failed to sync pending session " + entity.getSessionId() + ": " + message);
+                        }
+                    });
+                }
             }
         });
     }
@@ -764,8 +888,75 @@ public class SessionRepository {
         return sessionDao.getAllSessions();
     }
 
+    public List<SessionEntity> getUnsyncedSessionsSync() {
+        return sessionDao.getUnsyncedSessions();
+    }
+
     public interface SyncCallback {
         void onSuccess();
         void onError(String message);
+    }
+
+    /**
+     * Fetch all sessions from API and save to local DB
+     * @param accessToken User access token
+     * @param userId User ID to associate sessions with
+     */
+    public void fetchAndSaveSessionsFromApi(String accessToken, long userId) {
+        executorService.execute(() -> {
+            try {
+                isLoadingLiveData.postValue(true);
+                ApiService apiService = RetrofitClient.getInstance().getApiService();
+                String authHeader = "Bearer " + accessToken;
+
+                Call<ApiService.ApiResponse<List<com.example.timerstudy.model.Session>>> call = apiService.getAllSessions(authHeader);
+                Response<ApiService.ApiResponse<List<com.example.timerstudy.model.Session>>> response = call.execute();
+
+                if (response.isSuccessful() && response.body() != null && response.body().success) {
+                    List<com.example.timerstudy.model.Session> serverSessions = response.body().data;
+                    if (serverSessions != null) {
+                        Log.d(TAG, "Fetched " + serverSessions.size() + " sessions from server");
+                        
+                        for (com.example.timerstudy.model.Session serverSession : serverSessions) {
+                            // Check if session exists
+                            SessionEntity existingSession = sessionDao.getSessionById(serverSession.getSession_id());
+                            
+                            SessionEntity entity = new SessionEntity();
+                            entity.setSessionId(serverSession.getSession_id());
+                            entity.setUserId(userId); // Ensure it maps to current user
+                            entity.setSessionDate(serverSession.getSession_date() != null ? new java.util.Date(serverSession.getSession_date()) : null);
+                            entity.setStartTime(serverSession.getStart_time() != null ? new java.util.Date(serverSession.getStart_time()) : null);
+                            entity.setEndTime(serverSession.getEnd_time() != null ? new java.util.Date(serverSession.getEnd_time()) : null);
+                            entity.setDurationMinutes(serverSession.getDuration_minutes() != null ? serverSession.getDuration_minutes() : 0);
+                            entity.setActualDurationMinutes(serverSession.getActual_duration_minutes() != null ? serverSession.getActual_duration_minutes() : 0);
+                            entity.setSessionType(serverSession.getSession_type());
+                            entity.setStatus(serverSession.getStatus());
+                            // entity.setCreatedAt(serverSession.getCreated_at()); // Handle String to Date conversion if needed
+                            entity.setUpdatedAt(new java.util.Date());
+                            entity.setSynced(true); // It came from server, so it is synced
+                            entity.setCompleted(serverSession.getIs_completed() != null && serverSession.getIs_completed() == 1);
+                            entity.setPauseCount(serverSession.getPause_count() != null ? serverSession.getPause_count() : 0);
+                            entity.setTotalPauseDuration(serverSession.getTotal_pause_duration() != null ? serverSession.getTotal_pause_duration() : 0);
+
+                            if (existingSession == null) {
+                                sessionDao.insertSession(entity);
+                            } else {
+                                sessionDao.updateSession(entity);
+                            }
+                        }
+                        
+                        // Refresh UI
+                        loadSessionsByUserId(userId);
+                        loadCompletedSessionsCountToday(userId);
+                    }
+                } else {
+                    Log.e(TAG, "Failed to fetch sessions: " + response.code());
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error fetching sessions", e);
+            } finally {
+                isLoadingLiveData.postValue(false);
+            }
+        });
     }
 }

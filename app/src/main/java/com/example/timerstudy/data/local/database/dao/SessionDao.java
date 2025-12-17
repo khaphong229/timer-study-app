@@ -8,6 +8,7 @@ import androidx.room.Update;
 
 import com.example.timerstudy.data.local.database.entities.SessionEntity;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -43,6 +44,13 @@ public interface SessionDao {
      */
     @Query("SELECT * FROM sessions ORDER BY created_at DESC")
     List<SessionEntity> getAllSessions();
+
+    /**
+     * Get all unsynced sessions
+     * @return List of unsynced sessions
+     */
+    @Query("SELECT * FROM sessions WHERE is_synced = 0")
+    List<SessionEntity> getUnsyncedSessions();
     
     /**
      * Get session by ID
@@ -58,7 +66,7 @@ public interface SessionDao {
      * @return List of sessions for the user
      */
     @Query("SELECT * FROM sessions WHERE user_id = :userId ORDER BY session_date DESC")
-    List<SessionEntity> getSessionsByUserId(int userId);
+    List<SessionEntity> getSessionsByUserId(long userId);
     
     /**
      * Get sessions by user ID and date range
@@ -68,7 +76,7 @@ public interface SessionDao {
      * @return List of sessions in date range
      */
     @Query("SELECT * FROM sessions WHERE user_id = :userId AND session_date BETWEEN :startDate AND :endDate ORDER BY session_date DESC")
-    List<SessionEntity> getSessionsByUserAndDateRange(int userId, long startDate, long endDate);
+    List<SessionEntity> getSessionsByUserAndDateRange(long userId, long startDate, long endDate);
     
     /**
      * Get sessions by type
@@ -99,7 +107,7 @@ public interface SessionDao {
      * @return List of completed sessions for the user
      */
     @Query("SELECT * FROM sessions WHERE user_id = :userId AND is_completed = 1 ORDER BY end_time DESC")
-    List<SessionEntity> getCompletedSessionsByUser(int userId);
+    List<SessionEntity> getCompletedSessionsByUser(long userId);
     
     /**
      * Get sessions in progress
@@ -114,7 +122,7 @@ public interface SessionDao {
      * @return List of sessions currently in progress for the user
      */
     @Query("SELECT * FROM sessions WHERE user_id = :userId AND status = 'IN_PROGRESS' ORDER BY start_time DESC")
-    List<SessionEntity> getSessionsInProgressByUser(int userId);
+    List<SessionEntity> getSessionsInProgressByUser(long userId);
     
     /**
      * Get sessions for today
@@ -124,7 +132,7 @@ public interface SessionDao {
      * @return List of sessions for today
      */
     @Query("SELECT * FROM sessions WHERE user_id = :userId AND session_date BETWEEN :todayStart AND :todayEnd ORDER BY start_time ASC")
-    List<SessionEntity> getTodaySessions(int userId, long todayStart, long todayEnd);
+    List<SessionEntity> getTodaySessions(long userId, long todayStart, long todayEnd);
     
     /**
      * Get focus sessions by user
@@ -132,7 +140,7 @@ public interface SessionDao {
      * @return List of focus sessions for the user
      */
     @Query("SELECT * FROM sessions WHERE user_id = :userId AND session_type = 'FOCUS_SESSION' ORDER BY session_date DESC")
-    List<SessionEntity> getFocusSessionsByUser(int userId);
+    List<SessionEntity> getFocusSessionsByUser(long userId);
     
     /**
      * Get break sessions by user
@@ -140,7 +148,16 @@ public interface SessionDao {
      * @return List of break sessions for the user
      */
     @Query("SELECT * FROM sessions WHERE user_id = :userId AND session_type IN ('SHORT_BREAK', 'LONG_BREAK') ORDER BY session_date DESC")
-    List<SessionEntity> getBreakSessionsByUser(int userId);
+    List<SessionEntity> getBreakSessionsByUser(long userId);
+
+    /**
+     * Count completed focus sessions for a user since a specific time
+     * @param userId User ID
+     * @param startTime Start timestamp
+     * @return Count of sessions
+     */
+    @Query("SELECT COUNT(*) FROM sessions WHERE user_id = :userId AND session_type = 'FOCUS_SESSION' AND is_completed = 1 AND session_date >= :startTime")
+    int countCompletedFocusSessionsSince(long userId, Date startTime);
     
     /**
      * Get session count by user
@@ -148,7 +165,7 @@ public interface SessionDao {
      * @return Number of sessions for the user
      */
     @Query("SELECT COUNT(*) FROM sessions WHERE user_id = :userId")
-    int getSessionCountByUser(int userId);
+    int getSessionCountByUser(long userId);
     
     /**
      * Get completed session count by user
@@ -156,7 +173,7 @@ public interface SessionDao {
      * @return Number of completed sessions for the user
      */
     @Query("SELECT COUNT(*) FROM sessions WHERE user_id = :userId AND is_completed = 1")
-    int getCompletedSessionCountByUser(int userId);
+    int getCompletedSessionCountByUser(long userId);
     
     /**
      * Get total focus time by user (in minutes)
@@ -164,7 +181,7 @@ public interface SessionDao {
      * @return Total focus time in minutes
      */
     @Query("SELECT COALESCE(SUM(actual_duration_minutes), 0) FROM sessions WHERE user_id = :userId AND session_type = 'FOCUS_SESSION' AND is_completed = 1")
-    int getTotalFocusTimeByUser(int userId);
+    int getTotalFocusTimeByUser(long userId);
     
     /**
      * Get total focus time by user for a date range
@@ -174,7 +191,7 @@ public interface SessionDao {
      * @return Total focus time in minutes for the date range
      */
     @Query("SELECT COALESCE(SUM(actual_duration_minutes), 0) FROM sessions WHERE user_id = :userId AND session_type = 'FOCUS_SESSION' AND is_completed = 1 AND session_date BETWEEN :startDate AND :endDate")
-    int getTotalFocusTimeByUserAndDateRange(int userId, long startDate, long endDate);
+    int getTotalFocusTimeByUserAndDateRange(long userId, long startDate, long endDate);
     
     /**
      * Get average session duration by user
@@ -186,10 +203,10 @@ public interface SessionDao {
             "WHERE user_id = :userId " +
             "AND is_completed = 1 " +
             "AND session_date BETWEEN :startDate AND :endDate")
-    int getCompletedSessionCountByUserAndDateRange(int userId, long startDate, long endDate);
+    int getCompletedSessionCountByUserAndDateRange(long userId, long startDate, long endDate);
 
     @Query("SELECT COALESCE(AVG(actual_duration_minutes), 0) FROM sessions WHERE user_id = :userId AND is_completed = 1 AND actual_duration_minutes IS NOT NULL")
-    double getAverageSessionDurationByUser(int userId);
+    double getAverageSessionDurationByUser(long userId);
     
     /**
      * Get longest session by user
@@ -197,7 +214,7 @@ public interface SessionDao {
      * @return Longest session duration in minutes
      */
     @Query("SELECT COALESCE(MAX(actual_duration_minutes), 0) FROM sessions WHERE user_id = :userId AND is_completed = 1")
-    int getLongestSessionByUser(int userId);
+    int getLongestSessionByUser(long userId);
     
     // ==================== UPDATE OPERATIONS ====================
     
@@ -278,7 +295,7 @@ public interface SessionDao {
      * @param userId User ID to filter by
      */
     @Query("DELETE FROM sessions WHERE user_id = :userId")
-    void deleteSessionsByUser(int userId);
+    void deleteSessionsByUser(long userId);
     
     /**
      * Delete cancelled sessions

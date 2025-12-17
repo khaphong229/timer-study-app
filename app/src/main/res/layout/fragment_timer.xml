@@ -36,6 +36,58 @@
             android:padding="12dp"
             android:elevation="4dp" />
 
+    <!-- Streak Display Card - Bên cạnh btn_timer_settings -->
+    <LinearLayout
+        android:id="@+id/card_streak"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|top"
+        android:layout_marginStart="88dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/fab_background"
+        android:elevation="4dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="12dp"
+        android:visibility="visible">
+
+        <!-- Fire Icon -->
+        <TextView
+            android:id="@+id/tv_fire_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🔥"
+            android:textSize="20sp"
+            android:layout_marginEnd="8dp"
+            android:alpha="0.4" />
+
+        <!-- Streak Count -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_streak_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="day streak"
+                android:textColor="#FFFFFF"
+                android:textSize="9sp"
+                android:alpha="0.9" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
     <!-- Floating Action Button ở góc trái dưới - Todo List -->
     <ImageButton
             android:id="@+id/btn_todo_list"
@@ -210,26 +262,26 @@
 
     <!-- Content layer - Đè lên GIF background -->
     <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="16dp">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="16dp">
 
         <!-- Main Timer Card - Chứa tất cả -->
         <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_time"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_margin="16dp"
-                android:background="#CC7A7A"
-                app:cardBackgroundColor="@android:color/transparent"
-                app:cardCornerRadius="20dp">
+            android:id="@+id/card_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="16dp"
+            android:background="#CC7A7A"
+            app:cardBackgroundColor="@android:color/transparent"
+            app:cardCornerRadius="20dp">
 
             <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
                 <!-- Background với blur effect -->
                 <View
@@ -261,11 +313,11 @@
 
                         <!-- Dấu đỏ -->
                         <View
-                                android:id="@+id/session_indicator"
-                                android:layout_width="6dp"
-                                android:layout_height="6dp"
-                                android:layout_marginEnd="8dp"
-                                android:background="@drawable/red_dot" />
+                            android:id="@+id/session_indicator"
+                            android:layout_width="6dp"
+                            android:layout_height="6dp"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/red_dot" />
 
                         <TextView
                                 android:id="@+id/tv_session_type"
@@ -340,10 +392,10 @@
 
                     <!-- Control Buttons -->
                     <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="61dp"
-                            android:gravity="center"
-                            android:orientation="horizontal">
+                        android:layout_width="wrap_content"
+                        android:layout_height="61dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
 
                         <ImageButton
                             android:id="@+id/btn_play_pause"

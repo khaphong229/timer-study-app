@@ -32,7 +32,7 @@ public class StreakRecordEntity {
     private int streakId;
 
     @ColumnInfo(name = "user_id")
-    private int userId;
+    private long userId;
 
     @ColumnInfo(name = "streak_date")
     @TypeConverters(DateConverter.class)
@@ -51,8 +51,8 @@ public class StreakRecordEntity {
     public int getStreakId() { return streakId; }
     public void setStreakId(int streakId) { this.streakId = streakId; }
 
-    public int getUserId() { return userId; }
-    public void setUserId(int userId) { this.userId = userId; }
+    public long getUserId() { return userId; }
+    public void setUserId(long userId) { this.userId = userId; }
 
     public Date getStreakDate() { return streakDate; }
     public void setStreakDate(Date streakDate) { this.streakDate = streakDate; }

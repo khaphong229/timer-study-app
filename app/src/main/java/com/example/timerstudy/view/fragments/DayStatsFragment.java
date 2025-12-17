@@ -1,6 +1,7 @@
 package com.example.timerstudy.view.fragments;
 
 import android.animation.ValueAnimator;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,7 +31,8 @@ public class DayStatsFragment extends Fragment implements DayStatsContract.View 
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState) {
         binding = FragmentDayStatsBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -117,7 +119,8 @@ public class DayStatsFragment extends Fragment implements DayStatsContract.View 
     @Override
     public void showDailyStats(com.example.timerstudy.data.repository.StatisticsRepository.DailyStats stats) {
         // Đảm bảo chạy trên UI thread
-        if (!isAdded()) return;
+        if (!isAdded())
+            return;
 
         requireActivity().runOnUiThread(() -> {
             binding.textTotalTime.setText(formatMinutes(stats.totalFocusMinutes));
@@ -131,15 +134,18 @@ public class DayStatsFragment extends Fragment implements DayStatsContract.View 
             }
 
             // Show motivational message
-//            if (binding.textMotivation != null) {
-//                binding.textMotivation.setText(getMotivationalMessage(stats.totalFocusMinutes, stats.completedSessions));
-//            }
+            // if (binding.textMotivation != null) {
+            // binding.textMotivation.setText(getMotivationalMessage(stats.totalFocusMinutes,
+            // stats.completedSessions));
+            // }
         });
     }
 
     @Override
-    public void showTimeline(java.util.List<com.example.timerstudy.data.local.database.entities.SessionEntity> sessions) {
-        if (!isAdded()) return;
+    public void showTimeline(
+            java.util.List<com.example.timerstudy.data.local.database.entities.SessionEntity> sessions) {
+        if (!isAdded())
+            return;
 
         requireActivity().runOnUiThread(() -> {
             // Prepare chart entries: x = minutes-of-day, y = studied minutes
@@ -148,7 +154,8 @@ public class DayStatsFragment extends Fragment implements DayStatsContract.View 
             for (com.example.timerstudy.data.local.database.entities.SessionEntity s : sessions) {
                 Integer actual = s.getActualDurationMinutes();
                 int studiedMinutes = (actual != null ? actual : s.getDurationMinutes());
-                java.util.Date ts = s.getStartTime() != null ? s.getStartTime() : (s.getSessionDate() != null ? s.getSessionDate() : s.getEndTime());
+                java.util.Date ts = s.getStartTime() != null ? s.getStartTime()
+                        : (s.getSessionDate() != null ? s.getSessionDate() : s.getEndTime());
                 float minutesOfDay = 0f;
                 if (ts != null) {
                     cal.setTime(ts);
@@ -158,9 +165,20 @@ public class DayStatsFragment extends Fragment implements DayStatsContract.View 
             }
 
             // Sort entries by time-of-day ascending for a left-to-right line
-            java.util.Collections.sort(entries, java.util.Comparator.comparingDouble(com.github.mikephil.charting.data.Entry::getX));
-            com.github.mikephil.charting.data.LineDataSet dataSet = new com.github.mikephil.charting.data.LineDataSet(entries, "Sessions");
-            int color = requireContext().getColor(com.google.android.material.R.color.material_dynamic_primary70);
+            java.util.Collections.sort(entries,
+                    java.util.Comparator.comparingDouble(com.github.mikephil.charting.data.Entry::getX));
+            com.github.mikephil.charting.data.LineDataSet dataSet = new com.github.mikephil.charting.data.LineDataSet(
+                    entries, "Sessions");
+
+            // FIX: Thay thế dòng bị lỗi bằng màu cụ thể
+            int color;
+            try {
+                color = requireContext().getColor(com.example.timerstudy.R.color.chart_primary);
+            } catch (Exception e) {
+                // Fallback to hardcoded color if resource not found
+                color = Color.parseColor("#2196F3");
+            }
+
             dataSet.setColor(color);
             dataSet.setCircleColor(color);
             dataSet.setLineWidth(2f);
@@ -216,7 +234,8 @@ public class DayStatsFragment extends Fragment implements DayStatsContract.View 
 
     @Override
     public void showLoading(boolean loading) {
-        if (!isAdded()) return;
+        if (!isAdded())
+            return;
 
         requireActivity().runOnUiThread(() -> {
             if (binding.swipeRefresh != null) {
@@ -236,22 +255,24 @@ public class DayStatsFragment extends Fragment implements DayStatsContract.View 
 
     @Override
     public void showError(String message) {
-        if (!isAdded() || getView() == null) return;
+        if (!isAdded() || getView() == null)
+            return;
 
         requireActivity().runOnUiThread(() -> {
             Snackbar snackbar = Snackbar.make(getView(), message, Snackbar.LENGTH_LONG)
                     .setAction("Thử lại", v -> loadTodayStats());
 
-//            if (binding.fabStartSession != null) {
-//                snackbar.setAnchorView(binding.fabStartSession);
-//            }
+            // if (binding.fabStartSession != null) {
+            // snackbar.setAnchorView(binding.fabStartSession);
+            // }
 
             snackbar.show();
         });
     }
 
     private void animateProgress(int targetProgress) {
-        if (binding.progressDaily == null || !isAdded()) return;
+        if (binding.progressDaily == null || !isAdded())
+            return;
 
         ValueAnimator animator = ValueAnimator.ofInt(0, targetProgress);
         animator.setDuration(1000);
@@ -264,12 +285,12 @@ public class DayStatsFragment extends Fragment implements DayStatsContract.View 
         animator.start();
     }
 
-//    private String getMotivationalMessage(int minutes, int sessions) {
-//        if (minutes >= 240) return "Xuất sắc! Bạn đã hoàn thành mục tiêu!";
-//        if (minutes >= 120) return "Làm tốt lắm! Tiếp tục phát huy!";
-//        if (sessions > 0) return "Khởi đầu tốt đấy!";
-//        return "Hãy bắt đầu phiên học đầu tiên!";
-//    }
+    // private String getMotivationalMessage(int minutes, int sessions) {
+    // if (minutes >= 240) return "Xuất sắc! Bạn đã hoàn thành mục tiêu!";
+    // if (minutes >= 120) return "Làm tốt lắm! Tiếp tục phát huy!";
+    // if (sessions > 0) return "Khởi đầu tốt đấy!";
+    // return "Hãy bắt đầu phiên học đầu tiên!";
+    // }
 
     @Override
     public void onDestroyView() {

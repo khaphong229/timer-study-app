@@ -144,14 +144,20 @@ public class ProfilePresenter implements ProfileContract.Presenter {
                         // --- LẤY FIREBASE ID TOKEN ---
                         FirebaseUser firebaseUser = mAuth.getCurrentUser();
                         if (firebaseUser != null) {
+                            // Force refresh token và đợi một chút để tránh "token used too early"
                             firebaseUser.getIdToken(true)
                                     .addOnCompleteListener(tokenTask -> {
                                         if (tokenTask.isSuccessful()) {
                                             String firebaseIdToken = tokenTask.getResult().getToken();
-                                            Log.d(TAG, "Firebase ID Token: " + firebaseIdToken);
-
-                                            // Lấy dữ liệu người dùng Facebook và tiếp tục sync backend
-                                            requestFacebookUserData(token, firebaseIdToken);
+                                            Log.d(TAG, "Firebase ID Token received (length: " + firebaseIdToken.length() + ")");
+                                            
+                                            // Đợi 2 giây để đảm bảo token đã "chín" và tránh lỗi "token used too early"
+                                            // Do lệch thời gian giữa client và server
+                                            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                                                Log.d(TAG, "Delaying 2 seconds before sending token to backend to avoid 'token used too early' error");
+                                                // Tiếp tục xử lý với token này
+                                                requestFacebookUserData(token, firebaseIdToken);
+                                            }, 2000); // 2 seconds delay
                                         } else {
                                             Log.e(TAG, "Error getting Firebase ID Token", tokenTask.getException());
                                             view.hideLoading();
@@ -268,10 +274,16 @@ public class ProfilePresenter implements ProfileContract.Presenter {
             Log.d(TAG, firebaseIdToken);
             Log.d(TAG, "========================");
 
-            String facebookId = object.optString("id", "");
+            String facebookIdString = object.optString("id", "");
+            long facebookIdLong = 0;
+            try {
+                facebookIdLong = Long.parseLong(facebookIdString);
+            } catch (NumberFormatException e) {
+                facebookIdLong = 0;
+            }
             String name = object.optString("name", "Facebook User");
             // Email is not available with public_profile permission only
-            String email = facebookId + "@facebook.local"; // Generate fallback email
+            String email = facebookIdLong + "@facebook.local"; // Generate fallback email
 
             String profileImageUrl = "";
             if (object.has("picture")) {
@@ -288,7 +300,7 @@ public class ProfilePresenter implements ProfileContract.Presenter {
             // Tạo User mới
             User facebookUser = new User();
 
-            facebookUser.setUserId(facebookId);
+            facebookUser.setUserId(facebookIdLong);
             facebookUser.setName(name);
             facebookUser.setEmail(email);
             facebookUser.setProfileImageUrl(profileImageUrl);
@@ -347,6 +359,16 @@ public class ProfilePresenter implements ProfileContract.Presenter {
                     Log.d(TAG, "Profile Image URL: " + syncedUser.getProfileImageUrl());
                     Log.d(TAG, "ACCESS TOKEN FROM SYNC: " + syncedUser.getAccessToken());
                     Log.d(TAG, "TOKEN LENGTH: " + (syncedUser.getAccessToken() != null ? syncedUser.getAccessToken().length() : "null"));
+                    Log.d(TAG,
+                            "Access Token: " + (syncedUser.getAccessToken() != null
+                                    ? syncedUser.getAccessToken().substring(0, 20) + "..."
+                                    : "null"));
+                    Log.d(TAG,
+                            "Refresh Token: " + (syncedUser.getRefreshToken() != null
+                                    ? syncedUser.getRefreshToken().substring(0, 20) + "..."
+                                    : "null"));
+                    Log.d(TAG, "Token Expires At: " + syncedUser.getTokenExpiresAt());
+                    Log.d(TAG, "Is Token Expired: " + syncedUser.isTokenExpired());
                     Log.d(TAG, "===================");
 
                     new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {

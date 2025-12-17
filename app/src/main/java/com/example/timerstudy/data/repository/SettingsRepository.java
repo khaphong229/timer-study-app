@@ -91,7 +91,7 @@ public class SettingsRepository {
         });
     }
 
-    public void loadUserSettingsByUserId(int userId) {
+    public void loadUserSettingsByUserId(long userId) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -107,7 +107,7 @@ public class SettingsRepository {
         });
     }
 
-    public void getUserSettingByKey(int userId, String key) {
+    public void getUserSettingByKey(long userId, String key) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -194,7 +194,7 @@ public class SettingsRepository {
 
     // ==================== COMBINED ====================
 
-    public void getUserOrDefaultSettingValue(int userId, String key) {
+    public void getUserOrDefaultSettingValue(long userId, String key) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);

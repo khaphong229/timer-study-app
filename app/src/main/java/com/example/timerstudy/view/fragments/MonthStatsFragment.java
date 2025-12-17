@@ -1,6 +1,7 @@
 package com.example.timerstudy.view.fragments;
 
 import android.animation.ValueAnimator;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,7 +31,8 @@ public class MonthStatsFragment extends Fragment implements MonthStatsContract.V
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState) {
         binding = FragmentMonthStatsBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -115,7 +117,8 @@ public class MonthStatsFragment extends Fragment implements MonthStatsContract.V
 
     @Override
     public void showMonthlyStats(com.example.timerstudy.data.repository.StatisticsRepository.MonthlyStats stats) {
-        if (!isAdded()) return;
+        if (!isAdded())
+            return;
         requireActivity().runOnUiThread(() -> {
             binding.textTotalTime.setText(formatMinutes(stats.totalFocusMinutes));
             int monthlyGoal = 60 * 60; // example: 60 hours
@@ -125,21 +128,25 @@ public class MonthStatsFragment extends Fragment implements MonthStatsContract.V
     }
 
     @Override
-    public void showTimeline(java.util.List<com.example.timerstudy.data.local.database.entities.SessionEntity> sessions) {
-        if (!isAdded()) return;
+    public void showTimeline(
+            java.util.List<com.example.timerstudy.data.local.database.entities.SessionEntity> sessions) {
+        if (!isAdded())
+            return;
         requireActivity().runOnUiThread(() -> {
             // Aggregate minutes per day in the month
             java.text.SimpleDateFormat dayKey = new java.text.SimpleDateFormat("dd MMM", java.util.Locale.getDefault());
             java.util.Map<String, Integer> dayToMinutes = new java.util.LinkedHashMap<>();
             for (com.example.timerstudy.data.local.database.entities.SessionEntity s : sessions) {
-                if (s.getSessionDate() == null) continue;
+                if (s.getSessionDate() == null)
+                    continue;
                 String key = dayKey.format(s.getSessionDate());
                 Integer actual = s.getActualDurationMinutes();
                 int minutes = (actual != null ? actual : s.getDurationMinutes());
                 dayToMinutes.put(key, dayToMinutes.getOrDefault(key, 0) + minutes);
             }
 
-            java.util.ArrayList<java.util.Map.Entry<String, Integer>> items = new java.util.ArrayList<>(dayToMinutes.entrySet());
+            java.util.ArrayList<java.util.Map.Entry<String, Integer>> items = new java.util.ArrayList<>(
+                    dayToMinutes.entrySet());
             items.sort((a, b) -> {
                 try {
                     int da = Integer.parseInt(a.getKey().substring(0, 2));
@@ -158,8 +165,18 @@ public class MonthStatsFragment extends Fragment implements MonthStatsContract.V
                 labels.add(e.getKey());
             }
 
-            com.github.mikephil.charting.data.LineDataSet dataSet = new com.github.mikephil.charting.data.LineDataSet(entries, "Days");
-            int color = requireContext().getColor(com.google.android.material.R.color.material_dynamic_primary70);
+            com.github.mikephil.charting.data.LineDataSet dataSet = new com.github.mikephil.charting.data.LineDataSet(
+                    entries, "Sessions");
+
+            // FIX: Thay thế dòng bị lỗi bằng màu cụ thể (dòng 162)
+            int color;
+            try {
+                color = requireContext().getColor(com.example.timerstudy.R.color.chart_primary);
+            } catch (Exception e) {
+                // Fallback to hardcoded color if resource not found
+                color = Color.parseColor("#2196F3");
+            }
+
             dataSet.setColor(color);
             dataSet.setCircleColor(color);
             dataSet.setLineWidth(2f);
@@ -197,7 +214,8 @@ public class MonthStatsFragment extends Fragment implements MonthStatsContract.V
             if (binding.textSessions != null) {
                 int completed = 0;
                 for (com.example.timerstudy.data.local.database.entities.SessionEntity s : sessions) {
-                    if (s.isCompleted()) completed++;
+                    if (s.isCompleted())
+                        completed++;
                 }
                 binding.textSessions.setText(String.valueOf(completed));
             }
@@ -212,7 +230,8 @@ public class MonthStatsFragment extends Fragment implements MonthStatsContract.V
 
     @Override
     public void showLoading(boolean loading) {
-        if (!isAdded()) return;
+        if (!isAdded())
+            return;
         requireActivity().runOnUiThread(() -> {
             if (binding.swipeRefresh != null) {
                 binding.swipeRefresh.setRefreshing(loading);
@@ -228,7 +247,8 @@ public class MonthStatsFragment extends Fragment implements MonthStatsContract.V
 
     @Override
     public void showError(String message) {
-        if (!isAdded() || getView() == null) return;
+        if (!isAdded() || getView() == null)
+            return;
         requireActivity().runOnUiThread(() -> {
             Snackbar snackbar = Snackbar.make(getView(), message, Snackbar.LENGTH_LONG)
                     .setAction("Thử lại", v -> reloadCurrentMonth());
@@ -237,7 +257,8 @@ public class MonthStatsFragment extends Fragment implements MonthStatsContract.V
     }
 
     private void animateProgress(int targetProgress) {
-        if (binding.progressMonthly == null || !isAdded()) return;
+        if (binding.progressMonthly == null || !isAdded())
+            return;
         ValueAnimator animator = ValueAnimator.ofInt(0, targetProgress);
         animator.setDuration(1000);
         animator.setInterpolator(new DecelerateInterpolator());
@@ -252,7 +273,8 @@ public class MonthStatsFragment extends Fragment implements MonthStatsContract.V
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        if (presenter != null) presenter.detach();
+        if (presenter != null)
+            presenter.detach();
         binding = null;
     }
 }

@@ -7,14 +7,302 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import com.example.timerstudy.R;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.ImageView;
+import androidx.cardview.widget.CardView;
 
-public class LeaderboardFragment extends Fragment {
+import com.example.timerstudy.R;
+import com.example.timerstudy.data.remote.ApiService;
+import com.example.timerstudy.presenter.LeaderboardPresenter;
+import com.example.timerstudy.utils.UserManager;
+import com.example.timerstudy.view.adapters.LeaderboardAdapter;
+import com.example.timerstudy.view.contracts.LeaderboardContract;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CircleCrop;
+import com.bumptech.glide.request.RequestOptions;
+
+import java.util.List;
+
+public class LeaderboardFragment extends Fragment implements LeaderboardContract.View {
+
+    private static final String TAG = "LeaderboardFragment";
+
+    // Tabs
+    private TextView tabToday, tabWeek, tabAllTime;
+    // Podium views
+    private CardView cvAvatar1, cvAvatar2, cvAvatar3;
+    private TextView tvName1, tvScore1, tvName2, tvScore2, tvName3, tvScore3;
+    // List
+    private RecyclerView rvLeaderboard;
+    private View listContainer;
+    private LeaderboardAdapter adapter;
+    // Bottom rank
+    private TextView tvMyRank, tvMyName, tvMyLevel, tvMyScore;
+
+    // Loading
+    private View loadingOverlay;
+
+    private LeaderboardPresenter presenter;
+    private String currentMetric = "focus_time";
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
             @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_leaderboard, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        android.util.Log.d(TAG, "=== LEADERBOARD FRAGMENT CREATED ===");
+
+        initViews(view);
+        initPresenter();
+        setupRecycler();
+        setupTabs();
+
+        // Debug user state trước khi load
+        UserManager.getInstance(requireContext()).debugUserState();
+
+        // Default load: all_time + focus_time
+        android.util.Log.d(TAG, "Loading leaderboard with period: all_time, metric: " + currentMetric);
+        presenter.loadLeaderboard("all_time", currentMetric);
+    }
+
+    private void initViews(View view) {
+        // Tabs
+        tabToday = view.findViewById(R.id.tabToday);
+        tabWeek = view.findViewById(R.id.tabWeek);
+        tabAllTime = view.findViewById(R.id.tabAllTime);
+
+        // Podium
+        cvAvatar1 = view.findViewById(R.id.cvAvatar1);
+        cvAvatar2 = view.findViewById(R.id.cvAvatar2);
+        cvAvatar3 = view.findViewById(R.id.cvAvatar3);
+
+        tvName1 = view.findViewById(R.id.tvName1);
+        tvScore1 = view.findViewById(R.id.tvScore1);
+        tvName2 = view.findViewById(R.id.tvName2);
+        tvScore2 = view.findViewById(R.id.tvScore2);
+        tvName3 = view.findViewById(R.id.tvName3);
+        tvScore3 = view.findViewById(R.id.tvScore3);
+
+        // List
+        rvLeaderboard = view.findViewById(R.id.rvLeaderboard);
+        listContainer = view.findViewById(R.id.layoutList);
+        loadingOverlay = view.findViewById(R.id.loadingOverlay);
+
+        // Bottom rank
+        tvMyRank = view.findViewById(R.id.tvMyRank);
+        tvMyName = view.findViewById(R.id.tvMyName);
+        tvMyLevel = view.findViewById(R.id.tvMyLevel);
+        tvMyScore = view.findViewById(R.id.tvMyScore);
+    }
+
+    private void initPresenter() {
+        presenter = new LeaderboardPresenter(this, UserManager.getInstance(requireContext()));
+    }
+
+    private void setupRecycler() {
+        adapter = new LeaderboardAdapter();
+        adapter.setMetric(currentMetric);
+        rvLeaderboard.setLayoutManager(new LinearLayoutManager(requireContext()));
+        rvLeaderboard.setAdapter(adapter);
+    }
+
+    private void setupTabs() {
+        tabToday.setOnClickListener(v -> {
+            selectTab("daily");
+            presenter.onTabSelected("daily");
+        });
+        tabWeek.setOnClickListener(v -> {
+            selectTab("weekly");
+            presenter.onTabSelected("weekly");
+        });
+        tabAllTime.setOnClickListener(v -> {
+            selectTab("all_time");
+            presenter.onTabSelected("all_time");
+        });
+    }
+
+    private void selectTab(String period) {
+        // Simple visual selection: only Today has bg drawable in layout; we toggle
+        // colors/background
+        resetTabs();
+        switch (period) {
+            case "daily":
+                tabToday.setBackgroundResource(R.drawable.bg_tab_selected);
+                tabToday.setTextColor(0xFFFFFFFF);
+                break;
+            case "weekly":
+                tabWeek.setBackgroundResource(R.drawable.bg_tab_selected);
+                tabWeek.setTextColor(0xFFFFFFFF);
+                break;
+            default:
+                tabAllTime.setBackgroundResource(R.drawable.bg_tab_selected);
+                tabAllTime.setTextColor(0xFFFFFFFF);
+                break;
+        }
+    }
+
+    private void resetTabs() {
+        tabToday.setBackground(null);
+        tabWeek.setBackground(null);
+        tabAllTime.setBackground(null);
+        int inactiveColor = 0xFF757575;
+        tabToday.setTextColor(inactiveColor);
+        tabWeek.setTextColor(inactiveColor);
+        tabAllTime.setTextColor(inactiveColor);
+    }
+
+    // LeaderboardContract.View implementations
+
+    @Override
+    public void showLoading() {
+        if (loadingOverlay != null) {
+            loadingOverlay.setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override
+    public void hideLoading() {
+        if (loadingOverlay != null) {
+            loadingOverlay.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    public void showLeaderboard(ApiService.LeaderboardData data) {
+        android.util.Log.d(TAG,
+                "showLeaderboard called with " + (data.entries != null ? data.entries.size() : 0) + " entries");
+        // The actual UI update happens in updatePodium and updateList
+    }
+
+    @Override
+    public void showError(String message) {
+        android.util.Log.e(TAG, "Showing error: " + message);
+        Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void updatePodium(List<ApiService.LeaderboardEntry> topThree) {
+        // Fill top 3 safely
+        fillPodiumSlot(0, topThree.size() > 0 ? topThree.get(0) : null);
+        fillPodiumSlot(1, topThree.size() > 1 ? topThree.get(1) : null);
+        fillPodiumSlot(2, topThree.size() > 2 ? topThree.get(2) : null);
+    }
+
+    private void fillPodiumSlot(int index, ApiService.LeaderboardEntry entry) {
+        CardView avatarView;
+        TextView tvName, tvScore;
+        switch (index) {
+            case 0:
+                avatarView = cvAvatar1;
+                tvName = tvName1;
+                tvScore = tvScore1;
+                break;
+            case 1:
+                avatarView = cvAvatar2;
+                tvName = tvName2;
+                tvScore = tvScore2;
+                break;
+            default:
+                avatarView = cvAvatar3;
+                tvName = tvName3;
+                tvScore = tvScore3;
+                break;
+        }
+        ImageView iv = (ImageView) avatarView.getChildAt(0);
+
+        if (entry == null) {
+            tvName.setText("—");
+            tvScore.setText("—");
+            iv.setImageResource(R.drawable.person_24dp);
+            return;
+        }
+
+        tvName.setText(entry.displayName != null ? entry.displayName : "—");
+        int score = getScoreByMetric(entry);
+        tvScore.setText(formatScore(score));
+
+        if (entry.profilePictureUrl != null && !entry.profilePictureUrl.isEmpty()) {
+            RequestOptions requestOptions = new RequestOptions()
+                    .transform(new CircleCrop())
+                    .placeholder(R.drawable.person_24dp)
+                    .error(R.drawable.person_24dp);
+
+            Glide.with(this)
+                    .load(entry.profilePictureUrl)
+                    .apply(requestOptions)
+                    .into(iv);
+        } else {
+            iv.setImageResource(R.drawable.person_24dp);
+        }
+    }
+
+    @Override
+    public void updateList(List<ApiService.LeaderboardEntry> entries) {
+        adapter.setMetric(currentMetric);
+        adapter.setEntries(entries);
+    }
+
+    @Override
+    public void updateCurrentUserRank(int rank, String name, int score) {
+        tvMyRank.setText(String.valueOf(rank));
+        tvMyName.setText(name != null ? name : "You");
+        // Level not provided by API, keep "No Level"
+        tvMyScore.setText(formatScore(score));
+    }
+
+    @Override
+    public void showEmptyState() {
+        adapter.setEntries(java.util.Collections.emptyList());
+        Toast.makeText(requireContext(), "No entries", Toast.LENGTH_SHORT).show();
+        // Clear podium
+        updatePodium(java.util.Collections.emptyList());
+        // Reset bottom rank
+        tvMyRank.setText("-");
+        tvMyName.setText("You");
+        tvMyScore.setText("-");
+    }
+
+    // Helpers
+    private int getScoreByMetric(ApiService.LeaderboardEntry entry) {
+        switch (currentMetric) {
+            case "focus_time":
+                return entry.focusTime;
+            case "sessions":
+                return entry.sessions;
+            case "tasks":
+                return entry.tasks;
+            case "streak":
+                return entry.currentStreak;
+            case "best_streak":
+                return entry.bestStreak;
+            case "goals":
+                return entry.goals;
+            default:
+                return entry.score;
+        }
+    }
+
+    private String formatScore(int score) {
+        if (score >= 1_000_000)
+            return String.format("%.1fM", score / 1_000_000.0);
+        if (score >= 1_000)
+            return String.format("%.1fK", score / 1_000.0);
+        return String.valueOf(score);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        presenter.onDestroy();
     }
 }

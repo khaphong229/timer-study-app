@@ -5,6 +5,7 @@ import android.util.Log;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.example.timerstudy.utils.UserManager;
 import com.example.timerstudy.view.contracts.TaskContract;
 import com.example.timerstudy.data.local.database.entities.TaskEntity;
 import com.example.timerstudy.data.repository.TaskRepository;
@@ -32,12 +33,14 @@ public class TaskPresenter implements TaskContract.Presenter {
     private List<TaskEntity> allTasks = new ArrayList<>();
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private Context context;
 
     // Khởi tạo & Lifecycle
     public TaskPresenter(TaskContract.View view, Context context) {
         this.view = view;
         this.taskRepository = new TaskRepository(context);
         this.userRepository = new UserRepository(context);
+        this.context = context;
         initializeUser();
     }
 
@@ -133,7 +136,7 @@ public class TaskPresenter implements TaskContract.Presenter {
     }
 
     private void loadTasksFromLocalWithDate(String apiError) {
-        int userId = userRepository.getCurrentUserId();
+        long userId = UserManager.getInstance(context).getCurrentUserId();
         Date date = selectedDate != null ? selectedDate : new Date();
         long dayMillis = normalizeDate(date).getTime();
 
@@ -333,7 +336,7 @@ public class TaskPresenter implements TaskContract.Presenter {
         task.setUpdatedAt(new Date());
         // Giữ nguyên taskDate của task, không thay đổi
         Log.d(TAG, "Updating task ID: " + task.getTaskId() + ", Task Date: " + task.getTaskDate());
-        
+
         String token = null; try { token = userRepository.getCurrentUser().getAccessToken(); } catch (Exception ignored) {}
         if (token == null || token.isEmpty()) { if (view != null) view.showError("Missing access token"); return; }
         String bearer = token.startsWith("Bearer ") ? token : ("Bearer " + token);

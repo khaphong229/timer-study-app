@@ -25,7 +25,7 @@ import java.util.concurrent.Executors;
 
 /**
  * Repository for User data operations
- * 
+ *
  * This repository handles all user-related database operations and provides
  * a clean interface for the ViewModel layer. It manages background threads
  * and error handling for database operations.
@@ -39,6 +39,7 @@ public class UserRepository {
     // Database and DAO
     private final AppDatabase database;
     private final UserDao userDao;
+    private final Context context;
 
     // SharedPreferences for User model
     private final SharedPreferences sharedPreferences;
@@ -58,10 +59,11 @@ public class UserRepository {
 
     /**
      * Constructor
-     * 
+     *
      * @param context Application context
      */
     public UserRepository(Context context) {
+        this.context = context.getApplicationContext();
         database = AppDatabase.getDatabase(context);
         userDao = database.userDao();
         executorService = Executors.newFixedThreadPool(4);
@@ -83,7 +85,7 @@ public class UserRepository {
 
     /**
      * Get singleton instance
-     * 
+     *
      * @param context Application context
      * @return UserRepository instance
      */
@@ -102,7 +104,7 @@ public class UserRepository {
 
     /**
      * Get all users LiveData
-     * 
+     *
      * @return LiveData containing list of all users
      */
     public LiveData<List<UserEntity>> getAllUsersLiveData() {
@@ -111,7 +113,7 @@ public class UserRepository {
 
     /**
      * Get current user LiveData
-     * 
+     *
      * @return LiveData containing current user
      */
     public LiveData<UserEntity> getCurrentUserLiveData() {
@@ -120,7 +122,7 @@ public class UserRepository {
 
     /**
      * Get loading state LiveData
-     * 
+     *
      * @return LiveData containing loading state
      */
     public LiveData<Boolean> getIsLoadingLiveData() {
@@ -129,7 +131,7 @@ public class UserRepository {
 
     /**
      * Get error LiveData
-     * 
+     *
      * @return LiveData containing error messages
      */
     public LiveData<String> getErrorLiveData() {
@@ -159,11 +161,11 @@ public class UserRepository {
 
     /**
      * Get user by ID
-     * 
+     *
      * @param userId User ID to search for
      * @return UserEntity or null if not found
      */
-    public void getUserById(int userId) {
+    public void getUserById(long userId) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -181,7 +183,7 @@ public class UserRepository {
 
     /**
      * Get user by email
-     * 
+     *
      * @param email Email to search for
      * @return UserEntity or null if not found
      */
@@ -203,7 +205,7 @@ public class UserRepository {
 
     /**
      * Create a new user
-     * 
+     *
      * @param user UserEntity to create
      * @return User ID of created user
      */
@@ -227,7 +229,7 @@ public class UserRepository {
 
     /**
      * Create a new anonymous user
-     * 
+     *
      * @return UserEntity of created anonymous user
      */
     public void createAnonymousUser() {
@@ -252,7 +254,7 @@ public class UserRepository {
 
     /**
      * Update user information
-     * 
+     *
      * @param user UserEntity with updated information
      */
     public void updateUser(UserEntity user) {
@@ -274,10 +276,10 @@ public class UserRepository {
 
     /**
      * Update user's last login time
-     * 
+     *
      * @param userId User ID to update
      */
-    public void updateLastLogin(int userId) {
+    public void updateLastLogin(long userId) {
         executorService.execute(() -> {
             try {
                 long currentTime = System.currentTimeMillis();
@@ -298,11 +300,11 @@ public class UserRepository {
 
     /**
      * Update user's display name
-     * 
+     *
      * @param userId      User ID to update
      * @param displayName New display name
      */
-    public void updateDisplayName(int userId, String displayName) {
+    public void updateDisplayName(long userId, String displayName) {
         executorService.execute(() -> {
             try {
                 userDao.updateDisplayName(userId, displayName);
@@ -323,11 +325,11 @@ public class UserRepository {
 
     /**
      * Update user's profile picture URL
-     * 
+     *
      * @param userId            User ID to update
      * @param profilePictureUrl New profile picture URL
      */
-    public void updateProfilePicture(int userId, String profilePictureUrl) {
+    public void updateProfilePicture(long userId, String profilePictureUrl) {
         executorService.execute(() -> {
             try {
                 userDao.updateProfilePicture(userId, profilePictureUrl);
@@ -348,12 +350,12 @@ public class UserRepository {
 
     /**
      * Convert anonymous user to registered user
-     * 
+     *
      * @param userId      User ID to convert
      * @param email       User's email
      * @param displayName User's display name
      */
-    public void convertToRegisteredUser(int userId, String email, String displayName) {
+    public void convertToRegisteredUser(long userId, String email, String displayName) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -379,10 +381,10 @@ public class UserRepository {
 
     /**
      * Delete user by ID
-     * 
+     *
      * @param userId User ID to delete
      */
-    public void deleteUser(int userId) {
+    public void deleteUser(long userId) {
         executorService.execute(() -> {
             try {
                 isLoadingLiveData.postValue(true);
@@ -405,7 +407,7 @@ public class UserRepository {
 
     /**
      * Check if email exists
-     * 
+     *
      * @param email Email to check
      * @return True if email exists, false otherwise
      */
@@ -424,7 +426,7 @@ public class UserRepository {
 
     /**
      * Get user count
-     * 
+     *
      * @return Total number of users
      */
     public void getUserCount() {
@@ -472,7 +474,7 @@ public class UserRepository {
 
     /**
      * Check if repository is closed
-     * 
+     *
      * @return True if closed, false otherwise
      */
     public boolean isClosed() {
@@ -487,7 +489,7 @@ public class UserRepository {
         executorService.execute(() -> {
             try {
                 // Sử dụng user ID cố định
-                int userId = 1;
+                long userId = 1;
 
                 // Kiểm tra user đã tồn tại chưa
                 UserEntity existingUser = userDao.getUserById(userId);
@@ -508,7 +510,7 @@ public class UserRepository {
 
     /**
      * Get current user ID
-     * 
+     *
      * @return int user ID
      */
     public int getCurrentUserId() {
@@ -519,7 +521,7 @@ public class UserRepository {
 
     /**
      * Get current user (User model for profile)
-     * 
+     *
      * @return User object
      */
     public User getCurrentUser() {
@@ -536,7 +538,7 @@ public class UserRepository {
 
     /**
      * Save user (User model for profile)
-     * 
+     *
      * @param user User object to save
      */
     public void saveUser(User user) {
@@ -545,7 +547,36 @@ public class UserRepository {
             sharedPreferences.edit()
                     .putString(KEY_CURRENT_USER, userJson)
                     .apply();
-            Log.d(TAG, "User saved successfully");
+            Log.d(TAG, "User saved successfully to Prefs");
+
+            // Also save to Database to ensure Foreign Key constraints are met
+            executorService.execute(() -> {
+                try {
+                    if (user.getUserId() > 0) {
+                        UserEntity existing = userDao.getUserById(user.getUserId());
+                        UserEntity entity = new UserEntity();
+                        entity.setUserId(user.getUserId());
+                        entity.setEmail(user.getEmail());
+                        entity.setDisplayName(user.getName());
+                        entity.setProfilePictureUrl(user.getProfileImageUrl());
+                        entity.setLastLogin(new java.util.Date());
+                        entity.setAnonymous(false); 
+                        
+                        if (existing == null) {
+                            entity.setCreatedAt(new java.util.Date());
+                            userDao.insertUser(entity);
+                            Log.d(TAG, "User inserted into DB: " + user.getUserId());
+                        } else {
+                            entity.setCreatedAt(existing.getCreatedAt());
+                            userDao.updateUser(entity);
+                            Log.d(TAG, "User updated in DB: " + user.getUserId());
+                        }
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error saving user to DB", e);
+                }
+            });
+
         } catch (Exception e) {
             Log.e(TAG, "Error saving user", e);
         }
@@ -563,7 +594,7 @@ public class UserRepository {
 
     /**
      * Check if user exists
-     * 
+     *
      * @return true if user data exists
      */
     public boolean hasCurrentUser() {
@@ -590,24 +621,80 @@ public class UserRepository {
 
                 Log.d(TAG, "=== STARTING FACEBOOK SYNC ===");
                 Log.d(TAG, "User: " + fbUser.getName());
-                Log.d(TAG, "Firebase Token: " + firebaseToken);
+                Log.d(TAG, "Firebase Token length: " + (firebaseToken != null ? firebaseToken.length() : 0));
 
                 ApiService apiService = RetrofitClient.getInstance().getApiService();
+                Log.d(TAG, "ApiService created successfully");
 
                 // Login with Firebase Token
                 ApiService.LoginFirebaseRequest loginReq = new ApiService.LoginFirebaseRequest(firebaseToken);
                 Call<ApiService.ApiResponse<ApiService.LoginResponseData>> loginCall = apiService.loginFirebase(loginReq);
                 Response<ApiService.ApiResponse<ApiService.LoginResponseData>> loginRes = loginCall.execute();
 
+                // Log response details for debugging
+                Log.d(TAG, "=== BACKEND LOGIN RESPONSE ===");
+                Log.d(TAG, "HTTP Code: " + loginRes.code());
+                Log.d(TAG, "Is Successful: " + loginRes.isSuccessful());
+                Log.d(TAG, "Response Body is null: " + (loginRes.body() == null));
+                
+                // Try to log raw response if available
+                if (loginRes.errorBody() != null) {
+                    try {
+                        String errorBody = loginRes.errorBody().string();
+                        Log.d(TAG, "Error Body (if any): " + errorBody);
+                    } catch (Exception e) {
+                        Log.e(TAG, "Cannot read error body", e);
+                    }
+                }
+                
+                if (loginRes.body() != null) {
+                    Log.d(TAG, "Response success: " + loginRes.body().success);
+                    Log.d(TAG, "Response http_code: " + loginRes.body().httpCode);
+                    Log.d(TAG, "Response message: " + loginRes.body().message);
+                    Log.d(TAG, "Response data is null: " + (loginRes.body().data == null));
+                    
+                    if (loginRes.body().data != null) {
+                        Log.d(TAG, "Data accessToken is null: " + (loginRes.body().data.accessToken == null));
+                        Log.d(TAG, "Data accessToken empty: " + (loginRes.body().data.accessToken != null && loginRes.body().data.accessToken.isEmpty()));
+                        if (loginRes.body().data.accessToken != null) {
+                            Log.d(TAG, "Data accessToken length: " + loginRes.body().data.accessToken.length());
+                        }
+                    }
+                } else {
+                    Log.e(TAG, "Response body is NULL");
+                    if (loginRes.errorBody() != null) {
+                        try {
+                            String errorBody = loginRes.errorBody().string();
+                            Log.e(TAG, "Error body: " + errorBody);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Cannot read error body", e);
+                        }
+                    }
+                }
+                Log.d(TAG, "==============================");
+
                 if (loginRes.isSuccessful() && loginRes.body() != null && loginRes.body().success) {
-                    String token = loginRes.body().data.accessToken;
-                    fbUser.setAccessToken(token);
+                    if (loginRes.body().data != null && loginRes.body().data.accessToken != null) {
+                        String token = loginRes.body().data.accessToken;
+                        fbUser.setAccessToken(token);
 
-                    // Lưu user đã có token vào local
-                    saveUser(fbUser);
+                        // Lưu user đã có token vào local
+                        saveUser(fbUser);
 
-                    Log.d(TAG, "=== BACKEND SYNC SUCCESS ===");
-                    Log.d(TAG, "Access Token received successfully");
+                    // Sync sessions from server
+                    SessionRepository.getInstance(context).fetchAndSaveSessionsFromApi(token, fbUser.getUserId());
+
+                        Log.d(TAG, "=== BACKEND SYNC SUCCESS ===");
+                        Log.d(TAG, "Access Token received successfully from backend");
+                        Log.d(TAG, "Access Token: " + token);
+                        Log.d(TAG, "Token length: " + token.length());
+                        if (loginRes.body().data != null) {
+                            Log.d(TAG, "Refresh Token: " + loginRes.body().data.refreshToken);
+                            Log.d(TAG, "Expires In: " + loginRes.body().data.expiresIn + " seconds");
+                            Log.d(TAG, "Token Type: " + loginRes.body().data.tokenType);
+                        }
+                        Log.d(TAG, "User saved with token: " + (fbUser.getAccessToken() != null && !fbUser.getAccessToken().isEmpty()));
+                        Log.d(TAG, "============================");
                     Log.d(TAG, "ACCESS TOKEN: " + token);
                     Log.d(TAG, "TOKEN LENGTH: " + (token != null ? token.length() : "null"));
                     Log.d(TAG, "USER ACCESS TOKEN: " + fbUser.getAccessToken());
@@ -616,16 +703,68 @@ public class UserRepository {
                     User savedUser = getCurrentUser();
                     Log.d(TAG, "SAVED USER TOKEN: " + savedUser);
 
-                    // Post lên UI
-                    currentUserLiveData.postValue(null); // Trigger update if needed
+                        // Post lên UI
+                        currentUserLiveData.postValue(null); // Trigger update if needed
 
-                    if (callback != null)
-                        callback.onSuccess(fbUser);
+                        if (callback != null)
+                            callback.onSuccess(fbUser);
+                    } else {
+                        Log.e(TAG, "=== BACKEND SYNC FAILED ===");
+                        Log.e(TAG, "Response data or accessToken is null!");
+                        Log.e(TAG, "Data is null: " + (loginRes.body().data == null));
+                        if (loginRes.body().data != null) {
+                            Log.e(TAG, "AccessToken is null: " + (loginRes.body().data.accessToken == null));
+                        }
+                        Log.e(TAG, "============================");
+                        
+                        // Lưu user local ngay cả khi không có token
+                        saveUser(fbUser);
+                        
+                        if (callback != null)
+                            callback.onError("Backend returned success but no access token");
+                    }
                 } else {
-                    String errorMsg = (loginRes.body() != null) ? loginRes.body().message : "Login failed";
-                    Log.e(TAG, "Login failed: " + errorMsg);
+                    // Backend returned error or success=false
+                    String errorMsg = "Login failed";
+                    if (loginRes.body() != null) {
+                        errorMsg = loginRes.body().message != null ? loginRes.body().message : "Login failed";
+                        Log.e(TAG, "=== BACKEND LOGIN FAILED ===");
+                        Log.e(TAG, "Response success: " + loginRes.body().success);
+                        Log.e(TAG, "Response http_code: " + loginRes.body().httpCode);
+                        Log.e(TAG, "Response message: " + loginRes.body().message);
+                        Log.e(TAG, "Response data is null: " + (loginRes.body().data == null));
+                        
+                        // Even if success=false, check if data exists
+                        if (loginRes.body().data != null) {
+                            Log.e(TAG, "Data exists but success=false");
+                            Log.e(TAG, "AccessToken: " + (loginRes.body().data.accessToken != null ? "EXISTS" : "NULL"));
+                            // Try to use token even if success=false (some backends do this)
+                            if (loginRes.body().data.accessToken != null && !loginRes.body().data.accessToken.isEmpty()) {
+                                String token = loginRes.body().data.accessToken;
+                                fbUser.setAccessToken(token);
+                                saveUser(fbUser);
+                                Log.d(TAG, "=== TOKEN EXTRACTED DESPITE success=false ===");
+                                Log.d(TAG, "Access Token: " + token);
+                                Log.d(TAG, "Token length: " + token.length());
+                                Log.d(TAG, "===========================================");
+                                
+                                if (callback != null)
+                                    callback.onSuccess(fbUser);
+                                return; // Exit early
+                            }
+                        }
+                        Log.e(TAG, "============================");
+                    } else {
+                        Log.e(TAG, "Response body is NULL");
+                    }
+                    
                     if (loginRes.errorBody() != null) {
-                        Log.e(TAG, "Login error body: " + loginRes.errorBody().string());
+                        try {
+                            String errorBody = loginRes.errorBody().string();
+                            Log.e(TAG, "Error body: " + errorBody);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Cannot read error body", e);
+                        }
                     }
 
                     // Lưu user local ngay cả khi backend fail
