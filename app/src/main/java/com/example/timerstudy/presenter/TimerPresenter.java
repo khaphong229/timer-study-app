@@ -1,6 +1,7 @@
 package com.example.timerstudy.presenter;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.example.timerstudy.data.repository.SessionRepository;
 import com.example.timerstudy.model.TimerModel;
@@ -36,7 +37,7 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
         this.sessionRepository = SessionRepository.getInstance(context);
 
         int duration = userManager.getTimerDuration();
-        model.setStudyDuration(duration * 60 * 1000L);
+        model.setStudyDuration(1);
 
         loadCompletedSessionsCount();
     }
@@ -173,6 +174,8 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
     public void saveSessionCompleted() {
         if (sessionRepository != null) {
             int studyDuration = getStudyDurationMinutes();
+            Log.d("FixBugSaveSession", "saveSessionCompleted: " + studyDuration);
+            Log.d("FixBugSaveSession", "userManager.getCurrentUserId(): " + userManager.getCurrentUserId());
             sessionRepository.saveCompletedStudySession(userManager.getCurrentUserId(), studyDuration);
             view.updateCompletedSessions(++completedSessionsFromDb);
         }
@@ -182,6 +185,8 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
     private void loadCompletedSessionsCount() {
         if (sessionRepository != null) {
             sessionRepository.loadCompletedSessionsCountToday(userManager.getCurrentUserId());
+            Log.d("FixBugLoadSession", "loadCompletedSessionsCount: " + completedSessionsFromDb);
+            Log.d("FixBugLoadSession", "userManager.getCurrentUserId(): " + userManager.getCurrentUserId());
         }
     }
 

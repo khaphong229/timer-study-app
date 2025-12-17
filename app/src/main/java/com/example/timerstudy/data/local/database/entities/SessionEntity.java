@@ -59,6 +59,9 @@ public class SessionEntity {
     @ColumnInfo(name = "status", defaultValue = "IN_PROGRESS")
     private String status;
 
+    @ColumnInfo(name = "is_synced", defaultValue = "0")
+    private boolean isSynced;
+
     @ColumnInfo(name = "focus_session_count", defaultValue = "0")
     private int focusSessionCount;
 
@@ -127,6 +130,9 @@ public class SessionEntity {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public boolean isSynced() { return isSynced; }
+    public void setSynced(boolean synced) { isSynced = synced; }
 
     public int getFocusSessionCount() { return focusSessionCount; }
     public void setFocusSessionCount(int focusSessionCount) { 

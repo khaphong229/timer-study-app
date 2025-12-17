@@ -603,8 +603,34 @@ public class UserRepository {
                     String token = loginRes.body().data.accessToken;
                     fbUser.setAccessToken(token);
 
-                    // Lưu user đã có token vào local
+                    // Lưu user đã có token vào local (SharedPreferences)
                     saveUser(fbUser);
+
+                    // --- QUAN TRỌNG: Lưu User vào Room Database để đảm bảo Foreign Key cho Session ---
+                    try {
+                        UserEntity userEntity = userDao.getUserById(fbUser.getUserId());
+                        if (userEntity == null) {
+                            userEntity = new UserEntity();
+                            userEntity.setUserId(fbUser.getUserId());
+                            userEntity.setDisplayName(fbUser.getName());
+                            userEntity.setEmail(fbUser.getEmail());
+                            userEntity.setProfilePictureUrl(fbUser.getProfileImageUrl());
+                            userEntity.setAnonymous(false);
+                            userEntity.setCreatedAt(new java.util.Date());
+                            userDao.insertUser(userEntity);
+                            Log.d(TAG, "Inserted Facebook user to Room DB: " + fbUser.getUserId());
+                        } else {
+                            userEntity.setDisplayName(fbUser.getName());
+                            userEntity.setEmail(fbUser.getEmail());
+                            userEntity.setProfilePictureUrl(fbUser.getProfileImageUrl());
+                            userEntity.setLastLogin(new java.util.Date());
+                            userDao.updateUser(userEntity);
+                            Log.d(TAG, "Updated Facebook user in Room DB: " + fbUser.getUserId());
+                        }
+                    } catch (Exception dbEx) {
+                        Log.e(TAG, "Failed to save Facebook user to Room DB", dbEx);
+                    }
+                    // -----------------------------------------------------------------------------
 
                     Log.d(TAG, "=== BACKEND SYNC SUCCESS ===");
                     Log.d(TAG, "Access Token received");
