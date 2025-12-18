@@ -166,4 +166,35 @@ public class UserManager {
         }
         android.util.Log.d(TAG, "========================");
     }
+
+    public void checkAndRefreshToken(UserRepository.SyncCallback callback) {
+        User user = getCurrentUser();
+        if (user != null && user.isLoggedIn()) {
+            if (user.isTokenExpired()) {
+                userRepository.refreshToken(user, new UserRepository.SyncCallback() {
+                    @Override
+                    public void onSuccess(User refreshedUser) {
+                        setCurrentUser(refreshedUser);
+                        android.util.Log.d(TAG, "Token refresh successful");
+                        if (callback != null)
+                            callback.onSuccess(refreshedUser);
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        android.util.Log.e(TAG, "Token refresh failed: " + message);
+                        if (callback != null)
+                            callback.onError(message);
+                    }
+                });
+            } else {
+                android.util.Log.d(TAG, "Token is valid");
+                if (callback != null)
+                    callback.onSuccess(user);
+            }
+        } else {
+            if (callback != null)
+                callback.onError("User not logged in");
+        }
+    }
 }

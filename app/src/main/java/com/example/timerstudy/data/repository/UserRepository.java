@@ -560,8 +560,8 @@ public class UserRepository {
                         entity.setDisplayName(user.getName());
                         entity.setProfilePictureUrl(user.getProfileImageUrl());
                         entity.setLastLogin(new java.util.Date());
-                        entity.setAnonymous(false); 
-                        
+                        entity.setAnonymous(false);
+
                         if (existing == null) {
                             entity.setCreatedAt(new java.util.Date());
                             userDao.insertUser(entity);
@@ -628,7 +628,8 @@ public class UserRepository {
 
                 // Login with Firebase Token
                 ApiService.LoginFirebaseRequest loginReq = new ApiService.LoginFirebaseRequest(firebaseToken);
-                Call<ApiService.ApiResponse<ApiService.LoginResponseData>> loginCall = apiService.loginFirebase(loginReq);
+                Call<ApiService.ApiResponse<ApiService.LoginResponseData>> loginCall = apiService
+                        .loginFirebase(loginReq);
                 Response<ApiService.ApiResponse<ApiService.LoginResponseData>> loginRes = loginCall.execute();
 
                 // Log response details for debugging
@@ -636,7 +637,7 @@ public class UserRepository {
                 Log.d(TAG, "HTTP Code: " + loginRes.code());
                 Log.d(TAG, "Is Successful: " + loginRes.isSuccessful());
                 Log.d(TAG, "Response Body is null: " + (loginRes.body() == null));
-                
+
                 // Try to log raw response if available
                 if (loginRes.errorBody() != null) {
                     try {
@@ -646,16 +647,17 @@ public class UserRepository {
                         Log.e(TAG, "Cannot read error body", e);
                     }
                 }
-                
+
                 if (loginRes.body() != null) {
                     Log.d(TAG, "Response success: " + loginRes.body().success);
                     Log.d(TAG, "Response http_code: " + loginRes.body().httpCode);
                     Log.d(TAG, "Response message: " + loginRes.body().message);
                     Log.d(TAG, "Response data is null: " + (loginRes.body().data == null));
-                    
+
                     if (loginRes.body().data != null) {
                         Log.d(TAG, "Data accessToken is null: " + (loginRes.body().data.accessToken == null));
-                        Log.d(TAG, "Data accessToken empty: " + (loginRes.body().data.accessToken != null && loginRes.body().data.accessToken.isEmpty()));
+                        Log.d(TAG, "Data accessToken empty: " + (loginRes.body().data.accessToken != null
+                                && loginRes.body().data.accessToken.isEmpty()));
                         if (loginRes.body().data.accessToken != null) {
                             Log.d(TAG, "Data accessToken length: " + loginRes.body().data.accessToken.length());
                         }
@@ -677,12 +679,26 @@ public class UserRepository {
                     if (loginRes.body().data != null && loginRes.body().data.accessToken != null) {
                         String token = loginRes.body().data.accessToken;
                         fbUser.setAccessToken(token);
+                        fbUser.setRefreshToken(loginRes.body().data.refreshToken);
+                        double expiresIn = loginRes.body().data.expiresIn;
+
+                        // Calculate expiration time
+                        long expiresAtMs;
+                        if (expiresIn > 1_500_000_000) {
+                            expiresAtMs = (long) (expiresIn * 1000);
+                        } else {
+                            expiresAtMs = System.currentTimeMillis() + (long) (expiresIn * 1000);
+                        }
+                        fbUser.setTokenExpiresAt(expiresAtMs);
+
+                        Log.d(TAG, "Token Expiration: " + expiresIn);
+                        Log.d(TAG, "Calculated ExpiresAt: " + expiresAtMs);
 
                         // Lưu user đã có token vào local
                         saveUser(fbUser);
 
-                    // Sync sessions from server
-                    SessionRepository.getInstance(context).fetchAndSaveSessionsFromApi(token, fbUser.getUserId());
+                        // Sync sessions from server
+                        SessionRepository.getInstance(context).fetchAndSaveSessionsFromApi(token, fbUser.getUserId());
 
                         Log.d(TAG, "=== BACKEND SYNC SUCCESS ===");
                         Log.d(TAG, "Access Token received successfully from backend");
@@ -693,15 +709,16 @@ public class UserRepository {
                             Log.d(TAG, "Expires In: " + loginRes.body().data.expiresIn + " seconds");
                             Log.d(TAG, "Token Type: " + loginRes.body().data.tokenType);
                         }
-                        Log.d(TAG, "User saved with token: " + (fbUser.getAccessToken() != null && !fbUser.getAccessToken().isEmpty()));
+                        Log.d(TAG, "User saved with token: "
+                                + (fbUser.getAccessToken() != null && !fbUser.getAccessToken().isEmpty()));
                         Log.d(TAG, "============================");
-                    Log.d(TAG, "ACCESS TOKEN: " + token);
-                    Log.d(TAG, "TOKEN LENGTH: " + (token != null ? token.length() : "null"));
-                    Log.d(TAG, "USER ACCESS TOKEN: " + fbUser.getAccessToken());
+                        Log.d(TAG, "ACCESS TOKEN: " + token);
+                        Log.d(TAG, "TOKEN LENGTH: " + (token != null ? token.length() : "null"));
+                        Log.d(TAG, "USER ACCESS TOKEN: " + fbUser.getAccessToken());
 
-                    // Kiểm tra token có được lưu đúng không
-                    User savedUser = getCurrentUser();
-                    Log.d(TAG, "SAVED USER TOKEN: " + savedUser);
+                        // Kiểm tra token có được lưu đúng không
+                        User savedUser = getCurrentUser();
+                        Log.d(TAG, "SAVED USER TOKEN: " + savedUser);
 
                         // Post lên UI
                         currentUserLiveData.postValue(null); // Trigger update if needed
@@ -716,10 +733,10 @@ public class UserRepository {
                             Log.e(TAG, "AccessToken is null: " + (loginRes.body().data.accessToken == null));
                         }
                         Log.e(TAG, "============================");
-                        
+
                         // Lưu user local ngay cả khi không có token
                         saveUser(fbUser);
-                        
+
                         if (callback != null)
                             callback.onError("Backend returned success but no access token");
                     }
@@ -733,13 +750,15 @@ public class UserRepository {
                         Log.e(TAG, "Response http_code: " + loginRes.body().httpCode);
                         Log.e(TAG, "Response message: " + loginRes.body().message);
                         Log.e(TAG, "Response data is null: " + (loginRes.body().data == null));
-                        
+
                         // Even if success=false, check if data exists
                         if (loginRes.body().data != null) {
                             Log.e(TAG, "Data exists but success=false");
-                            Log.e(TAG, "AccessToken: " + (loginRes.body().data.accessToken != null ? "EXISTS" : "NULL"));
+                            Log.e(TAG,
+                                    "AccessToken: " + (loginRes.body().data.accessToken != null ? "EXISTS" : "NULL"));
                             // Try to use token even if success=false (some backends do this)
-                            if (loginRes.body().data.accessToken != null && !loginRes.body().data.accessToken.isEmpty()) {
+                            if (loginRes.body().data.accessToken != null
+                                    && !loginRes.body().data.accessToken.isEmpty()) {
                                 String token = loginRes.body().data.accessToken;
                                 fbUser.setAccessToken(token);
                                 saveUser(fbUser);
@@ -747,7 +766,7 @@ public class UserRepository {
                                 Log.d(TAG, "Access Token: " + token);
                                 Log.d(TAG, "Token length: " + token.length());
                                 Log.d(TAG, "===========================================");
-                                
+
                                 if (callback != null)
                                     callback.onSuccess(fbUser);
                                 return; // Exit early
@@ -757,7 +776,7 @@ public class UserRepository {
                     } else {
                         Log.e(TAG, "Response body is NULL");
                     }
-                    
+
                     if (loginRes.errorBody() != null) {
                         try {
                             String errorBody = loginRes.errorBody().string();
@@ -798,6 +817,64 @@ public class UserRepository {
                     callback.onError("Sync Error: " + e.getMessage());
             } finally {
                 isLoadingLiveData.postValue(false);
+            }
+        });
+    }
+
+    /**
+     * Refresh Access Token
+     */
+    public void refreshToken(User user, SyncCallback callback) {
+        executorService.execute(() -> {
+            try {
+                if (user.getRefreshToken() == null || user.getRefreshToken().isEmpty()) {
+                    if (callback != null)
+                        callback.onError("No refresh token available");
+                    return;
+                }
+
+                Log.d(TAG, "refreshToken: " + user.getName());
+                ApiService apiService = RetrofitClient.getInstance().getApiService();
+                ApiService.RefreshTokenRequest request = new ApiService.RefreshTokenRequest(user.getRefreshToken());
+
+                Call<ApiService.ApiResponse<ApiService.LoginResponseData>> call = apiService.refreshToken(request);
+                Response<ApiService.ApiResponse<ApiService.LoginResponseData>> response = call.execute();
+
+                if (response.isSuccessful() && response.body() != null && response.body().success) {
+                    ApiService.LoginResponseData data = response.body().data;
+                    if (data != null && data.accessToken != null) {
+                        user.setAccessToken(data.accessToken);
+                        if (data.refreshToken != null) {
+                            user.setRefreshToken(data.refreshToken);
+                        }
+
+                        double expiresIn = data.expiresIn;
+                        long expiresAtMs;
+                        if (expiresIn > 1_500_000_000) {
+                            expiresAtMs = (long) (expiresIn * 1000);
+                        } else {
+                            expiresAtMs = System.currentTimeMillis() + (long) (expiresIn * 1000);
+                        }
+                        user.setTokenExpiresAt(expiresAtMs);
+
+                        saveUser(user);
+
+                        if (callback != null)
+                            callback.onSuccess(user);
+                    } else {
+                        if (callback != null)
+                            callback.onError("Invalid response data");
+                    }
+                } else {
+                    String errorMsg = "Refresh failed";
+                    if (response.body() != null)
+                        errorMsg = response.body().message;
+                    if (callback != null)
+                        callback.onError(errorMsg);
+                }
+            } catch (Exception e) {
+                if (callback != null)
+                    callback.onError("Network error: " + e.getMessage());
             }
         });
     }

@@ -215,6 +215,7 @@ public class User {
 
     public boolean isTokenExpired() {
         if (tokenExpiresAt == 0) {
+            android.util.Log.d("User", "Token EXPIRED: tokenExpiresAt is 0");
             return true;
         }
 
@@ -223,7 +224,10 @@ public class User {
         boolean expired = currentTime >= (tokenExpiresAt - bufferTime);
 
         if (expired) {
-            android.util.Log.d("User", "Token is EXPIRED");
+            android.util.Log.d("User", "Token EXPIRED: Current=" + currentTime + ", ExpiresAt=" + tokenExpiresAt);
+        } else {
+            // android.util.Log.d("User", "Token VALID: Current=" + currentTime + ",
+            // ExpiresAt=" + tokenExpiresAt);
         }
 
         return expired;

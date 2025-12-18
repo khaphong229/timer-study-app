@@ -59,8 +59,19 @@ public class LeaderboardPresenter implements LeaderboardContract.Presenter {
         }
 
         if (currentUser.isTokenExpired()) {
-            view.hideLoading();
-            view.showError("Session expired. Please login again");
+            view.showLoading();
+            userManager.checkAndRefreshToken(new com.example.timerstudy.data.repository.UserRepository.SyncCallback() {
+                @Override
+                public void onSuccess(User user) {
+                    loadLeaderboard(period, metric);
+                }
+
+                @Override
+                public void onError(String message) {
+                    view.hideLoading();
+                    view.showError("Session expired. Please login again");
+                }
+            });
             return;
         }
 
