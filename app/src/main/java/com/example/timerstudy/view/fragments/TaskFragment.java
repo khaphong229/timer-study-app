@@ -162,8 +162,6 @@ public class TaskFragment extends Fragment implements TaskContract.View {
         selectedDate = normalizeDate(date);
         presenter.setSelectedDate(this.selectedDate);
         updateAddTaskButtonVisibility();
-        SimpleDateFormat fmt = new SimpleDateFormat("dd/MM/yyyy", Locale.forLanguageTag("vi-VN"));
-        Toast.makeText(requireContext(), "Đã chọn ngày: " + fmt.format(selectedDate), Toast.LENGTH_SHORT).show();
     }
 
     // Dialogs
