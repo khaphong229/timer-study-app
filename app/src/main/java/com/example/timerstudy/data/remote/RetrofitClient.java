@@ -11,13 +11,13 @@ public class RetrofitClient {
 
     // IP của máy tính khi chạy máy thật (Thay đổi theo mạng Wifi của bạn)
     // Cách xem IP: Mở CMD -> gõ ipconfig -> xem dòng IPv4 Address
-    private static final String LOCAL_IP = "192.168.1.3";
+    private static final String LOCAL_IP = "backend-time-study.onrender.com";
     private static final String PORT = "8669";
 
     private static final String BASE_URL_EMULATOR = "http://10.0.2.2:" + PORT + "/";
     private static final String BASE_URL_DEVICE = "http://" + LOCAL_IP + ":" + PORT + "/";
 
-    private static final String BASE_URL = IS_EMULATOR ? BASE_URL_EMULATOR : BASE_URL_DEVICE;
+    private static final String BASE_URL = "https://backend-time-study.onrender.com/";
     private static RetrofitClient instance;
     private Retrofit retrofit;
 
