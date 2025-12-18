@@ -273,18 +273,21 @@ public class ProfilePresenter implements ProfileContract.Presenter {
 
                 @Override
                 public void onError(String message) {
-                    userManager.setCurrentUser(currentUser);
-                    userManager.saveUser();
+                    Log.e(TAG, "Backend sync failed: " + message);
+
+                    mAuth.signOut();
+                    LoginManager.getInstance().logOut();
+
+                    if (currentUser != null) {
+                        currentUser.logout();
+                        userManager.setCurrentUser(currentUser);
+                        userManager.saveUser();
+                    }
 
                     new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
                         view.hideLoading();
                         updateView();
-
-                        if (message.contains("CLEARTEXT")) {
-                            view.showMessage("Login successful (offline mode)");
-                        } else {
-                            view.showMessage("Login local only. " + message);
-                        }
+                        view.showMessage("Login failed: " + message + ". Please try again.");
                     });
                 }
             });
