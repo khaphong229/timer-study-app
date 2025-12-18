@@ -103,7 +103,7 @@ public class LeaderboardPresenter implements LeaderboardContract.Presenter {
                         errorMsg = response.body().message;
                     }
                     Log.e(TAG, "Error response: " + errorMsg);
-                    view.showError(errorMsg);
+                    view.showRetryDialog(errorMsg);
                 }
             }
 
@@ -111,7 +111,7 @@ public class LeaderboardPresenter implements LeaderboardContract.Presenter {
             public void onFailure(Call<ApiService.ApiResponse<ApiService.LeaderboardData>> call, Throwable t) {
                 view.hideLoading();
                 Log.e(TAG, "Network error", t);
-                view.showError("Network error: " + t.getMessage());
+                view.showRetryDialog("Network error: " + t.getMessage());
             }
         });
     }
