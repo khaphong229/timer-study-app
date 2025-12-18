@@ -46,7 +46,6 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
     private LinearLayout btnPrivacy;
     private LinearLayout btnLogout;
 
-    // Loading UI
     private FrameLayout loadingOverlay;
     private TextView tvLoadingMessage;
 
@@ -81,7 +80,6 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
         btnPrivacy = view.findViewById(R.id.btnPrivacy);
         btnLogout = view.findViewById(R.id.btnLogout);
 
-        // Loading UI
         loadingOverlay = view.findViewById(R.id.loadingOverlay);
         tvLoadingMessage = view.findViewById(R.id.tvLoadingMessage);
 
@@ -96,41 +94,25 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
     private void initFacebookLogin() {
         mCallbackManager = CallbackManager.Factory.create();
         btnLoginFacebook.setFragment(this);
-        // Thêm quyền user_friends
         btnLoginFacebook.setReadPermissions("public_profile", "user_friends");
 
         btnLoginFacebook.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
-                Log.d(TAG, "facebook:onSuccess:" + loginResult);
-
-                // Log Facebook Access Token từ LoginResult
                 AccessToken accessToken = loginResult.getAccessToken();
-                Log.d(TAG, "=== FACEBOOK LOGIN SUCCESS ===");
-                Log.d(TAG, "Access Token: " + accessToken.getToken());
-                Log.d(TAG, "User ID: " + accessToken.getUserId());
-                Log.d(TAG, "Token Source: " + accessToken.getSource());
-                Log.d(TAG, "Permissions: " + accessToken.getPermissions());
-                Log.d(TAG, "Declined Permissions: " + accessToken.getDeclinedPermissions());
-                Log.d(TAG, "==============================");
-
                 presenter.handleFacebookToken(accessToken);
             }
 
             @Override
             public void onCancel() {
-                Log.d(TAG, "facebook:onCancel");
                 showMessage("Facebook login cancelled");
             }
 
             @Override
             public void onError(FacebookException error) {
-                Log.d(TAG, "facebook:onError", error);
                 String errorMessage = error.getMessage();
                 if (errorMessage != null && errorMessage.contains("key hash")) {
                     showMessage("Facebook configuration error. Please check app settings.");
-                    Log.e(TAG,
-                            "Key hash error - add the following to Facebook app settings: dtXwpvkdPGYCQI9CIWE3eQPPrFI=");
                 } else {
                     showMessage("Facebook login error: " + errorMessage);
                 }
@@ -153,11 +135,7 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
                 .setTitle("Logout")
                 .setMessage("Are you sure you want to logout?")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    // Logout from Facebook SDK first
                     LoginManager.getInstance().logOut();
-                    Log.d(TAG, "Facebook SDK logged out");
-
-                    // Then logout from our app
                     presenter.logout();
                 })
                 .setNegativeButton("No", (dialog, which) -> {
@@ -169,26 +147,18 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
 
     @Override
     public void showUserProfile(User user) {
-        Log.d(TAG, "=== SHOW USER PROFILE ===");
-        Log.d(TAG, "User name: " + user.getName());
-        Log.d(TAG, "Profile Image URL: " + user.getProfileImageUrl());
-        Log.d(TAG, "=========================");
-
         tvUserName.setText(user.getName());
         btnLoginFacebook.setVisibility(View.GONE);
 
         if (user.getProfileImageUrl() != null && !user.getProfileImageUrl().isEmpty()) {
             loadUserAvatar(user.getProfileImageUrl());
-            Log.d(TAG, "Loading Facebook avatar: " + user.getProfileImageUrl());
         } else {
-            Log.d(TAG, "No profile image URL, showing default avatar");
             showDefaultAvatar();
         }
     }
 
     @Override
     public void showGuestMode() {
-        Log.d(TAG, "=== SHOW GUEST MODE ===");
         tvUserName.setText("Guest User");
         btnLoginFacebook.setVisibility(View.VISIBLE);
         showDefaultAvatar();
@@ -210,7 +180,6 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
     public void showLoading() {
         if (loadingOverlay != null) {
             loadingOverlay.setVisibility(View.VISIBLE);
-            Log.d(TAG, "Loading overlay shown");
         }
     }
 
@@ -218,7 +187,6 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
     public void hideLoading() {
         if (loadingOverlay != null) {
             loadingOverlay.setVisibility(View.GONE);
-            Log.d(TAG, "Loading overlay hidden");
         }
     }
 
@@ -240,9 +208,6 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
 
     @Override
     public void loadUserAvatar(String imageUrl) {
-        Log.d(TAG, "=== LOAD USER AVATAR ===");
-        Log.d(TAG, "Image URL: " + imageUrl);
-
         if (imageUrl != null && !imageUrl.isEmpty()) {
             RequestOptions requestOptions = new RequestOptions()
                     .transform(new CircleCrop())
@@ -253,17 +218,13 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
                     .load(imageUrl)
                     .apply(requestOptions)
                     .into(ivAvatar);
-
-            Log.d(TAG, "Avatar loaded successfully from: " + imageUrl);
         } else {
-            Log.d(TAG, "Empty image URL, showing default avatar");
             showDefaultAvatar();
         }
     }
 
     @Override
     public void showDefaultAvatar() {
-        Log.d(TAG, "=== SHOW DEFAULT AVATAR ===");
         ivAvatar.setImageResource(R.drawable.sbg_rain_girl_frog);
     }
 
@@ -271,7 +232,6 @@ public class ProfileFragment extends Fragment implements ProfileContract.View {
     public void updateLoadingMessage(String message) {
         if (tvLoadingMessage != null) {
             tvLoadingMessage.setText(message);
-            Log.d(TAG, "Loading message updated: " + message);
         }
     }
 }
