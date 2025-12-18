@@ -17,7 +17,7 @@ public class RetrofitClient {
     private static final String BASE_URL_EMULATOR = "http://10.0.2.2:" + PORT + "/";
     private static final String BASE_URL_DEVICE = "http://" + LOCAL_IP + ":" + PORT + "/";
 
-    private static final String BASE_URL = IS_EMULATOR ? BASE_URL_EMULATOR : BASE_URL_DEVICE;
+    private static final String BASE_URL = "https://backend-time-study.onrender.com/";
     private static RetrofitClient instance;
     private Retrofit retrofit;
 
