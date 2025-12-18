@@ -43,6 +43,7 @@ public class LeaderboardFragment extends Fragment implements LeaderboardContract
 
     private LeaderboardPresenter presenter;
     private String currentMetric = "focus_time";
+    private String currentPeriod = "all_time";
 
     @Nullable
     @Override
@@ -117,7 +118,7 @@ public class LeaderboardFragment extends Fragment implements LeaderboardContract
     }
 
     private void selectTab(String period) {
-        // colors/background
+        this.currentPeriod = period;
         resetTabs();
         switch (period) {
             case "daily":
@@ -292,6 +293,23 @@ public class LeaderboardFragment extends Fragment implements LeaderboardContract
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                 .setCancelable(false)
                 .show();
+    }
+
+    @Override
+    public void showRetryDialog(String errorMessage) {
+        new android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Error Loading Leaderboard")
+                .setMessage(errorMessage)
+                .setPositiveButton("Retry", (dialog, which) -> {
+                    presenter.loadLeaderboard(getCurrentPeriod(), currentMetric);
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .setCancelable(false)
+                .show();
+    }
+
+    private String getCurrentPeriod() {
+        return currentPeriod;
     }
 
     @Override

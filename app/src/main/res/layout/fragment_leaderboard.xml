@@ -297,7 +297,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="3"
-                    android:text="ID &amp; Level"
+                    android:text="Name"
                     android:textColor="#757575"
                     android:textSize="12sp" />
 
