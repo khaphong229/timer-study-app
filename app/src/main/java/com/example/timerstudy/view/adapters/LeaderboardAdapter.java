@@ -64,7 +64,7 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<LeaderboardAdapter.
 
         // current user
         if (entry.isCurrentUser) {
-            holder.itemView.setBackgroundResource(R.drawable.bg_rank_now);
+            holder.itemView.setBackgroundResource(R.drawable.bg_item_rank);
             holder.tvUserName.setTextColor(holder.itemView.getContext().getColor(android.R.color.white));
             holder.tvRank.setTextColor(holder.itemView.getContext().getColor(android.R.color.white));
             holder.tvPoints.setTextColor(holder.itemView.getContext().getColor(android.R.color.white));

@@ -38,5 +38,8 @@
     <string name="tab_month">Month</string>
     <string name="tab_year">Year</string>
 
-    <!-- Facebook Configuration - Values are loaded from local.properties (NOT committed to git) -->
+
+    <string name="com_facebook_loginview_log_in_button_continue">Continue with Facebook</string>
+    <string name="com_facebook_loginview_log_in_button">Log in with Facebook</string>
+    <string name="com_facebook_loginview_log_out_button">Log out</string>
 </resources>

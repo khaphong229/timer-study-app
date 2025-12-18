@@ -22,6 +22,8 @@ public interface LeaderboardContract {
         void showEmptyState();
 
         void showLoginRequiredDialog();
+
+        void showRetryDialog(String errorMessage);
     }
 
     interface Presenter {
