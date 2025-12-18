@@ -7,11 +7,11 @@ public class RetrofitClient {
     // --- CẤU HÌNH KẾT NỐI ---
     // Đặt là true nếu chạy trên Máy ảo (Emulator)
     // Đặt là false nếu chạy trên Máy thật (Real Device)
-    private static final boolean IS_EMULATOR = false;
+    private static final boolean IS_EMULATOR = true;
 
     // IP của máy tính khi chạy máy thật (Thay đổi theo mạng Wifi của bạn)
     // Cách xem IP: Mở CMD -> gõ ipconfig -> xem dòng IPv4 Address
-    private static final String LOCAL_IP = "192.168.1.3";
+    private static final String LOCAL_IP = "192.168.1.100";
     private static final String PORT = "8669";
 
     private static final String BASE_URL_EMULATOR = "http://10.0.2.2:" + PORT + "/";

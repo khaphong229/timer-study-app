@@ -353,6 +353,14 @@ public class TaskFragment extends Fragment implements TaskContract.View {
         Toast.makeText(requireContext(), "Task added successfully", Toast.LENGTH_SHORT).show();
     }
     @Override
+    public void showTaskUpdatedSuccess() {
+        Toast.makeText(requireContext(), "Task updated successfully", Toast.LENGTH_SHORT).show();
+    }
+    @Override
+    public void showTaskDeletedSuccess() {
+        Toast.makeText(requireContext(), "Task deleted successfully", Toast.LENGTH_SHORT).show();
+    }
+    @Override
     public void updateTaskCount(int completed, int total) {
         if (isAdded()) {
             requireActivity().runOnUiThread(() -> {

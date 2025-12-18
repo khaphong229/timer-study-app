@@ -28,6 +28,8 @@ public interface TaskContract {
 
         // Thông báo thành công
         void showTaskAddedSuccess();
+        void showTaskUpdatedSuccess();
+        void showTaskDeletedSuccess();
         // Cập nhật danh sách đã lọc
         void updateFilteredTasks(List<TaskEntity> filteredTasks);
         // Cập nhật số lượng task

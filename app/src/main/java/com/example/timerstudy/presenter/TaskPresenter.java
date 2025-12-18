@@ -245,6 +245,7 @@ public class TaskPresenter implements TaskContract.Presenter {
             public void onSuccess(TaskEntity result) {
                 mainHandler.post(() -> {
                     Log.d(TAG, "Task completion status updated successfully");
+                    if (view != null) view.showTaskUpdatedSuccess();
                     updateTaskCount();
                     applyFilter();
                 });
@@ -342,7 +343,12 @@ public class TaskPresenter implements TaskContract.Presenter {
         String bearer = token.startsWith("Bearer ") ? token : ("Bearer " + token);
         taskRepository.updateTaskViaApi(task, bearer, new DataCallback<TaskEntity>() {
             @Override
-            public void onSuccess(TaskEntity result) { mainHandler.post(TaskPresenter.this::loadTasks); }
+            public void onSuccess(TaskEntity result) {
+                mainHandler.post(() -> {
+                    if (view != null) view.showTaskUpdatedSuccess();
+                    TaskPresenter.this.loadTasks();
+                });
+            }
             @Override
             public void onError(String errorMessage) {
                 mainHandler.post(() -> { if (view != null) view.showError("Cannot update task: " + errorMessage); });
@@ -358,7 +364,12 @@ public class TaskPresenter implements TaskContract.Presenter {
         String bearer = token.startsWith("Bearer ") ? token : ("Bearer " + token);
         taskRepository.deleteTaskViaApi(task.getTaskId(), bearer, new DataCallback<Void>() {
             @Override
-            public void onSuccess(Void result) { mainHandler.post(TaskPresenter.this::loadTasks); }
+            public void onSuccess(Void result) {
+                mainHandler.post(() -> {
+                    if (view != null) view.showTaskDeletedSuccess();
+                    TaskPresenter.this.loadTasks();
+                });
+            }
             @Override
             public void onError(String errorMessage) {
                 mainHandler.post(() -> { if (view != null) view.showError("Cannot delete task: " + errorMessage); });
