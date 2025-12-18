@@ -79,6 +79,11 @@ public class ShopPresenter implements ShopContract.Presenter {
 
     private void initializeView() {
         if (view != null) {
+            if (userManager.getCurrentUser() == null || !userManager.getCurrentUser().isLoggedIn()) {
+                view.showLoginRequired();
+                return;
+            }
+
             view.showLoading();
             view.updateCoins(userManager.getTotalCoins());
             
