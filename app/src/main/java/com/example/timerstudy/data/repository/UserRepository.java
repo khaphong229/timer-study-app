@@ -40,6 +40,7 @@ public class UserRepository {
     private final AppDatabase database;
     private final UserDao userDao;
     private final Context context;
+    private final ApiService apiService;
 
     // SharedPreferences for User model
     private final SharedPreferences sharedPreferences;
@@ -66,6 +67,7 @@ public class UserRepository {
         this.context = context.getApplicationContext();
         database = AppDatabase.getDatabase(context);
         userDao = database.userDao();
+        apiService = RetrofitClient.getInstance().getApiService();
         executorService = Executors.newFixedThreadPool(4);
 
         // Initialize SharedPreferences and Gson
@@ -199,6 +201,71 @@ public class UserRepository {
                 errorLiveData.postValue("Failed to get user: " + e.getMessage());
             } finally {
                 isLoadingLiveData.postValue(false);
+            }
+        });
+    }
+
+    /**
+     * Fetch user coin balance from API
+     * @param token Authorization token
+     */
+    public void fetchUserCoin(String token) {
+        apiService.getUserCoin("Bearer " + token).enqueue(new retrofit2.Callback<ApiService.ApiResponse<ApiService.CoinData>>() {
+            @Override
+            public void onResponse(Call<ApiService.ApiResponse<ApiService.CoinData>> call, Response<ApiService.ApiResponse<ApiService.CoinData>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().data != null) {
+                    int serverCoin = response.body().data.coin;
+                    
+                    // Update User model in SharedPreferences
+                    User currentUser = getCurrentUser();
+                    if (currentUser != null) {
+                        currentUser.setTotalCoins(serverCoin);
+                        saveUser(currentUser);
+                    }
+                    
+                    // Update LiveData/DB
+                    executorService.execute(() -> {
+                        User currentUserModel = getCurrentUser();
+                        if (currentUserModel != null) {
+                            UserEntity userEntity = userDao.getUserById(currentUserModel.getUserId());
+                            if (userEntity != null) {
+                                userEntity.setTotalCoins(serverCoin);
+                                userDao.updateUser(userEntity);
+                                currentUserLiveData.postValue(userEntity);
+                            }
+                        }
+                    });
+                } else {
+                    Log.e(TAG, "Failed to fetch user coin: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiService.ApiResponse<ApiService.CoinData>> call, Throwable t) {
+                Log.e(TAG, "Failed to fetch user coin", t);
+            }
+        });
+    }
+
+    /**
+     * Sync user coin balance to API
+     * @param token Authorization token
+     * @param coinAmount New coin balance
+     */
+    public void syncUserCoin(String token, int coinAmount) {
+        apiService.setUserCoin("Bearer " + token, new ApiService.CoinRequest(coinAmount)).enqueue(new retrofit2.Callback<ApiService.ApiResponse<ApiService.CoinData>>() {
+            @Override
+            public void onResponse(Call<ApiService.ApiResponse<ApiService.CoinData>> call, Response<ApiService.ApiResponse<ApiService.CoinData>> response) {
+                if (response.isSuccessful()) {
+                    Log.d(TAG, "Coin synced successfully");
+                } else {
+                    Log.e(TAG, "Failed to sync coin: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiService.ApiResponse<ApiService.CoinData>> call, Throwable t) {
+                Log.e(TAG, "Failed to sync coin", t);
             }
         });
     }
@@ -559,6 +626,7 @@ public class UserRepository {
                         entity.setEmail(user.getEmail());
                         entity.setDisplayName(user.getName());
                         entity.setProfilePictureUrl(user.getProfileImageUrl());
+                        entity.setTotalCoins(user.getTotalCoins());
                         entity.setLastLogin(new java.util.Date());
                         entity.setAnonymous(false);
 
@@ -571,6 +639,8 @@ public class UserRepository {
                             userDao.updateUser(entity);
                             Log.d(TAG, "User updated in DB: " + user.getUserId());
                         }
+                        // Post value to LiveData to update UI immediately
+                        currentUserLiveData.postValue(entity);
                     }
                 } catch (Exception e) {
                     Log.e(TAG, "Error saving user to DB", e);

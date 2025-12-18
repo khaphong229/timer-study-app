@@ -17,6 +17,7 @@ import com.example.timerstudy.data.remote.RetrofitClient;
 import com.example.timerstudy.model.ShopItem;
 import com.example.timerstudy.utils.UserManager;
 import com.example.timerstudy.worker.ShopSyncWorker;
+import com.example.timerstudy.data.repository.UserRepository;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -299,19 +300,36 @@ public class ShopRepository {
         String token = UserManager.getInstance(context).getCurrentUser().getAccessToken();
         if (token == null) return;
 
-        addPendingPurchase(shopId);
-        
-        // Trigger UI update (refresh list)
-        // This is tricky because we need to update the LiveData.
-        // For now, we can just re-fetch or manually update the list in LiveData.
+        // Find item to get price and deduct coins locally
         List<ShopItem> currentItems = shopItemsLiveData.getValue();
+        ShopItem targetItem = null;
         if (currentItems != null) {
             for (ShopItem item : currentItems) {
                 if (item.getId() == shopId) {
-                    item.setPurchased(true);
+                    targetItem = item;
                     break;
                 }
             }
+        }
+
+        if (targetItem != null) {
+            if (targetItem.isPurchased()) {
+                return; // Already purchased
+            }
+            
+            // Deduct coins locally (Optimistic update)
+            boolean success = UserManager.getInstance(context).subtractCoins(targetItem.getPrice());
+            if (!success) {
+                errorLiveData.postValue("Not enough coins");
+                return;
+            }
+        }
+
+        addPendingPurchase(shopId);
+        
+        // Trigger UI update (refresh list)
+        if (targetItem != null) {
+            targetItem.setPurchased(true);
             shopItemsLiveData.postValue(currentItems);
         }
 
@@ -321,6 +339,9 @@ public class ShopRepository {
                 if (response.isSuccessful() && response.body() != null && response.body().success) {
                     removePendingPurchase(shopId);
                     updateCacheWithPurchase(shopId);
+                    
+                    // Refresh user profile to update coins
+                    UserRepository.getInstance(context).fetchUserCoin(token);
                 } else {
                     // Failed, but we have it in pending, so WorkManager will handle it?
                     // Or we should schedule WorkManager here.

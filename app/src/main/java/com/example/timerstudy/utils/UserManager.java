@@ -33,6 +33,11 @@ public class UserManager {
 
     public void loadCurrentUser() {
         currentUser = userRepository.getCurrentUser();
+        if (currentUser != null) {
+            if (currentUser.getAccessToken() != null && !currentUser.getAccessToken().isEmpty()) {
+                userRepository.fetchUserCoin(currentUser.getAccessToken());
+            }
+        }
     }
 
     public User getCurrentUser() {
@@ -73,15 +78,29 @@ public class UserManager {
 
     public void addCoins(int amount) {
         User user = getCurrentUser();
-        user.setTotalCoins(user.getTotalCoins() + amount);
+        if (user == null) return;
+
+        int newBalance = user.getTotalCoins() + amount;
+        user.setTotalCoins(newBalance);
         saveUser();
+        
+        if (user.getAccessToken() != null && !user.getAccessToken().isEmpty()) {
+            userRepository.syncUserCoin(user.getAccessToken(), newBalance);
+        }
     }
 
     public boolean subtractCoins(int amount) {
         User user = getCurrentUser();
+        if (user == null) return false;
+
         if (user.getTotalCoins() >= amount) {
-            user.setTotalCoins(user.getTotalCoins() - amount);
+            int newBalance = user.getTotalCoins() - amount;
+            user.setTotalCoins(newBalance);
             saveUser();
+            
+            if (user.getAccessToken() != null && !user.getAccessToken().isEmpty()) {
+                userRepository.syncUserCoin(user.getAccessToken(), newBalance);
+            }
             return true;
         }
         return false;
@@ -110,6 +129,8 @@ public class UserManager {
 
                 if (user.getAccessToken() != null && !user.getAccessToken().isEmpty()) {
                     sessionRepository.fetchAndSaveSessionsFromApi(user.getAccessToken(), user.getUserId());
+          
+                    userRepository.fetchUserCoin(user.getAccessToken());
                 }
 
                 if (callback != null) {

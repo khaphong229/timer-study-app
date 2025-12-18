@@ -5,6 +5,8 @@ import androidx.lifecycle.Observer;
 
 import com.example.timerstudy.R;
 import com.example.timerstudy.data.repository.ShopRepository;
+import com.example.timerstudy.data.repository.UserRepository;
+import com.example.timerstudy.data.local.database.entities.UserEntity;
 import com.example.timerstudy.model.ShopItem;
 import com.example.timerstudy.utils.UserManager;
 import com.example.timerstudy.view.contracts.ShopContract;
@@ -44,6 +46,16 @@ public class ShopPresenter implements ShopContract.Presenter {
         }
     };
 
+    private Observer<UserEntity> userObserver = new Observer<UserEntity>() {
+        @Override
+        public void onChanged(UserEntity userEntity) {
+            if (view != null && userEntity != null) {
+                view.updateCoins(userEntity.getTotalCoins());
+                userManager.loadCurrentUser();
+            }
+        }
+    };
+
     public static ShopPresenter getInstance() {
         if (instance == null) {
             instance = new ShopPresenter();
@@ -62,6 +74,7 @@ public class ShopPresenter implements ShopContract.Presenter {
 
         repository.getShopItems().observeForever(shopItemsObserver);
         repository.getError().observeForever(errorObserver);
+        UserRepository.getInstance(context).getCurrentUserLiveData().observeForever(userObserver);
         
         repository.fetchShopItems();
     }
@@ -126,14 +139,16 @@ public class ShopPresenter implements ShopContract.Presenter {
 
     @Override
     public void onPurchaseConfirmed(ShopItem item) {
-        if (userManager.subtractCoins(item.getPrice())) {
+        // Check coins locally first
+        if (userManager.getTotalCoins() >= item.getPrice()) {
+            // Call repository to handle purchase (it will do optimistic update and API call)
             repository.purchaseItem(item.getId());
-            // Success message will be shown when LiveData updates or we can show it optimistically
+            
             if (view != null) {
                 view.showPurchaseSuccess("Purchased " + item.getName() + " successfully!");
                 view.updateItemPurchased(item.getId());
-                view.updateCoins(userManager.getTotalCoins());
-
+                // Coin update will happen via LiveData observer
+                
                 if (item.getType() == ShopItem.ItemType.BACKGROUND) {
                     onBackgroundSelected(item);
                 }
@@ -152,7 +167,7 @@ public class ShopPresenter implements ShopContract.Presenter {
         
         if (view != null) {
             view.showPurchaseSuccess("Earned " + rewardCoins + " coins from watching ad!");
-            view.updateCoins(userManager.getTotalCoins());
+            // Coin update will happen via LiveData observer
 
             if (userManager.getTotalCoins() >= item.getPrice()) {
                 onPurchaseConfirmed(item);

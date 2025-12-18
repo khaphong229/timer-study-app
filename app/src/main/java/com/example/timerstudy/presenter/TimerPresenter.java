@@ -37,7 +37,14 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
         this.sessionRepository = SessionRepository.getInstance(context);
 
         int duration = userManager.getTimerDuration();
-        model.setStudyDuration(duration);
+        // Ensure duration is at least 1 minute
+        if (duration <= 0) {
+            duration = 25; // Default to 25 minutes
+            userManager.setTimerDuration(duration);
+        }
+        
+        // Convert minutes to milliseconds for the model
+        model.setStudyDuration(duration * 60 * 1000L);
 
         loadCompletedSessionsCount();
     }
@@ -177,6 +184,10 @@ public class TimerPresenter implements TimerContract.Presenter, TimerModel.Timer
             Log.d("FixBugSaveSession", "saveSessionCompleted: " + studyDuration);
             Log.d("FixBugSaveSession", "userManager.getCurrentUserId(): " + userManager.getCurrentUserId());
             sessionRepository.saveCompletedStudySession(userManager.getCurrentUserId(), studyDuration);
+            
+            // Add coins based on study duration (1 minute = 1 coin)
+            userManager.addCoins(studyDuration);
+            
             view.updateCompletedSessions(++completedSessionsFromDb);
         }
     }

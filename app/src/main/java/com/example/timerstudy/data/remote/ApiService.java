@@ -368,6 +368,8 @@ public interface ApiService {
         public int isAnonymous;
         @SerializedName("updated_at")
         public double updatedAt;
+        @SerializedName("total_coins")
+        public int totalCoins;
     }
 
     class LeaderboardData {
@@ -654,6 +656,36 @@ public interface ApiService {
             this.sessionCount = sessionCount;
             this.focusTime = focusTime;
         }
+    }
+
+    // --- COIN API ---
+
+    @GET("api/v1/user-coin/me")
+    Call<ApiResponse<CoinData>> getUserCoin(@Header("Authorization") String token);
+
+    @PUT("api/v1/user-coin/coin")
+    Call<ApiResponse<CoinData>> setUserCoin(@Header("Authorization") String token, @Body CoinRequest request);
+
+    class CoinRequest {
+        @SerializedName("coin")
+        public int coin;
+
+        public CoinRequest(int coin) {
+            this.coin = coin;
+        }
+    }
+
+    class CoinData {
+        @SerializedName("id")
+        public int id;
+        @SerializedName("user_id")
+        public int userId;
+        @SerializedName("coin")
+        public int coin;
+        @SerializedName("created_at")
+        public String createdAt;
+        @SerializedName("updated_at")
+        public String updatedAt;
     }
 
     class StreakCleanupResponse {

@@ -42,6 +42,9 @@ public class UserEntity {
     @ColumnInfo(name = "is_anonymous", defaultValue = "1")
     private boolean isAnonymous;
 
+    @ColumnInfo(name = "total_coins", defaultValue = "0")
+    private int totalCoins;
+
     // Constructor
     public UserEntity() {
         this.createdAt = new Date();
@@ -71,4 +74,7 @@ public class UserEntity {
 
     public boolean isAnonymous() { return isAnonymous; }
     public void setAnonymous(boolean anonymous) { isAnonymous = anonymous; }
+
+    public int getTotalCoins() { return totalCoins; }
+    public void setTotalCoins(int totalCoins) { this.totalCoins = totalCoins; }
 }
