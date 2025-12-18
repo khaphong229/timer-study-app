@@ -47,7 +47,7 @@ public class LeaderboardPresenter implements LeaderboardContract.Presenter {
 
         if (!currentUser.isLoggedIn()) {
             view.hideLoading();
-            view.showError("Please login with Facebook to view leaderboard");
+            view.showLoginRequiredDialog();
             return;
         }
 

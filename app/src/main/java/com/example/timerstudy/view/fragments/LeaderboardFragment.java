@@ -277,6 +277,24 @@ public class LeaderboardFragment extends Fragment implements LeaderboardContract
     }
 
     @Override
+    public void showLoginRequiredDialog() {
+        new android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Login Required")
+                .setMessage("Please login with Facebook to view the leaderboard.")
+                .setPositiveButton("Login", (dialog, which) -> {
+                    try {
+                        androidx.navigation.Navigation.findNavController(requireView())
+                                .navigate(R.id.profileFragment);
+                    } catch (Exception e) {
+                        Toast.makeText(requireContext(), "Please go to Profile to login", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .setCancelable(false)
+                .show();
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
         presenter.onDestroy();
