@@ -1,5 +1,7 @@
 package com.example.timerstudy.view.fragments;
 
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,6 +22,10 @@ import com.example.timerstudy.presenter.ShopPresenter;
 import com.example.timerstudy.view.contracts.ShopContract;
 import com.example.timerstudy.utils.AdManager;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,7 +42,7 @@ public class ShopFragment extends Fragment implements ShopContract.View {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+            @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_shop, container, false);
     }
 
@@ -104,7 +110,12 @@ public class ShopFragment extends Fragment implements ShopContract.View {
     }
 
     @Override
-    public void showAdForItem(ShopItem item){
+    public void showAdForItem(ShopItem item) {
+        if (!isNetworkAvailable()) {
+            Toast.makeText(requireContext(), "No internet connection to load ads", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         pendingAdItem = item;
 
         if (adManager.isAdReady()) {
@@ -124,8 +135,8 @@ public class ShopFragment extends Fragment implements ShopContract.View {
                 public void onAdFailedToLoad(String error) {
                     hideLoading();
                     Toast.makeText(requireContext(),
-                        "Ad not available. Please try again later.",
-                        Toast.LENGTH_SHORT).show();
+                            "Ad not available. Please try again later.",
+                            Toast.LENGTH_SHORT).show();
                     pendingAdItem = null;
                 }
 
@@ -143,7 +154,8 @@ public class ShopFragment extends Fragment implements ShopContract.View {
     }
 
     private void showRewardedAdForItem() {
-        if (pendingAdItem == null || !isAdded()) return;
+        if (pendingAdItem == null || !isAdded())
+            return;
 
         adManager.showRewardedAd(requireActivity(), new AdManager.RewardListener() {
             @Override
@@ -172,8 +184,8 @@ public class ShopFragment extends Fragment implements ShopContract.View {
                 // User closed ad without watching completely
                 if (pendingAdItem != null) {
                     Toast.makeText(requireContext(),
-                        "Watch the full ad to unlock this item",
-                        Toast.LENGTH_SHORT).show();
+                            "Watch the full ad to unlock this item",
+                            Toast.LENGTH_SHORT).show();
                     pendingAdItem = null;
                 }
             }
@@ -220,6 +232,45 @@ public class ShopFragment extends Fragment implements ShopContract.View {
         if (adapter != null) {
             adapter.updateSelectedItem(itemId);
         }
+    }
+
+    private boolean isNetworkAvailable() {
+
+        ConnectivityManager connectivityManager = (ConnectivityManager) requireContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        if (connectivityManager != null) {
+            // Kiểm tra cho Android 10 (API 29) trở lên
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                Network network = connectivityManager.getActiveNetwork();
+                if (network == null)
+                    return false;
+
+                NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(network);
+                return capabilities != null && (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+                        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
+                        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET));
+            } else {
+                // Dành cho các dòng máy cũ hơn
+                NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+                return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+            }
+        }
+        return false;
+
+    }
+
+    @Override
+    public void showLoginRequired() {
+        new android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Login Required")
+                .setMessage("You must be logged in to access the shop.")
+                .setPositiveButton("Close", (dialog, which) -> {
+                    if (getActivity() != null) {
+                        getActivity().onBackPressed();
+                    }
+                })
+                .setCancelable(false)
+                .show();
     }
 
     @Override

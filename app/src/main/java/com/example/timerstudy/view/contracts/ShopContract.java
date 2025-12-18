@@ -17,6 +17,7 @@ public interface ShopContract {
         void showLoading();
         void hideLoading();
         void updateSelectedBackground(int itemId);
+        void showLoginRequired();
     }
 
     interface Presenter {

@@ -111,6 +111,7 @@ public class ShopRepository {
             public void onResponse(Call<ApiService.ApiResponse<List<ApiService.ShopItemResponse>>> call, Response<ApiService.ApiResponse<List<ApiService.ShopItemResponse>>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().success) {
                     List<ApiService.ShopItemResponse> items = response.body().data;
+           
                     if (items != null) {
                         accumulatedItems.addAll(items);
                     }
