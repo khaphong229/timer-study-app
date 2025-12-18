@@ -46,7 +46,7 @@ public class ShopRepository {
     private static final String KEY_SELECTED_BG = "selected_background_id";
     private static final String KEY_CACHED_ITEMS = "cached_shop_items";
     private static final String KEY_LAST_SYNC_TIME = "last_shop_sync_time";
-    private static final long CACHE_EXPIRATION_MS = 24 * 60 * 60 * 1000; // 24 hours
+    private static final long CACHE_EXPIRATION_MS = 15 * 60 * 1000; // 15 minutes
     private boolean isFetching = false;
     private static final int MAX_PAGES = 10;
 
@@ -96,38 +96,59 @@ public class ShopRepository {
 
     private void fetchAllPages(String token, int page, List<ApiService.ShopItemResponse> accumulatedItems) {
         if (page > MAX_PAGES) {
+            Log.d(TAG, "fetchAllPages: Reached MAX_PAGES (" + MAX_PAGES + "). Stopping.");
             handleFetchSuccess(accumulatedItems);
             isFetching = false;
             return;
         }
 
-        Map<String, Object> params = new HashMap<>();
-        params.put("page", page);
-        params.put("limit", 20); // Fetch 20 items per page
-        String paginationJson = new Gson().toJson(params);
 
-        apiService.getAllShopItems("Bearer " + token, null, paginationJson).enqueue(new Callback<ApiService.ApiResponse<List<ApiService.ShopItemResponse>>>() {
+        Log.d(TAG, "fetchAllPages: Requesting page " + page + " with page_size=20");
+
+        // Updated API call with individual parameters
+        apiService.getAllShopItems("Bearer " + token, "id", "desc", 20, page).enqueue(new Callback<ApiService.ApiResponse<List<ApiService.ShopItemResponse>>>() {
             @Override
             public void onResponse(Call<ApiService.ApiResponse<List<ApiService.ShopItemResponse>>> call, Response<ApiService.ApiResponse<List<ApiService.ShopItemResponse>>> response) {
+                Log.d(TAG, "fetchAllPages: Response received for page " + page + ". Code: " + response.code());
+
                 if (response.isSuccessful() && response.body() != null && response.body().success) {
                     List<ApiService.ShopItemResponse> items = response.body().data;
-           
                     if (items != null) {
+                        Log.d(TAG, "fetchAllPages: Page " + page + " returned " + items.size() + " items.");
+                        for (ApiService.ShopItemResponse item : items) {
+                            Log.d(TAG, "   - Item: ID=" + item.shopId + ", Name=" + item.name + ", Price=" + item.price + ", Purchased=" + item.isPurchased);
+                        }
                         accumulatedItems.addAll(items);
                     }
 
                     ApiService.Metadata metadata = response.body().metadata;
+                    if (metadata != null) {
+                        Log.d(TAG, "fetchAllPages: Metadata - Page: " + metadata.page + ", Size: " + metadata.pageSize + ", Total: " + metadata.total);
+                    }
+
                     // Check if there are more pages
+                    // Logic: If current items count (page * pageSize) is less than total, fetch next
                     if (metadata != null && (metadata.page * metadata.pageSize < metadata.total)) {
+                        Log.d(TAG, "fetchAllPages: Fetching next page...");
                         fetchAllPages(token, page + 1, accumulatedItems);
                     } else {
-                        // All pages fetched
+                        Log.d(TAG, "fetchAllPages: All pages fetched.");
                         handleFetchSuccess(accumulatedItems);
                         isFetching = false;
                     }
                 } else {
-                    Log.d("ShopRepository", "fetchShopItems: " + "Failed to fetch items on page " + page);
-                    // If we have some items, show them, otherwise show error
+                    Log.e(TAG, "fetchAllPages: Request failed. Code: " + response.code());
+                    if (response.body() != null) {
+                        Log.e(TAG, "fetchAllPages: Message: " + response.body().message);
+                    }
+                    try {
+                        if (response.errorBody() != null) {
+                            Log.e(TAG, "fetchAllPages: Error body: " + response.errorBody().string());
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "fetchAllPages: Error reading error body", e);
+                    }
+
                     if (!accumulatedItems.isEmpty()) {
                         handleFetchSuccess(accumulatedItems);
                     } else {
@@ -140,6 +161,7 @@ public class ShopRepository {
 
             @Override
             public void onFailure(Call<ApiService.ApiResponse<List<ApiService.ShopItemResponse>>> call, Throwable t) {
+                Log.e(TAG, "fetchAllPages: Network failure on page " + page, t);
                 if (!accumulatedItems.isEmpty()) {
                     handleFetchSuccess(accumulatedItems);
                 } else {

@@ -94,8 +94,11 @@ public interface ApiService {
     @GET("api/v1/shop")
     Call<ApiResponse<List<ShopItemResponse>>> getAllShopItems(
             @Header("Authorization") String token,
-            @Query("sort_params") String sortParams,
-            @Query("pagination_params") String paginationParams);
+            @Query("sort_by") String sortBy,
+            @Query("order") String order,
+            @Query("page_size") int pageSize,
+            @Query("page") int page
+    );
 
     @GET("api/v1/shop/purchased")
     Call<ApiResponse<List<ShopItemResponse>>> getPurchasedShopItems(

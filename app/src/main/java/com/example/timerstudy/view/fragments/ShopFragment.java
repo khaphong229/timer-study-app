@@ -239,7 +239,6 @@ public class ShopFragment extends Fragment implements ShopContract.View {
         ConnectivityManager connectivityManager = (ConnectivityManager) requireContext().getSystemService(Context.CONNECTIVITY_SERVICE);
 
         if (connectivityManager != null) {
-            // Kiểm tra cho Android 10 (API 29) trở lên
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
                 Network network = connectivityManager.getActiveNetwork();
                 if (network == null)
@@ -250,7 +249,6 @@ public class ShopFragment extends Fragment implements ShopContract.View {
                         capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
                         capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET));
             } else {
-                // Dành cho các dòng máy cũ hơn
                 NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
                 return activeNetworkInfo != null && activeNetworkInfo.isConnected();
             }
