@@ -45,7 +45,7 @@ import com.example.timerstudy.data.local.database.entities.UserSettingEntity;
                 StreakRecordEntity.class,
                 TimerEntity.class
         },
-        version = 3,
+        version = 4,
         exportSchema = false
 )
 @TypeConverters({DateConverter.class})
@@ -56,6 +56,13 @@ public abstract class AppDatabase extends RoomDatabase {
 
     // Singleton instance
     private static volatile AppDatabase INSTANCE;
+
+    static final Migration MIGRATION_3_4 = new Migration(3, 4) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE users ADD COLUMN total_coins INTEGER NOT NULL DEFAULT 0");
+        }
+    };
 
     // DAO interfaces
     public abstract UserDao userDao();
@@ -81,6 +88,7 @@ public abstract class AppDatabase extends RoomDatabase {
                                     AppDatabase.class,
                                     DATABASE_NAME
                             )
+                            .addMigrations(MIGRATION_3_4)
                             .fallbackToDestructiveMigration()
                             .addCallback(roomDatabaseCallback)
                             .build();
@@ -248,14 +256,6 @@ public abstract class AppDatabase extends RoomDatabase {
         public void migrate(SupportSQLiteDatabase database) {
             // Example: Create new table
             // database.execSQL("CREATE TABLE IF NOT EXISTS new_table (id INTEGER PRIMARY KEY, name TEXT)");
-        }
-    };
-
-    static final Migration MIGRATION_3_4 = new Migration(3, 4) {
-        @Override
-        public void migrate(SupportSQLiteDatabase database) {
-            // Example: Drop table
-            // database.execSQL("DROP TABLE IF EXISTS old_table");
         }
     };
 
