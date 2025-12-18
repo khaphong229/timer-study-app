@@ -579,6 +579,54 @@ public class StreakRepository {
             }
         });
     }
+
+    /**
+     * 10. Cleanup Duplicate Streak Records
+     */
+    public void cleanupDuplicateStreakRecords(StreakCallback<ApiService.StreakCleanupResponse> callback) {
+        isLoadingLiveData.postValue(true);
+        getAuthToken(new AuthTokenCallback() {
+            @Override
+            public void onTokenReceived(String token) {
+                apiService.cleanupDuplicateStreakRecords(token)
+                    .enqueue(new Callback<ApiService.ApiResponse<ApiService.StreakCleanupResponse>>() {
+                        @Override
+                        public void onResponse(Call<ApiService.ApiResponse<ApiService.StreakCleanupResponse>> call,
+                                             Response<ApiService.ApiResponse<ApiService.StreakCleanupResponse>> response) {
+                            isLoadingLiveData.postValue(false);
+                            if (response.isSuccessful() && response.body() != null && response.body().success) {
+                                ApiService.StreakCleanupResponse data = response.body().data;
+                                Log.d(TAG, "cleanupDuplicateStreakRecords - Success! Merged: " + 
+                                    data.mergedGroups + ", Deleted: " + data.deletedRecords);
+                                // Refresh summary after cleanup
+                                getStreakSummary(null);
+                                if (callback != null) callback.onSuccess(data);
+                            } else {
+                                String errorMsg = response.body() != null ? response.body().message : "Failed to cleanup duplicate streak records";
+                                errorLiveData.postValue(errorMsg);
+                                if (callback != null) callback.onError(errorMsg);
+                            }
+                        }
+                        
+                        @Override
+                        public void onFailure(Call<ApiService.ApiResponse<ApiService.StreakCleanupResponse>> call, Throwable t) {
+                            isLoadingLiveData.postValue(false);
+                            String errorMsg = "Network error: " + t.getMessage();
+                            errorLiveData.postValue(errorMsg);
+                            Log.e(TAG, "cleanupDuplicateStreakRecords failed", t);
+                            if (callback != null) callback.onError(errorMsg);
+                        }
+                    });
+            }
+            
+            @Override
+            public void onError(String error) {
+                isLoadingLiveData.postValue(false);
+                errorLiveData.postValue(error);
+                if (callback != null) callback.onError(error);
+            }
+        });
+    }
     
     // ==================== CALLBACK INTERFACE ====================
     

@@ -191,6 +191,74 @@ public interface ApiService {
             @Header("Authorization") String token,
             @Path("streak_id") int streakId);
 
+    // 10. Cleanup duplicate streak records
+    @POST("api/v1/statistics/streak/cleanup-duplicates")
+    Call<ApiResponse<StreakCleanupResponse>> cleanupDuplicateStreakRecords(
+            @Header("Authorization") String token);
+
+    // --- STATISTICS CACHE API ---
+
+    // 1. Lấy tất cả statistics cache
+    @GET("api/v1/statistics/cache/all")
+    Call<ApiResponse<List<StatisticsCacheResponse>>> getAllStatisticsCache(
+            @Header("Authorization") String token);
+
+    // 2. Lấy statistics cache với filter và pagination
+    @GET("api/v1/statistics/cache")
+    Call<ApiResponse<List<StatisticsCacheResponse>>> getStatisticsCache(
+            @Header("Authorization") String token,
+            @Query("page") Integer page,
+            @Query("page_size") Integer pageSize,
+            @Query("sort_by") String sortBy,
+            @Query("order") String order);
+
+    // 3. Tạo statistics cache mới
+    @POST("api/v1/statistics/cache")
+    Call<ApiResponse<StatisticsCacheResponse>> createStatisticsCache(
+            @Header("Authorization") String token,
+            @Body StatisticsCacheRequest request);
+
+    // 4. Lấy statistics cache theo ID
+    @GET("api/v1/statistics/cache/{cache_id}")
+    Call<ApiResponse<StatisticsCacheResponse>> getStatisticsCacheById(
+            @Header("Authorization") String token,
+            @Path("cache_id") int cacheId);
+
+    // 5. Cập nhật statistics cache (PUT)
+    @PUT("api/v1/statistics/cache/{cache_id}")
+    Call<ApiResponse<StatisticsCacheResponse>> updateStatisticsCache(
+            @Header("Authorization") String token,
+            @Path("cache_id") int cacheId,
+            @Body StatisticsCacheRequest request);
+
+    // 6. Cập nhật một phần statistics cache (PATCH)
+    @PATCH("api/v1/statistics/cache/{cache_id}")
+    Call<ApiResponse<StatisticsCacheResponse>> patchStatisticsCache(
+            @Header("Authorization") String token,
+            @Path("cache_id") int cacheId,
+            @Body StatisticsCacheRequest request);
+
+    // 7. Xóa statistics cache
+    @DELETE("api/v1/statistics/cache/{cache_id}")
+    Call<ApiResponse<Void>> deleteStatisticsCache(
+            @Header("Authorization") String token,
+            @Path("cache_id") int cacheId);
+
+    // --- STATISTICS CALCULATED ENDPOINTS ---
+
+    // 1. Lấy statistics theo ngày (tính trực tiếp từ sessions, tasks, goals)
+    @GET("api/v1/statistics/daily")
+    Call<ApiResponse<DailyStatisticsResponse>> getDailyStatistics(
+            @Header("Authorization") String token,
+            @Query("date") Double date);
+
+    // 2. Lấy statistics theo tháng (tính trực tiếp từ sessions, tasks, goals)
+    @GET("api/v1/statistics/monthly")
+    Call<ApiResponse<MonthlyStatisticsResponse>> getMonthlyStatistics(
+            @Header("Authorization") String token,
+            @Query("year") Integer year,
+            @Query("month") Integer month);
+
     // --- DTO Classes ---
 
     class ApiResponse<T> {
@@ -618,6 +686,122 @@ public interface ApiService {
         public String createdAt;
         @SerializedName("updated_at")
         public String updatedAt;
+    }
+
+    class StreakCleanupResponse {
+        @SerializedName("message")
+        public String message;
+        @SerializedName("merged_groups")
+        public int mergedGroups;
+        @SerializedName("deleted_records")
+        public int deletedRecords;
+    }
+
+    // --- STATISTICS CACHE MODEL CLASSES ---
+
+    class StatisticsCacheResponse {
+        @SerializedName("cache_id")
+        public int cacheId;
+        @SerializedName("user_id")
+        public long userId;
+        @SerializedName("cache_date")
+        public double cacheDate; // Unix timestamp
+        @SerializedName("cache_type")
+        public String cacheType; // "DAILY", "MONTHLY", "YEARLY"
+        @SerializedName("total_sessions")
+        public int totalSessions;
+        @SerializedName("total_focus_time")
+        public int totalFocusTime; // minutes
+        @SerializedName("total_break_time")
+        public int totalBreakTime; // minutes
+        @SerializedName("completed_tasks")
+        public int completedTasks;
+        @SerializedName("goal_achieved")
+        public int goalAchieved;
+        @SerializedName("current_streak")
+        public int currentStreak;
+        @SerializedName("best_streak")
+        public int bestStreak;
+        @SerializedName("cached_at")
+        public double cachedAt; // Unix timestamp
+        @SerializedName("created_at")
+        public double createdAt; // Unix timestamp
+        @SerializedName("updated_at")
+        public double updatedAt; // Unix timestamp
+    }
+
+    class StatisticsCacheRequest {
+        @SerializedName("cache_date")
+        public Double cacheDate; // Unix timestamp (optional for PATCH)
+        @SerializedName("cache_type")
+        public String cacheType; // "DAILY", "MONTHLY", "YEARLY" (optional for PATCH)
+        @SerializedName("total_sessions")
+        public Integer totalSessions; // Optional for PATCH
+        @SerializedName("total_focus_time")
+        public Integer totalFocusTime; // Optional for PATCH
+        @SerializedName("total_break_time")
+        public Integer totalBreakTime; // Optional for PATCH
+        @SerializedName("completed_tasks")
+        public Integer completedTasks; // Optional for PATCH
+        @SerializedName("goal_achieved")
+        public Integer goalAchieved; // Optional for PATCH
+        @SerializedName("current_streak")
+        public Integer currentStreak; // Optional for PATCH
+        @SerializedName("best_streak")
+        public Integer bestStreak; // Optional for PATCH
+
+        // Constructor for POST/PUT (all fields required)
+        public StatisticsCacheRequest(double cacheDate, String cacheType, int totalSessions,
+                                     int totalFocusTime, int totalBreakTime, int completedTasks,
+                                     int goalAchieved, int currentStreak, int bestStreak) {
+            this.cacheDate = cacheDate;
+            this.cacheType = cacheType;
+            this.totalSessions = totalSessions;
+            this.totalFocusTime = totalFocusTime;
+            this.totalBreakTime = totalBreakTime;
+            this.completedTasks = completedTasks;
+            this.goalAchieved = goalAchieved;
+            this.currentStreak = currentStreak;
+            this.bestStreak = bestStreak;
+        }
+
+        // Default constructor for PATCH (partial updates)
+        public StatisticsCacheRequest() {
+        }
+    }
+
+    // --- STATISTICS CALCULATED RESPONSE MODELS ---
+
+    class DailyStatisticsResponse {
+        @SerializedName("date")
+        public double date; // Unix timestamp
+        @SerializedName("total_sessions")
+        public int totalSessions;
+        @SerializedName("total_focus_time")
+        public int totalFocusTime; // minutes
+        @SerializedName("total_break_time")
+        public int totalBreakTime; // minutes
+        @SerializedName("completed_tasks")
+        public int completedTasks;
+        @SerializedName("goal_achieved")
+        public int goalAchieved;
+    }
+
+    class MonthlyStatisticsResponse {
+        @SerializedName("year")
+        public int year;
+        @SerializedName("month")
+        public int month;
+        @SerializedName("total_sessions")
+        public int totalSessions;
+        @SerializedName("total_focus_time")
+        public int totalFocusTime; // minutes
+        @SerializedName("total_break_time")
+        public int totalBreakTime; // minutes
+        @SerializedName("completed_tasks")
+        public int completedTasks;
+        @SerializedName("goal_achieved")
+        public int goalAchieved;
     }
 
 }
