@@ -116,17 +116,35 @@ public class StatisticsRepository {
             try {
                 long start = dayStart.getTime();
                 long end = dayEnd.getTime();
+                Log.d(TAG, "loadDailyStats - userId: " + userId + ", start: " + start + ", end: " + end);
+                
                 int totalFocusMin = sessionDao.getTotalFocusTimeByUserAndDateRange(userId, start, end);
                 int completedSessions = sessionDao.getCompletedSessionCountByUserAndDateRange(userId, start, end);
+                
+                // Try getTodaySessions first
                 List<SessionEntity> timeline = sessionDao.getTodaySessions(userId, start, end);
-                Log.d(TAG, "loadDailyStats: " + timeline.size());
-                Log.d(TAG, "loadDailyStats: " + timeline);
+                Log.d(TAG, "loadDailyStats - getTodaySessions result: " + timeline.size() + " sessions");
+                
+                // If no sessions found, try getSessionsByUserAndDateRange as fallback
+                if (timeline.isEmpty()) {
+                    Log.d(TAG, "No sessions from getTodaySessions, trying getSessionsByUserAndDateRange...");
+                    timeline = sessionDao.getSessionsByUserAndDateRange(userId, start, end);
+                    Log.d(TAG, "loadDailyStats - getSessionsByUserAndDateRange result: " + timeline.size() + " sessions");
+                }
+                
+                // Log session details for debugging
+                if (!timeline.isEmpty()) {
+                    Log.d(TAG, "First session date: " + (timeline.get(0).getSessionDate() != null ? timeline.get(0).getSessionDate().getTime() : "NULL"));
+                    Log.d(TAG, "First session start: " + (timeline.get(0).getStartTime() != null ? timeline.get(0).getStartTime().getTime() : "NULL"));
+                }
+                
                 Gson gson = new Gson();
-                Log.d(TAG, "loadDailyStats: " + gson.toJson(timeline));
+                Log.d(TAG, "loadDailyStats - Final timeline: " + gson.toJson(timeline));
 
                 DailyStats stats = new DailyStats(totalFocusMin, completedSessions);
                 callback.onSuccess(stats, timeline);
             } catch (Exception e) {
+                Log.e(TAG, "loadDailyStats error", e);
                 callback.onError("Failed to load daily stats: " + e.getMessage());
             }
         });
