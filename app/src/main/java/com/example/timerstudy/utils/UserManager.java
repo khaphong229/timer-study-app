@@ -176,25 +176,37 @@ public class UserManager {
                     public void onSuccess(User refreshedUser) {
                         setCurrentUser(refreshedUser);
                         android.util.Log.d(TAG, "Token refresh successful");
-                        if (callback != null)
-                            callback.onSuccess(refreshedUser);
+                        if (callback != null) {
+                            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                                callback.onSuccess(refreshedUser);
+                            });
+                        }
                     }
 
                     @Override
                     public void onError(String message) {
                         android.util.Log.e(TAG, "Token refresh failed: " + message);
-                        if (callback != null)
-                            callback.onError(message);
+                        if (callback != null) {
+                            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                                callback.onError(message);
+                            });
+                        }
                     }
                 });
             } else {
                 android.util.Log.d(TAG, "Token is valid");
-                if (callback != null)
-                    callback.onSuccess(user);
+                if (callback != null) {
+                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        callback.onSuccess(user);
+                    });
+                }
             }
         } else {
-            if (callback != null)
-                callback.onError("User not logged in");
+            if (callback != null) {
+                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                    callback.onError("User not logged in");
+                });
+            }
         }
     }
 }
