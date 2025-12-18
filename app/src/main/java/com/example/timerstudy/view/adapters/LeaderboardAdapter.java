@@ -47,7 +47,7 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<LeaderboardAdapter.
         int score = getScoreByMetric(entry);
         holder.tvPoints.setText(formatScore(score));
 
-        // Load Avatar
+        // avatar
         if (entry.profilePictureUrl != null && !entry.profilePictureUrl.isEmpty()) {
             com.bumptech.glide.request.RequestOptions requestOptions = new com.bumptech.glide.request.RequestOptions()
                     .transform(new CircleCrop())
@@ -62,7 +62,7 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<LeaderboardAdapter.
             holder.ivAvatar.setImageResource(R.drawable.person_24dp);
         }
 
-        // Highlight current user
+        // current user
         if (entry.isCurrentUser) {
             holder.itemView.setBackgroundResource(R.drawable.bg_rank_now);
             holder.tvUserName.setTextColor(holder.itemView.getContext().getColor(android.R.color.white));

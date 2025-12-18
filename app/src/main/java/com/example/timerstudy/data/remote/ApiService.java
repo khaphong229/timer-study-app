@@ -9,7 +9,7 @@ import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.PATCH;
 import retrofit2.http.POST;
-import retrofit2.http.DELETE;
+
 import retrofit2.http.Path;
 import retrofit2.http.PUT;
 
@@ -40,16 +40,16 @@ public interface ApiService {
 
     @POST("api/v1/tasks")
     Call<ApiResponse<TaskItem>> createTask(@Header("Authorization") String authorization,
-                                           @Body TaskCreateRequest request);
+            @Body TaskCreateRequest request);
 
     @PUT("api/v1/tasks/{task_id}")
     Call<ApiResponse<TaskItem>> updateTask(@Header("Authorization") String authorization,
-                                           @Path("task_id") int taskId,
-                                           @Body TaskUpdateRequest request);
+            @Path("task_id") int taskId,
+            @Body TaskUpdateRequest request);
 
     @DELETE("api/v1/tasks/{task_id}")
     Call<ApiResponse<Object>> deleteTask(@Header("Authorization") String authorization,
-                                         @Path("task_id") int taskId);
+            @Path("task_id") int taskId);
 
     // --- SESSIONS ---
     @GET("api/v1/sessions/all")
@@ -60,15 +60,18 @@ public interface ApiService {
 
     // Lấy chi tiết phiên học
     @GET("api/v1/sessions/{session_id}")
-    Call<ApiResponse<Session>> getSessionDetail(@Header("Authorization") String token, @Path("session_id") int sessionId);
+    Call<ApiResponse<Session>> getSessionDetail(@Header("Authorization") String token,
+            @Path("session_id") int sessionId);
 
     // Cập nhật toàn bộ phiên học
     @PUT("api/v1/sessions/{session_id}")
-    Call<ApiResponse<Session>> updateSession(@Header("Authorization") String token, @Path("session_id") int sessionId, @Body Session session);
+    Call<ApiResponse<Session>> updateSession(@Header("Authorization") String token, @Path("session_id") int sessionId,
+            @Body Session session);
 
     // Cập nhật một phần phiên học
     @PATCH("api/v1/sessions/{session_id}")
-    Call<ApiResponse<Session>> patchSession(@Header("Authorization") String token, @Path("session_id") int sessionId, @Body Session session);
+    Call<ApiResponse<Session>> patchSession(@Header("Authorization") String token, @Path("session_id") int sessionId,
+            @Body Session session);
 
     // Xóa phiên học
     @DELETE("api/v1/sessions/{session_id}")
@@ -85,40 +88,42 @@ public interface ApiService {
 
     // --- api/v1/shop ---
     @POST("api/v1/shop")
-    Call<ApiResponse<ShopItemResponse>> createShopItem(@Header("Authorization") String token, @Body ShopCreateRequest request);
+    Call<ApiResponse<ShopItemResponse>> createShopItem(@Header("Authorization") String token,
+            @Body ShopCreateRequest request);
 
     @GET("api/v1/shop")
     Call<ApiResponse<List<ShopItemResponse>>> getAllShopItems(
             @Header("Authorization") String token,
             @Query("sort_params") String sortParams,
-            @Query("pagination_params") String paginationParams
-    );
+            @Query("pagination_params") String paginationParams);
 
     @GET("api/v1/shop/purchased")
     Call<ApiResponse<List<ShopItemResponse>>> getPurchasedShopItems(
             @Header("Authorization") String token,
             @Query("sort_params") String sortParams,
-            @Query("pagination_params") String paginationParams
-    );
+            @Query("pagination_params") String paginationParams);
 
     @GET("api/v1/shop/not-purchased")
     Call<ApiResponse<List<ShopItemResponse>>> getNotPurchasedShopItems(
             @Header("Authorization") String token,
             @Query("sort_params") String sortParams,
-            @Query("pagination_params") String paginationParams
-    );
+            @Query("pagination_params") String paginationParams);
 
     @GET("api/v1/shop/{shop_id}")
-    Call<ApiResponse<ShopItemResponse>> getShopItemDetail(@Header("Authorization") String token, @Path("shop_id") int shopId);
+    Call<ApiResponse<ShopItemResponse>> getShopItemDetail(@Header("Authorization") String token,
+            @Path("shop_id") int shopId);
 
     @GET("api/v1/shop/{shop_id}/status")
-    Call<ApiResponse<ShopStatusResponse>> getShopItemStatus(@Header("Authorization") String token, @Path("shop_id") int shopId);
+    Call<ApiResponse<ShopStatusResponse>> getShopItemStatus(@Header("Authorization") String token,
+            @Path("shop_id") int shopId);
 
     @POST("api/v1/shop/{shop_id}/purchase")
-    Call<ApiResponse<Void>> purchaseShopItem(@Header("Authorization") String token, @Path("shop_id") int shopId, @Body ShopPurchaseRequest request);
+    Call<ApiResponse<Void>> purchaseShopItem(@Header("Authorization") String token, @Path("shop_id") int shopId,
+            @Body ShopPurchaseRequest request);
 
     @PUT("api/v1/shop/{shop_id}")
-    Call<ApiResponse<ShopItemResponse>> updateShopItem(@Header("Authorization") String token, @Path("shop_id") int shopId, @Body ShopUpdateRequest request);
+    Call<ApiResponse<ShopItemResponse>> updateShopItem(@Header("Authorization") String token,
+            @Path("shop_id") int shopId, @Body ShopUpdateRequest request);
 
     @DELETE("api/v1/shop/{shop_id}")
     Call<ApiResponse<Void>> deleteShopItem(@Header("Authorization") String token, @Path("shop_id") int shopId);
@@ -144,51 +149,44 @@ public interface ApiService {
             @Query("page") Integer page,
             @Query("page_size") Integer pageSize,
             @Query("sort_by") String sortBy,
-            @Query("sort_order") String sortOrder
-    );
+            @Query("sort_order") String sortOrder);
 
     // 5. Lấy Streak Record theo ngày cụ thể
     @GET("api/v1/statistics/streak/by-date")
     Call<ApiResponse<StreakRecordResponse>> getStreakByDate(
             @Header("Authorization") String token,
-            @Query("date") Double date
-    );
+            @Query("date") Double date);
 
     // 6. Tạo/Cập nhật Streak Record (upsert)
     @POST("api/v1/statistics/streak")
     Call<ApiResponse<StreakRecordResponse>> upsertStreakRecord(
             @Header("Authorization") String token,
-            @Body StreakRecordRequest request
-    );
+            @Body StreakRecordRequest request);
 
     // 7. Lấy Streak Record theo ID
     @GET("api/v1/statistics/streak/{streak_id}")
     Call<ApiResponse<StreakRecordResponse>> getStreakById(
             @Header("Authorization") String token,
-            @Path("streak_id") int streakId
-    );
+            @Path("streak_id") int streakId);
 
     // 8. Cập nhật Streak Record
     @PUT("api/v1/statistics/streak/{streak_id}")
     Call<ApiResponse<StreakRecordResponse>> updateStreakRecord(
             @Header("Authorization") String token,
             @Path("streak_id") int streakId,
-            @Body StreakRecordRequest request
-    );
+            @Body StreakRecordRequest request);
 
     @PATCH("api/v1/statistics/streak/{streak_id}")
     Call<ApiResponse<StreakRecordResponse>> patchStreakRecord(
             @Header("Authorization") String token,
             @Path("streak_id") int streakId,
-            @Body StreakRecordRequest request
-    );
+            @Body StreakRecordRequest request);
 
     // 9. Xóa Streak Record
     @DELETE("api/v1/statistics/streak/{streak_id}")
     Call<ApiResponse<Void>> deleteStreakRecord(
             @Header("Authorization") String token,
-            @Path("streak_id") int streakId
-    );
+            @Path("streak_id") int streakId);
 
     // --- DTO Classes ---
 
@@ -246,6 +244,18 @@ public interface ApiService {
             this.firebaseIdToken = firebaseIdToken;
         }
     }
+
+    class RefreshTokenRequest {
+        @SerializedName("refresh_token")
+        public String refreshToken;
+
+        public RefreshTokenRequest(String refreshToken) {
+            this.refreshToken = refreshToken;
+        }
+    }
+
+    @POST("api/auth/user-entity/refresh-token")
+    Call<ApiResponse<LoginResponseData>> refreshToken(@Body RefreshTokenRequest request);
 
     class UserResponseData {
         @SerializedName("user_id")
@@ -391,15 +401,15 @@ public interface ApiService {
         public int orderIndex;
 
         public TaskCreateRequest(String title,
-                                 String description,
-                                 String priority,
-                                 long taskDate,
-                                 int isCompleted,
-                                 long completedAt,
-                                 int totalTimeSpent,
-                                 int estimatedSessions,
-                                 int actualSessions,
-                                 int orderIndex) {
+                String description,
+                String priority,
+                long taskDate,
+                int isCompleted,
+                long completedAt,
+                int totalTimeSpent,
+                int estimatedSessions,
+                int actualSessions,
+                int orderIndex) {
             this.title = title;
             this.description = description;
             this.priority = priority;
@@ -437,15 +447,15 @@ public interface ApiService {
         public int orderIndex;
 
         public TaskUpdateRequest(String title,
-                                 String description,
-                                 String priority,
-                                 long taskDate,
-                                 int isCompleted,
-                                 long completedAt,
-                                 int totalTimeSpent,
-                                 int estimatedSessions,
-                                 int actualSessions,
-                                 int orderIndex) {
+                String description,
+                String priority,
+                long taskDate,
+                int isCompleted,
+                long completedAt,
+                int totalTimeSpent,
+                int estimatedSessions,
+                int actualSessions,
+                int orderIndex) {
             this.title = title;
             this.description = description;
             this.priority = priority;

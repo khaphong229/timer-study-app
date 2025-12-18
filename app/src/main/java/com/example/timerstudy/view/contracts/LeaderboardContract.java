@@ -20,6 +20,8 @@ public interface LeaderboardContract {
         void updateCurrentUserRank(int rank, String name, int score);
 
         void showEmptyState();
+
+        void showLoginRequiredDialog();
     }
 
     interface Presenter {

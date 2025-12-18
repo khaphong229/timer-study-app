@@ -31,19 +31,14 @@ public class LeaderboardFragment extends Fragment implements LeaderboardContract
 
     private static final String TAG = "LeaderboardFragment";
 
-    // Tabs
     private TextView tabToday, tabWeek, tabAllTime;
-    // Podium views
     private CardView cvAvatar1, cvAvatar2, cvAvatar3;
     private TextView tvName1, tvScore1, tvName2, tvScore2, tvName3, tvScore3;
-    // List
     private RecyclerView rvLeaderboard;
     private View listContainer;
     private LeaderboardAdapter adapter;
-    // Bottom rank
     private TextView tvMyRank, tvMyName, tvMyLevel, tvMyScore;
 
-    // Loading
     private View loadingOverlay;
 
     private LeaderboardPresenter presenter;
@@ -60,28 +55,20 @@ public class LeaderboardFragment extends Fragment implements LeaderboardContract
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        android.util.Log.d(TAG, "=== LEADERBOARD FRAGMENT CREATED ===");
-
         initViews(view);
         initPresenter();
         setupRecycler();
         setupTabs();
 
-        // Debug user state trước khi load
         UserManager.getInstance(requireContext()).debugUserState();
-
-        // Default load: all_time + focus_time
-        android.util.Log.d(TAG, "Loading leaderboard with period: all_time, metric: " + currentMetric);
         presenter.loadLeaderboard("all_time", currentMetric);
     }
 
     private void initViews(View view) {
-        // Tabs
         tabToday = view.findViewById(R.id.tabToday);
         tabWeek = view.findViewById(R.id.tabWeek);
         tabAllTime = view.findViewById(R.id.tabAllTime);
 
-        // Podium
         cvAvatar1 = view.findViewById(R.id.cvAvatar1);
         cvAvatar2 = view.findViewById(R.id.cvAvatar2);
         cvAvatar3 = view.findViewById(R.id.cvAvatar3);
@@ -93,12 +80,10 @@ public class LeaderboardFragment extends Fragment implements LeaderboardContract
         tvName3 = view.findViewById(R.id.tvName3);
         tvScore3 = view.findViewById(R.id.tvScore3);
 
-        // List
         rvLeaderboard = view.findViewById(R.id.rvLeaderboard);
         listContainer = view.findViewById(R.id.layoutList);
         loadingOverlay = view.findViewById(R.id.loadingOverlay);
 
-        // Bottom rank
         tvMyRank = view.findViewById(R.id.tvMyRank);
         tvMyName = view.findViewById(R.id.tvMyName);
         tvMyLevel = view.findViewById(R.id.tvMyLevel);
@@ -132,7 +117,6 @@ public class LeaderboardFragment extends Fragment implements LeaderboardContract
     }
 
     private void selectTab(String period) {
-        // Simple visual selection: only Today has bg drawable in layout; we toggle
         // colors/background
         resetTabs();
         switch (period) {
@@ -161,8 +145,6 @@ public class LeaderboardFragment extends Fragment implements LeaderboardContract
         tabAllTime.setTextColor(inactiveColor);
     }
 
-    // LeaderboardContract.View implementations
-
     @Override
     public void showLoading() {
         if (loadingOverlay != null) {
@@ -181,7 +163,6 @@ public class LeaderboardFragment extends Fragment implements LeaderboardContract
     public void showLeaderboard(ApiService.LeaderboardData data) {
         android.util.Log.d(TAG,
                 "showLeaderboard called with " + (data.entries != null ? data.entries.size() : 0) + " entries");
-        // The actual UI update happens in updatePodium and updateList
     }
 
     @Override
@@ -192,7 +173,6 @@ public class LeaderboardFragment extends Fragment implements LeaderboardContract
 
     @Override
     public void updatePodium(List<ApiService.LeaderboardEntry> topThree) {
-        // Fill top 3 safely
         fillPodiumSlot(0, topThree.size() > 0 ? topThree.get(0) : null);
         fillPodiumSlot(1, topThree.size() > 1 ? topThree.get(1) : null);
         fillPodiumSlot(2, topThree.size() > 2 ? topThree.get(2) : null);
@@ -256,7 +236,6 @@ public class LeaderboardFragment extends Fragment implements LeaderboardContract
     public void updateCurrentUserRank(int rank, String name, int score) {
         tvMyRank.setText(String.valueOf(rank));
         tvMyName.setText(name != null ? name : "You");
-        // Level not provided by API, keep "No Level"
         tvMyScore.setText(formatScore(score));
     }
 
@@ -264,15 +243,12 @@ public class LeaderboardFragment extends Fragment implements LeaderboardContract
     public void showEmptyState() {
         adapter.setEntries(java.util.Collections.emptyList());
         Toast.makeText(requireContext(), "No entries", Toast.LENGTH_SHORT).show();
-        // Clear podium
         updatePodium(java.util.Collections.emptyList());
-        // Reset bottom rank
         tvMyRank.setText("-");
         tvMyName.setText("You");
         tvMyScore.setText("-");
     }
 
-    // Helpers
     private int getScoreByMetric(ApiService.LeaderboardEntry entry) {
         switch (currentMetric) {
             case "focus_time":
@@ -298,6 +274,24 @@ public class LeaderboardFragment extends Fragment implements LeaderboardContract
         if (score >= 1_000)
             return String.format("%.1fK", score / 1_000.0);
         return String.valueOf(score);
+    }
+
+    @Override
+    public void showLoginRequiredDialog() {
+        new android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Login Required")
+                .setMessage("Please login with Facebook to view the leaderboard.")
+                .setPositiveButton("Login", (dialog, which) -> {
+                    try {
+                        androidx.navigation.Navigation.findNavController(requireView())
+                                .navigate(R.id.profileFragment);
+                    } catch (Exception e) {
+                        Toast.makeText(requireContext(), "Please go to Profile to login", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .setCancelable(false)
+                .show();
     }
 
     @Override

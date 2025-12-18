@@ -49,7 +49,8 @@ public class MainActivity extends AppCompatActivity {
             for (android.content.pm.Signature signature : info.signatures) {
                 java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA");
                 md.update(signature.toByteArray());
-                android.util.Log.d("KeyHash", android.util.Base64.encodeToString(md.digest(), android.util.Base64.DEFAULT));
+                android.util.Log.d("KeyHash",
+                        android.util.Base64.encodeToString(md.digest(), android.util.Base64.DEFAULT));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -104,6 +105,19 @@ public class MainActivity extends AppCompatActivity {
         navigationRail.setOnItemSelectedListener(item -> {
             return NavigationUI.onNavDestinationSelected(item, navController);
         });
+
+        com.example.timerstudy.utils.UserManager.getInstance(this)
+                .checkAndRefreshToken(new com.example.timerstudy.data.repository.UserRepository.SyncCallback() {
+                    @Override
+                    public void onSuccess(com.example.timerstudy.model.User user) {
+                        Log.d("MainActivity", "Token check/refresh successful");
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        Log.e("MainActivity", "Token check/refresh failed: " + message);
+                    }
+                });
     }
 
     /**

@@ -32,18 +32,11 @@ public class LeaderboardPresenter implements LeaderboardContract.Presenter {
         this.currentPeriod = period;
         this.currentMetric = metric;
 
-        Log.d(TAG, "=== LOAD LEADERBOARD START ===");
-
-        // Debug user state trước khi check
         userManager.debugUserState();
 
         User currentUser = userManager.getCurrentUser();
 
-        Log.d(TAG, "Checking user login status...");
-
-        // Check if user exists
         if (currentUser == null) {
-            Log.e(TAG, "ERROR: currentUser is NULL");
             view.hideLoading();
             view.showError("User data not found. Please login again.");
             return;
@@ -51,48 +44,40 @@ public class LeaderboardPresenter implements LeaderboardContract.Presenter {
 
         Log.d(TAG, "User found: " + currentUser.getName());
         Log.d(TAG, "IsLoggedIn: " + currentUser.isLoggedIn());
-        Log.d(TAG, "LoginProvider: " + currentUser.getLoginProvider());
 
-        // Check if user is logged in
         if (!currentUser.isLoggedIn()) {
-            Log.e(TAG, "ERROR: User not logged in. isLoggedIn() = false");
             view.hideLoading();
-            view.showError("Please login with Facebook to view leaderboard");
+            view.showLoginRequiredDialog();
             return;
         }
 
-        Log.d(TAG, "User is logged in");
-
-        // Check if access token exists
         String accessToken = currentUser.getAccessToken();
         if (accessToken == null || accessToken.isEmpty()) {
-            Log.e(TAG, "ERROR: Access token is " + (accessToken == null ? "NULL" : "EMPTY"));
             view.hideLoading();
             view.showError("Authentication token missing. Please logout and login again.");
             return;
         }
 
-        Log.d(TAG, "Access token exists: " + accessToken.substring(0, Math.min(20, accessToken.length())) + "...");
-
-        // Check if token is expired
         if (currentUser.isTokenExpired()) {
-            Log.e(TAG, "ERROR: Access token expired");
-            view.hideLoading();
-            view.showError("Session expired. Please login again");
+            view.showLoading();
+            userManager.checkAndRefreshToken(new com.example.timerstudy.data.repository.UserRepository.SyncCallback() {
+                @Override
+                public void onSuccess(User user) {
+                    loadLeaderboard(period, metric);
+                }
+
+                @Override
+                public void onError(String message) {
+                    view.hideLoading();
+                    view.showError("Session expired. Please login again");
+                }
+            });
             return;
         }
-
-        Log.d(TAG, "Token is valid. Proceeding with API call...");
 
         view.showLoading();
 
         String authHeader = "Bearer " + accessToken;
-
-        Log.d(TAG, "=== API CALL PARAMETERS ===");
-        Log.d(TAG, "Period: " + period);
-        Log.d(TAG, "Metric: " + metric);
-        Log.d(TAG, "Auth Header: " + authHeader.substring(0, Math.min(50, authHeader.length())) + "...");
-        Log.d(TAG, "===========================");
 
         Call<ApiService.ApiResponse<ApiService.LeaderboardData>> call = apiService
                 .getFacebookFriendsLeaderboard(authHeader, period, metric, 50, true);
@@ -105,11 +90,6 @@ public class LeaderboardPresenter implements LeaderboardContract.Presenter {
 
                 if (response.isSuccessful() && response.body() != null && response.body().success) {
                     ApiService.LeaderboardData data = response.body().data;
-
-                    Log.d(TAG, "=== LEADERBOARD SUCCESS ===");
-                    Log.d(TAG, "Total participants: " + data.totalParticipants);
-                    Log.d(TAG, "Current user rank: " + data.currentUserRank);
-                    Log.d(TAG, "Entries count: " + data.entries.size());
 
                     if (data.entries == null || data.entries.isEmpty()) {
                         view.showEmptyState();
@@ -140,7 +120,6 @@ public class LeaderboardPresenter implements LeaderboardContract.Presenter {
         List<ApiService.LeaderboardEntry> topThree = new ArrayList<>();
         List<ApiService.LeaderboardEntry> restOfList = new ArrayList<>();
 
-        // Split entries into top 3 and rest
         for (int i = 0; i < data.entries.size(); i++) {
             if (i < 3) {
                 topThree.add(data.entries.get(i));
@@ -149,13 +128,10 @@ public class LeaderboardPresenter implements LeaderboardContract.Presenter {
             }
         }
 
-        // Update podium (top 3)
         view.updatePodium(topThree);
 
-        // Update list (rank 4+)
         view.updateList(restOfList);
 
-        // Update current user rank
         ApiService.LeaderboardEntry currentUserEntry = findCurrentUserEntry(data.entries);
         if (currentUserEntry != null) {
             view.updateCurrentUserRank(
@@ -202,6 +178,5 @@ public class LeaderboardPresenter implements LeaderboardContract.Presenter {
 
     @Override
     public void onDestroy() {
-        // Cleanup if needed
     }
 }
