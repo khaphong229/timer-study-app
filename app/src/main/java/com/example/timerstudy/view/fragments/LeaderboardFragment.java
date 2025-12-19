@@ -148,38 +148,47 @@ public class LeaderboardFragment extends Fragment implements LeaderboardContract
 
     @Override
     public void showLoading() {
-        if (loadingOverlay != null) {
+        if (loadingOverlay != null && isAdded()) {
             loadingOverlay.setVisibility(View.VISIBLE);
         }
     }
 
     @Override
     public void hideLoading() {
-        if (loadingOverlay != null) {
+        if (loadingOverlay != null && isAdded()) {
             loadingOverlay.setVisibility(View.GONE);
         }
     }
 
     @Override
     public void showLeaderboard(ApiService.LeaderboardData data) {
+        if (!isAdded())
+            return;
         android.util.Log.d(TAG,
                 "showLeaderboard called with " + (data.entries != null ? data.entries.size() : 0) + " entries");
     }
 
     @Override
     public void showError(String message) {
+        if (!isAdded())
+            return;
         android.util.Log.e(TAG, "Showing error: " + message);
         Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void updatePodium(List<ApiService.LeaderboardEntry> topThree) {
+        if (!isAdded())
+            return;
         fillPodiumSlot(0, topThree.size() > 0 ? topThree.get(0) : null);
         fillPodiumSlot(1, topThree.size() > 1 ? topThree.get(1) : null);
         fillPodiumSlot(2, topThree.size() > 2 ? topThree.get(2) : null);
     }
 
     private void fillPodiumSlot(int index, ApiService.LeaderboardEntry entry) {
+        if (!isAdded() || getContext() == null)
+            return;
+
         CardView avatarView;
         TextView tvName, tvScore;
         switch (index) {
@@ -199,7 +208,13 @@ public class LeaderboardFragment extends Fragment implements LeaderboardContract
                 tvScore = tvScore3;
                 break;
         }
+
+        if (avatarView == null || tvName == null || tvScore == null)
+            return;
+
         ImageView iv = (ImageView) avatarView.getChildAt(0);
+        if (iv == null)
+            return;
 
         if (entry == null) {
             tvName.setText("—");
@@ -212,16 +227,22 @@ public class LeaderboardFragment extends Fragment implements LeaderboardContract
         int score = getScoreByMetric(entry);
         tvScore.setText(formatScore(score));
 
-        if (entry.profilePictureUrl != null && !entry.profilePictureUrl.isEmpty()) {
+        if (entry.profilePictureUrl != null && !entry.profilePictureUrl.isEmpty() && isAdded()
+                && getContext() != null) {
             RequestOptions requestOptions = new RequestOptions()
                     .transform(new CircleCrop())
                     .placeholder(R.drawable.person_24dp)
                     .error(R.drawable.person_24dp);
 
-            Glide.with(this)
-                    .load(entry.profilePictureUrl)
-                    .apply(requestOptions)
-                    .into(iv);
+            try {
+                Glide.with(this)
+                        .load(entry.profilePictureUrl)
+                        .apply(requestOptions)
+                        .into(iv);
+            } catch (Exception e) {
+                android.util.Log.e(TAG, "Error loading image with Glide", e);
+                iv.setImageResource(R.drawable.person_24dp);
+            }
         } else {
             iv.setImageResource(R.drawable.person_24dp);
         }
@@ -229,12 +250,16 @@ public class LeaderboardFragment extends Fragment implements LeaderboardContract
 
     @Override
     public void updateList(List<ApiService.LeaderboardEntry> entries) {
+        if (!isAdded())
+            return;
         adapter.setMetric(currentMetric);
         adapter.setEntries(entries);
     }
 
     @Override
     public void updateCurrentUserRank(int rank, String name, int score) {
+        if (!isAdded())
+            return;
         tvMyRank.setText(String.valueOf(rank));
         tvMyName.setText(name != null ? name : "You");
         tvMyScore.setText(formatScore(score));
@@ -242,6 +267,8 @@ public class LeaderboardFragment extends Fragment implements LeaderboardContract
 
     @Override
     public void showEmptyState() {
+        if (!isAdded())
+            return;
         adapter.setEntries(java.util.Collections.emptyList());
         Toast.makeText(requireContext(), "No entries", Toast.LENGTH_SHORT).show();
         updatePodium(java.util.Collections.emptyList());
@@ -279,15 +306,22 @@ public class LeaderboardFragment extends Fragment implements LeaderboardContract
 
     @Override
     public void showLoginRequiredDialog() {
+        if (!isAdded() || getContext() == null)
+            return;
         new android.app.AlertDialog.Builder(requireContext())
                 .setTitle("Login Required")
                 .setMessage("Please login with Facebook to view the leaderboard.")
                 .setPositiveButton("Login", (dialog, which) -> {
                     try {
-                        androidx.navigation.Navigation.findNavController(requireView())
-                                .navigate(R.id.profileFragment);
+                        if (isAdded() && getView() != null) {
+                            androidx.navigation.Navigation.findNavController(requireView())
+                                    .navigate(R.id.profileFragment);
+                        }
                     } catch (Exception e) {
-                        Toast.makeText(requireContext(), "Please go to Profile to login", Toast.LENGTH_SHORT).show();
+                        if (isAdded()) {
+                            Toast.makeText(requireContext(), "Please go to Profile to login", Toast.LENGTH_SHORT)
+                                    .show();
+                        }
                     }
                 })
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
@@ -297,11 +331,15 @@ public class LeaderboardFragment extends Fragment implements LeaderboardContract
 
     @Override
     public void showRetryDialog(String errorMessage) {
+        if (!isAdded() || getContext() == null)
+            return;
         new android.app.AlertDialog.Builder(requireContext())
                 .setTitle("Error Loading Leaderboard")
                 .setMessage(errorMessage)
                 .setPositiveButton("Retry", (dialog, which) -> {
-                    presenter.loadLeaderboard(getCurrentPeriod(), currentMetric);
+                    if (isAdded()) {
+                        presenter.loadLeaderboard(getCurrentPeriod(), currentMetric);
+                    }
                 })
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                 .setCancelable(false)

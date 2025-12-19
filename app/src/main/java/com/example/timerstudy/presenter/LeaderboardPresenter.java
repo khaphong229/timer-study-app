@@ -86,6 +86,10 @@ public class LeaderboardPresenter implements LeaderboardContract.Presenter {
             @Override
             public void onResponse(Call<ApiService.ApiResponse<ApiService.LeaderboardData>> call,
                     Response<ApiService.ApiResponse<ApiService.LeaderboardData>> response) {
+
+                if (view == null)
+                    return;
+
                 view.hideLoading();
 
                 if (response.isSuccessful() && response.body() != null && response.body().success) {
@@ -109,6 +113,9 @@ public class LeaderboardPresenter implements LeaderboardContract.Presenter {
 
             @Override
             public void onFailure(Call<ApiService.ApiResponse<ApiService.LeaderboardData>> call, Throwable t) {
+                if (view == null)
+                    return;
+
                 view.hideLoading();
                 Log.e(TAG, "Network error", t);
                 view.showRetryDialog("Network error: " + t.getMessage());
@@ -117,6 +124,9 @@ public class LeaderboardPresenter implements LeaderboardContract.Presenter {
     }
 
     private void updatePodiumAndList(ApiService.LeaderboardData data) {
+        if (view == null)
+            return;
+
         List<ApiService.LeaderboardEntry> topThree = new ArrayList<>();
         List<ApiService.LeaderboardEntry> restOfList = new ArrayList<>();
 

@@ -47,17 +47,21 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<LeaderboardAdapter.
         int score = getScoreByMetric(entry);
         holder.tvPoints.setText(formatScore(score));
 
-        // avatar
         if (entry.profilePictureUrl != null && !entry.profilePictureUrl.isEmpty()) {
             com.bumptech.glide.request.RequestOptions requestOptions = new com.bumptech.glide.request.RequestOptions()
                     .transform(new CircleCrop())
                     .placeholder(R.drawable.person_24dp)
                     .error(R.drawable.person_24dp);
 
-            Glide.with(holder.itemView.getContext())
-                    .load(entry.profilePictureUrl)
-                    .apply(requestOptions)
-                    .into(holder.ivAvatar);
+            try {
+                Glide.with(holder.itemView.getContext())
+                        .load(entry.profilePictureUrl)
+                        .apply(requestOptions)
+                        .into(holder.ivAvatar);
+            } catch (Exception e) {
+                // Fallback to default image if Glide fails
+                holder.ivAvatar.setImageResource(R.drawable.person_24dp);
+            }
         } else {
             holder.ivAvatar.setImageResource(R.drawable.person_24dp);
         }
